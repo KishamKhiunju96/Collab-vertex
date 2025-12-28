@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Additional ignores to prevent recursion:
+    "node_modules/**",
+    ".git/**",
+    "dist/**",
+    ".cache/**",
+    "coverage/**",
   ]),
 ]);
 
