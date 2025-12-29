@@ -1,19 +1,49 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
-    return (
-        <section className="w-full h-screen bg-gray-700 text-white text-center py-24 px-6 flex flex-col justify-center items-center">
-            <h1 className="text-3xl font-bold">
-                Welcome to CollabVertex. Connect Brands and Influencers
-            </h1>
-            <p className="text-lg text-gray-200 max-w-2xl mx-auto mb-8">
-                Discover the ultimate platform that bridges the gap between brands and influencers.
-                Collaborate, create, and amplify your reach like never before.
-            </p>
-            <div className="flex justify-center gap-4">
-                <Link href="/Register" className="bg-white text-black text-center rounded-lg font-medium px-6 py-3">Get Started</Link>
-                <Link href="/Login" className="bg-white text-black text-center rounded-lg font-medium px-6 py-3">Login</Link>
-            </div>
-        </section>
-    )
+  return (
+    <section className="relative w-full h-screen overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"/>
+      {/* Background Image */}
+      <Image
+        src="/images/Brand.jpg"   // put image in public/images
+        alt="CollabVertex Hero Background"
+        fill
+        priority
+        className="object-cover"
+      />
+
+      {/* Overlay (optional for readability) */}
+      <div className="absolute inset-0 bg-black/40" />
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-6 text-white">
+        <h1 className="text-6xl font-extrabold leading-tight">
+          Welcome to CollabVertex
+        </h1>
+
+        <p className="text-2xl max-w-2xl mb-6">
+          Discover the ultimate platform that bridges the gap between brands and influencers.
+          Collaborate, create, and amplify your reach like never before.
+        </p>
+
+        <div className="flex gap-4">
+          <Link
+            href="/register"
+            className="bg-red-400 text-red-950 hover:bg-red-500 px-6 py-3 rounded-lg font-medium"
+          >
+            Get Started
+          </Link>
+
+          <Link
+            href="/login"
+            className="bg-red-300 text-red-950 hover:bg-red-500 px-6 py-3 rounded-lg font-medium"
+          >
+            Login
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
 }

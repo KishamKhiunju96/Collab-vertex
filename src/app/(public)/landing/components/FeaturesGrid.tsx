@@ -12,8 +12,8 @@ const features: Feature[] = [
 
 export default function FeaturesGrid() {
   return (
-    <section className="py-20 px-6 bg-gray-400 h-screen md:h-[50vh] flex flex-col justify-center">
-      <h2 className="text-3xl text-white font-bold text-center mb-12">
+    <section className="py-20 px-6 bg-gray-200 h-screen md:h-[50vh] flex flex-col justify-center">
+      <h2 className="text-3xl text-black font-bold text-center mb-12">
         Platform Features
       </h2>
 
@@ -21,10 +21,10 @@ export default function FeaturesGrid() {
         {features.map((f) => (
           <div
             key={f.title}
-            className="bg-gray-800 p-6 rounded-xl shadow"
+            className="bg-white p-6 rounded-xl shadow"
           >
-            <h3 className="font-semibold text-xl mb-2">{f.title}</h3>
-            <p className="text-white">{f.desc}</p>
+            <h3 className="font-semibold text-black text-xl mb-2">{f.title}</h3>
+            <p className="text-black">{f.desc}</p>
           </div>
         ))}
       </div>
