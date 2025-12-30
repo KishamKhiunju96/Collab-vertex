@@ -21,7 +21,7 @@ export default function FeaturesGrid() {
         {features.map((f) => (
           <div
             key={f.title}
-            className="bg-white p-6 rounded-xl shadow transition-transform duration-800 hover:scale-105"
+            className="bg-elevated p-6 rounded-lg shadow-md  transition-transform duration-800 hover:scale-105"
           >
             <h3 className="font-semibold text-black text-xl mb-2">{f.title}</h3>
             <p className="text-black">{f.desc}</p>

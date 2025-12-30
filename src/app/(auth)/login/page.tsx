@@ -1,11 +1,12 @@
-import React from 'react'
+// import ForgetPasswordLink from "./components/ForgotPasswordLink";
+import LoginForm from "./components/LoginForm";
 
-const page = () => {
+
+export default function LoginPage(){
   return (
-    <div>
-      
-    </div>
-  )
+    <main>
+      <LoginForm/>
+      {/*<ForgetPasswordLink/>*/}
+    </main>
+  );
 }
-
-export default page

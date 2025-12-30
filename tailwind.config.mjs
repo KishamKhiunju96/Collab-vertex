@@ -45,7 +45,7 @@ const config = {
           /* App Surfaces */
           base: "#FFFFFF",        // Root background (pure white)
           // light: "#E0FFFF",
-          light: "#C0C0C0",// Main app background (light cyan)
+          light: "#DBD7D2",// Main app background (light cyan)
           subtle: "#F1F5F9",      // Light section separation
           muted: "#E2E8F0",       // Borders / dividers / soft blocks
 

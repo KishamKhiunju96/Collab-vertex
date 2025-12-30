@@ -5,11 +5,11 @@ export default function RolePreviewCards() {
                 Role Preview Cards
             </h2>
             <div className="grid md:grid-cols -2 gap-8 max-w-screen-xl mx-auto ">
-                <div className="bg-white p-8 rounded-xl shadow transform transition-transform duration-800 hover:scale-105">
+                <div className="bg-elevated p-6 rounded-lg shadow-md transform transition-transform duration-800 hover:scale-105">
                     <h3 className="text-2xl text-gray-950 font-semibold mb-4">For Brands</h3>
                     <p className="text-gray-800">Discover Influencers, Manage Events</p>
                 </div>
-                <div className="bg-white p-8 rounded-xl shadow transform transition-transform duration-800 hover:scale-105">
+                <div className="bg-elevated p-6 rounded-lg shadow-md transform transition-transform duration-800 hover:scale-105">
                     <h3 className="text-2xl text-gray-950 font-semibold mb-4">For Influencers</h3>
                     <p className="text-gray-800">Find Events, Grow Your Network</p>
                 </div>

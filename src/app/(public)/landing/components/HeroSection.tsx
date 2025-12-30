@@ -33,7 +33,7 @@ export default function HeroSection() {
             href="/select-role"
             className="bg-red-400 text-red-950 hover:bg-red-500 px-6 py-3 rounded-lg font-medium"
           >
-            Get Started
+            Get Started <span className="font-black">↑</span>
           </Link>
 
           <Link
