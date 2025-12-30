@@ -12,16 +12,16 @@ const features: Feature[] = [
 
 export default function FeaturesGrid() {
   return (
-    <section className="py-20 px-6 bg-gray-200 h-screen md:h-[50vh] flex flex-col justify-center">
-      <h2 className="text-3xl text-black font-bold text-center mb-12">
+    <section className="py-20 px-6 bg-background-light h-screen md:h-[50vh] flex flex-col justify-center">
+      <h2 className=" font- text-3xl text-black font-bold text-center mb-12">
         Platform Features
       </h2>
 
-      <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-4 gap-8 max-w-screen-xl mx-auto ">
         {features.map((f) => (
           <div
             key={f.title}
-            className="bg-white p-6 rounded-xl shadow"
+            className="bg-white p-6 rounded-xl shadow transition-transform duration-800 hover:scale-105"
           >
             <h3 className="font-semibold text-black text-xl mb-2">{f.title}</h3>
             <p className="text-black">{f.desc}</p>

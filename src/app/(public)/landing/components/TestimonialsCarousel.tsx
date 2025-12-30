@@ -7,7 +7,7 @@ const testimonials = [
 
 export default function TestimonialsCarousel() {
     return(
-        <section className="py-20 px-6 bg-gray-200">
+        <section className="py-20 px-6 bg-background-light">
             <h2 className="text-3xl font-bold text-black text-center mb-12">What Users Says</h2>
             <div className="max-w-3xl mx-auto text-center">
                 {testimonials.map((testimonial, index) => (

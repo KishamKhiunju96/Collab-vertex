@@ -1,10 +1,10 @@
 // tailwind.config.js
 
 // ESM Imports
-import defaultTheme from 'tailwindcss/defaultTheme';
 import typography from '@tailwindcss/typography';
 import forms from '@tailwindcss/forms';
 import aspectRatio from '@tailwindcss/aspect-ratio';
+import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 
 /** @type {import('tailwindcss').Config} */
 // FIX: Assign the config object to a variable before using 'export default'
@@ -17,56 +17,124 @@ const config = {
 
   darkMode: 'class',
 
+
   theme: {
-    extend: {
-      // --- CUSTOM COLORS (Design Tokens for Collab-vertex) ---
-      colors: {
-        // PRIMARY (Trust, Security, Professionalism: Deep Navy Blue)
-        primary: {
-          lighter: '#3C4858',
-          DEFAULT: '#102A43',
-          darker: '#0A1C2C',
-        },
-
-        // SECONDARY/ACCENT (Creativity, Efficiency, CTAs: Vibrant Teal)
-        accent: {
-          100: '#D5F1EF',
-          DEFAULT: '#2BB4A9',
-          dark: '#1B9A93',
-        },
-
-        // NEUTRALS & SEMANTICS
-        background: '#F0F4F8',
-        card: '#FFFFFF',
-        text: {
-          DEFAULT: '#626D7A',
-          heading: '#102A43',
-          'on-primary': '#FFFFFF',
-        },
-
-        // STATUS COLORS
-        success: '#4CAF50',
-        warning: '#FFA000',
-        danger: '#D32F2F',
-        info: '#2196F3',
-      },
-
-      // --- CUSTOM FONT STACK ---
-      fontFamily: {
-        sans: ['Inter', ...defaultTheme.fontFamily.sans],
-      },
-
-      // --- CUSTOM BREAKPOINTS ---
+    container: {
+      center: true,
+      padding: "1rem",
       screens: {
-        'xs': '475px',
-        ...defaultTheme.screens,
+        "2xl": "1280px",
+      },
+    },
+
+    extend: {
+      colors: {
+        /* ==============================
+           Brand Colors
+        =============================== */
+        brand: {
+          primary: "#6366F1", // Indigo (main brand)
+          secondary: "#22C55E", // Emerald (accent / success)
+          accent: "#A855F7", // Violet highlight
+        },
+
+        /* ==============================
+           Background Colors
+        ============================== */
+        background: {
+          /* App Surfaces */
+          base: "#FFFFFF",        // Root background (pure white)
+          // light: "#E0FFFF",
+          light: "#C0C0C0",// Main app background (light cyan)
+          subtle: "#F1F5F9",      // Light section separation
+          muted: "#E2E8F0",       // Borders / dividers / soft blocks
+
+          /* Cards & Containers */
+          card: "#FFFFFF",        // Card background (light)
+          cardMuted: "#F8FAFC",   // Card variation
+          elevated: "#F9FAFB",    // Elevated surfaces
+
+          /* Dark Mode / Dark Sections */
+          dark: "#020617",        // App background (dark)
+          darkSoft: "#020617CC",  // Dark with transparency
+          darkCard: "#0F172A",    // Dark cards / modals
+          darkMuted: "#1E293B",   // Dark section separation
+
+          /* Image & Overlay Backgrounds */
+          overlayLight: "rgba(255, 255, 255, 0.6)", // Light overlay
+          overlayDark: "rgba(2, 6, 23, 0.6)",       // Dark overlay
+
+          /* Special Use */
+          glass: "rgba(255, 255, 255, 0.4)", // Glassmorphism
+        },
+        /* ==============================
+           Text Colors
+        =============================== */
+        text: {
+          primary: "#0F172A",   // Main text (light bg)
+          secondary: "#FFFFFF", // Headings / strong text on dark
+
+          tertiary: "#CBD5E1",  // 🔥 Soft text for image overlays
+          // tertiary: "#94A3B8", // Slate-400
+
+
+          inverse: "#E5E7EB",   // Body text on dark
+          muted: "#475569",     // Low-emphasis text
+          link: "#6366F1",
+        },
+
+
+        /* ==============================
+           Button Colors
+        =============================== */
+        button: {
+          primary: "#43B3AE",
+          primaryHover: "#20B2AA",
+          secondary: "#22C55E",
+          secondaryHover: "#16A34A",
+          danger: "#EF4444",
+          dangerHover: "#DC2626",
+          disabled: "#CBD5E1",
+        },
+
+        /* ==============================
+           Border & Divider
+        =============================== */
+        border: {
+          light: "#E2E8F0",
+          dark: "#1E293B",
+        },
       },
 
-      // --- CUSTOM SHADOWS ---
+      /* ==============================
+         Typography
+      =============================== */
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+      },
+
+      /* ==============================
+         Radius
+      =============================== */
+      borderRadius: {
+        xl: "0.75rem",
+        "2xl": "1rem",
+      },
+
+      /* ==============================
+         Shadows
+      =============================== */
       boxShadow: {
-        'card': '0 4px 10px rgba(16, 42, 67, 0.1)',
-        'heavy': '0 15px 30px rgba(16, 42, 67, 0.15)',
-      }
+        soft: "0 10px 30px rgba(0,0,0,0.08)",
+        card: "0 4px 20px rgba(0,0,0,0.12)",
+      },
+
+      /* ==============================
+         Animations
+      =============================== */
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
     },
   },
 
