@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
   // Disable source maps in dev to save memory
   productionBrowserSourceMaps: false,
   // Turbopack optimizations for faster compilation
-  turbopack: {},
+  turbopack: {
+    root: process.cwd(),
+  },
   // Reduce recompilation on changes
   onDemandEntries: {
     // Keep pages in memory for 60 seconds

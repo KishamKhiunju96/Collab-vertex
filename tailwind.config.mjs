@@ -4,7 +4,6 @@
 import typography from '@tailwindcss/typography';
 import forms from '@tailwindcss/forms';
 import aspectRatio from '@tailwindcss/aspect-ratio';
-import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 
 /** @type {import('tailwindcss').Config} */
 // FIX: Assign the config object to a variable before using 'export default'

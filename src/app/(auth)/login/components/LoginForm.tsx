@@ -11,7 +11,6 @@ export default function LoginForm() {
     e.preventDefault();
     console.log({ email, password, remember });
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-light px-4">
       <div className="w-full max-w-6xl h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
@@ -54,7 +53,7 @@ export default function LoginForm() {
                   onChange={(e) => setRemember(e.target.checked)}
                   className="h-4 w-4 text-green-400 rounded"
                 />
-                <span className="mt-2 text-sm text-text-primary">
+                <span className="ml-2 text-sm text-text-primary">
                   Remember me
                 </span>
               </label>
@@ -78,7 +77,7 @@ export default function LoginForm() {
             </p>
           </form>
         </div>
-        <div className="hidden md:block relative h-full w-full bg-green-50">
+        <div className="hidden md:flex relative h-full w-full overflow-hidden">
           <Image
             src="/images/collaboration.jpg"
             alt="Login "
@@ -86,8 +85,8 @@ export default function LoginForm() {
             height={400}
             className="absolute inset-0 w-full h-full object-cover scale-105"
           />
-        </div>
         <div className="absolute inset-0 bg-black/40"></div>
+        </div>
 
       </div>
     </div>
