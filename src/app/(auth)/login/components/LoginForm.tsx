@@ -63,14 +63,15 @@ export default function LoginForm() {
             </div>
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-green-400 hover:bg-green-300 text-text-primary font-semibold rounded-lg transition-transform transform hover:scale-105">
+              className="w-full py-2 px-4 bg-green-400 hover:bg-green-300 text-text-primary font-semibold rounded-lg disabled:opacity-70 transition-transform transform hover:scale-105"
+            >
               Login
             </button>
             <p className="text-center text-sm text-text-primary">
-              Don&apos;t have an account?
+              Do not have an account?
               <a
-                href="/Register"
-                className="text-red-400 px-2 font-medium hover:text-red-600 transition"
+                href="/register"
+                className="text-indigo-600 px-2 font-medium hover:underline transition"
               >
                 Register
               </a>
@@ -79,15 +80,14 @@ export default function LoginForm() {
         </div>
         <div className="hidden md:flex relative h-full w-full overflow-hidden">
           <Image
-            src="/images/collaboration.jpg"
+            src="/images/collabR.jpg"
             alt="Login "
             width={400}
             height={400}
             className="absolute inset-0 w-full h-full object-cover scale-105"
           />
-        <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-black/40"></div>
         </div>
-
       </div>
     </div>
   );
