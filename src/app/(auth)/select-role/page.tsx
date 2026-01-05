@@ -12,19 +12,16 @@ export default function SelectRolePage() {
 
   const handleContinue = () => {
     if (selectedRole) {
-      // Save the selected role for future use (e.g., dashboard, profile)
       localStorage.setItem("userRole", selectedRole);
       localStorage.setItem("collabVertexOnboarded", "true");
 
-      // Redirect to dashboard or home page
-      router.push("/dashboard"); // Change this to your actual next route
+      router.push("/dashboard");
     }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-100 py-12 px-4">
       <div className="max-w-5xl w-full">
-        {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
             Collab-vertex
@@ -37,7 +34,6 @@ export default function SelectRolePage() {
           </p>
         </div>
 
-        {/* Role Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
           <RoleCard
             role="Brand"
@@ -62,24 +58,18 @@ export default function SelectRolePage() {
           />
         </div>
 
-        {/* Continue Button */}
         <div className="text-center mt-16">
           <button
             onClick={handleContinue}
             disabled={!selectedRole}
-            className={`px-10 py-4 rounded-full text-white font-semibold text-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${
-              selectedRole === "Brand"
-                ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                : selectedRole === "Influencer"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
-                  : "bg-gray-300"
-            }`}
+            className={`px-10 py-4 rounded-full text-text-primary font-semibold text-lg transition-all transform hover:scale-105
+              shadow-lg disabled:opacity-50  ${selectedRole === "Brand"}`}
           >
             Continue as {selectedRole || "Selected Role"} →
           </button>
 
           {!selectedRole && (
-            <p className="mt-4 text-gray-500">
+            <p className="mt-4 text-text-primary">
               Please select a role to continue
             </p>
           )}

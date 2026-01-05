@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-// Define the props interface here
 interface RoleCardProps {
   role: "Brand" | "Influencer";
   title: string;
