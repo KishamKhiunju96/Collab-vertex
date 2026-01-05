@@ -12,10 +12,11 @@ export default function SelectRolePage() {
 
   const handleContinue = () => {
     if (selectedRole) {
-      localStorage.setItem("userRole", selectedRole);
-      localStorage.setItem("collabVertexOnboarded", "true");
+      // Temporarily store the selected role for the register page
+      localStorage.setItem("pendingUserRole", selectedRole);
 
-      router.push("/dashboard");
+      // Redirect to registration
+      router.push("/register");
     }
   };
 
@@ -45,7 +46,6 @@ export default function SelectRolePage() {
             selected={selectedRole === "Brand"}
             onClick={() => setSelectedRole("Brand")}
           />
-
           <RoleCard
             role="Influencer"
             title="I'm an Influencer"
@@ -62,14 +62,23 @@ export default function SelectRolePage() {
           <button
             onClick={handleContinue}
             disabled={!selectedRole}
-            className={`px-10 py-4 rounded-full text-text-primary font-semibold text-lg transition-all transform hover:scale-105
-              shadow-lg disabled:opacity-50  ${selectedRole === "Brand"}`}
+            className={`
+              px-10 py-4 rounded-full text-white font-semibold text-lg transition-all transform hover:scale-105 shadow-lg
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+              ${
+                selectedRole === "Brand"
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  : selectedRole === "Influencer"
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                    : "bg-gray-400"
+              }
+            `}
           >
             Continue as {selectedRole || "Selected Role"} →
           </button>
 
           {!selectedRole && (
-            <p className="mt-4 text-text-primary">
+            <p className="mt-4 text-gray-600">
               Please select a role to continue
             </p>
           )}
