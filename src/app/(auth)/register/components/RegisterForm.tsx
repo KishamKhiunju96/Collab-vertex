@@ -33,9 +33,7 @@ export default function RegisterForm() {
     if (name.length < 2) newErrors.name = "Name must be at least 2 characters";
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      newErrors.email = "Please enter a valid email";
-    }
+    if (!emailRegex.test(email)) newErrors.email = "Please enter a valid email";
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -56,6 +54,8 @@ export default function RegisterForm() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+
+    // Mock API call
     await new Promise((r) => setTimeout(r, 1500));
 
     localStorage.setItem(
@@ -67,7 +67,7 @@ export default function RegisterForm() {
       }),
     );
 
-    setSuccess(true);
+    setSuccess(true); // show success message
 
     setTimeout(() => {
       router.push("/login?registered=true");
@@ -77,7 +77,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background-light px-4 ">
+    <div className="min-h-screen flex items-center justify-center bg-background-light px-4">
       <div className="w-full max-w-6xl h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         <div className="relative hidden md:flex h-full w-full overflow-hidden">
           <Image
@@ -95,6 +95,12 @@ export default function RegisterForm() {
             <h2 className="mb-6 text-3xl font-bold text-gray-900">
               Create Account
             </h2>
+            {success && (
+              <p className="mb-4 text-center text-green-600 font-medium">
+                Registration successful! Redirecting to login...
+              </p>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Full Name</label>
@@ -143,6 +149,7 @@ export default function RegisterForm() {
                   <p className="text-xs text-red-600">{errors.password}</p>
                 )}
               </div>
+
               <div>
                 <label className="text-sm font-medium">Confirm Password</label>
                 <input
@@ -164,7 +171,8 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="mt-4 w-full rounded-md bg-green-400 py-2.5 text-text-primary font-semibold hover:bg-green-300 disabled:opacity-70 transition-transform transform hover:scale-105"
+                className="mt-4 w-full rounded-md bg-green-400 py-2.5 text-text-primary font-semibold hover:bg-green-300
+                disabled:opacity-70 transition-transform transform hover:scale-105"
               >
                 {isLoading ? "Creating..." : "Create Account"}
               </button>
