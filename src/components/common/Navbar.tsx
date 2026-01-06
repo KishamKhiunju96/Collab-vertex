@@ -37,7 +37,7 @@ export default function Navbar() {
               Services
             </Link>
             <Link
-              href="/contact"
+              href="/contacts"
               className="text-gray-800 hover:text-red-400 font-medium transition"
             >
               Contact
