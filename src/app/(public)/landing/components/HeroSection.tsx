@@ -5,19 +5,16 @@ export default function HeroSection() {
   return (
     <section className="relative w-full h-screen overflow-hidden">
         <div className="absolute inset-0 bg-black/10"/>
-      {/* Background Image */}
       <Image
-        src="/images/Brand.jpg"   // put image in public/images
+        src="/images/Brand.jpg"  
         alt="CollabVertex Hero Background"
         fill
         priority
         className="object-cover"
       />
 
-      {/* Overlay (optional for readability) */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-6 text-text-tertiary ">
         <h1 className="text-6xl font-extrabold leading-tight">
           Welcome to CollabVertex

@@ -45,9 +45,9 @@ export default function ContactPage() {
 
             <textarea
               placeholder="Your Message"
-              rows={20}
+              rows={5}
               required
-              className="w-full h-28 rounded-lg bg-gray-200 border border-gray-950 px-4 py-3 text-text-primary focus:border-green-500"
+              className="w-full rounded-lg bg-gray-200 border border-gray-950 px-4 py-3 text-text-primary focus:border-green-500"
             ></textarea>
 
             <button
