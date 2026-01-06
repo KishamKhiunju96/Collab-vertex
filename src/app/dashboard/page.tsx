@@ -30,7 +30,7 @@ export default function DashboardPage() {
     <>
       <div className="flex min-h-screen bg-white">
         <SideBar active="Home" />
-        <main className="flex-1 p-8 flex flex-col gap-8 rounded-xl border-8 border-white  bg-gray-300  ring-2 ring-gray-300 ring-inset">
+        <main className="flex-1 p-8 flex flex-col gap-8 rounded-3xl border-8 border-white  bg-gray-300 ">
           <DashboardHeader />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <StatsCard title="User" value="1,50,000" icon={<FaUsers />} />
