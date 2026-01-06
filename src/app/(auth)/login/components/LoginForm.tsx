@@ -51,7 +51,7 @@ export default function LoginForm() {
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="h-4 w-4 text-green-400 rounded"
+                  className="h-4 w-4 text-green-400 rounded focus:ring-0"
                 />
                 <span className="ml-2 text-sm text-text-primary">
                   Remember me
