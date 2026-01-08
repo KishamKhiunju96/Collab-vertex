@@ -1,5 +1,4 @@
 import { saveToken } from "@/utils/authToken";
-import router from "next/router";
 
 const handleRegister = async (data: any) => {
   try {
@@ -22,7 +21,7 @@ const handleRegister = async (data: any) => {
       JSON.stringify(data.user)
     );
 
-    router.push("/login");
+    // Redirect handled by RegisterForm component
 
   } catch (error) {
     console.error(" Registration error:", error);
