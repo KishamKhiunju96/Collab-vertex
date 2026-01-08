@@ -63,7 +63,7 @@ export default function LoginForm() {
           <h1 className="text-4xl text-center font-bold text-text-primary mb-8">
             Login to Collab-Vertex
           </h1>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form  className="space-y-5">
             <div>
               <label className="block text-sm font-medium mb-1 text-text-primary">
                  Username
@@ -114,8 +114,8 @@ export default function LoginForm() {
               <p className="text-red-600 font-medium text-center">{apiError}</p>
             )}
             <button
-              type="submit"
               disabled={isLoading}
+              onClick={handleSubmit}
               className="w-full py-2 px-4 bg-green-400 hover:bg-green-300 text-text-primary font-semibold rounded-lg disabled:opacity-70 transition-transform transform hover:scale-105"
             >
               {isLoading ? "Logging in..." : "Login"}

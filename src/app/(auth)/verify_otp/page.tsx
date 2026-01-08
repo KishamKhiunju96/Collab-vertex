@@ -1,10 +1,8 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/router";
-import { use, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import axios from "axios";
-import Loading from "@/app/loading";
 
 
 export default function VerifyOtpPage() {

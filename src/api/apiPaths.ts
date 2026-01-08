@@ -4,6 +4,7 @@ export const BASE_URL = 'https://api.fotosfolio.com';
     AUTH: {
         LOGIN: `${BASE_URL}/user/login`,
         REGISTER: `${BASE_URL}/user/register`,
+        VERIFY_OTP: `${BASE_URL}/otp/verify-otp`,
     },
     TASKS: {
         GET_ALL: `${BASE_URL}/tasks`,

@@ -6,6 +6,7 @@ import Image from "next/image";
 import axios from "axios";
 import { z } from "zod";
 import { authService } from "@/api/services/authService";
+import  {handleRegister}  from "@/api/services/registerService";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -50,8 +51,7 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setApiError("");
-    setSuccess("");
+    
 
     const result = formSchema.safeParse(form);
 
@@ -84,10 +84,14 @@ export default function RegisterForm() {
         role: roleMapping[form.role] || form.role,
       };
 
-      await authService.register(payload);
+      const data = await authService.register(payload);
+
+      handleRegister(data);
+
+      // await authService.register(payload);
 
       setSuccess("Registration successful! Redirecting...");
-      setTimeout(() => router.push("/verify-otp"), 2000);
+      setTimeout(() => router.push("/verify_otp"), 2000);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
@@ -127,7 +131,6 @@ export default function RegisterForm() {
             )}
 
             <form
-              onSubmit={handleSubmit}
               className="space-y-3 max-h-[600px] overflow-y-auto pr-2"
             >
               <div>
@@ -215,13 +218,12 @@ export default function RegisterForm() {
               ))}
 
               <button
-                type="submit"
                 disabled={isLoading}
+                onClick={handleSubmit}
                 className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60 shadow-md mt-4"
               >
                 {isLoading ? "Creating..." : "Create Account"}
               </button>
-
               <p className="text-center text-sm text-gray-600 pt-2">
                 Already have an account?{" "}
                 <a
