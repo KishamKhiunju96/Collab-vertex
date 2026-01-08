@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
+import { saveToken } from "@/utils/authToken";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -48,10 +49,10 @@ export default function LoginForm() {
         throw new Error("Token not found in response");
       }
 
-      if (remember) {
-        localStorage.setItem("authToken", token);
-      } else {
-        sessionStorage.setItem("authToken", token);
+      saveToken(token);
+
+      if (response.data?.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
       }
 
       setSuccess("Login successful! Redirecting...");
