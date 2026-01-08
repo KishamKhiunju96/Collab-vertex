@@ -1,4 +1,3 @@
-import { authService } from "@/api/services/authService";
 import { saveToken } from "@/utils/authToken";
 import router from "next/router";
 

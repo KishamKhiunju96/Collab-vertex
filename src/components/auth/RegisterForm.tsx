@@ -8,10 +8,21 @@ import { z } from "zod";
 import { authService } from "@/api/services/authService";
 import  {handleRegister}  from "@/api/services/registerService";
 
+interface FormData {
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  role: string;
+}
+
 export default function RegisterForm() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState({      //sabbai form iput value laii single onject ma store garya vayo
     username: "",
     name: "",
     email: "",
@@ -49,13 +60,13 @@ export default function RegisterForm() {
       message: "Passwords do not match",
     });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {   //Page reload laii rokxa
+    e.preventDefault();                                  //Form submission manually handle garxa
     
 
     const result = formSchema.safeParse(form);
 
-    if (!result.success) {
+    if (!result.success) {                                //Validation error
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
@@ -80,13 +91,14 @@ export default function RegisterForm() {
         email: form.email,
         password: form.password,
         phoneNumber: form.phoneNumber,
-        dateOfBirth: new Date(form.dateOfBirth),
-        role: roleMapping[form.role] || form.role,
-      };
+        dateOfBirth: new Date(form.dateOfBirth),        //date string laii date object ma convert garxa
+        role: roleMapping[form.role] || form.role,      //required field matraii send garxa
+      }
 
-      const data = await authService.register(payload);
+      const data = await authService.register(payload);  //API call garxa,     dataharulaii backend ma pathaunxa
+      //toen,user, message return hunxa
 
-      handleRegister(data);
+      handleRegister(data);   //JWT token, user data localstorage ma save garxa
 
       // await authService.register(payload);
 
@@ -168,7 +180,7 @@ export default function RegisterForm() {
                   <label className="text-sm font-medium">{label}</label>
                   <input
                     type={type}
-                    value={(form as any)[key]}
+                    value={(form as FormData)[key as keyof FormData]}
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
@@ -205,7 +217,7 @@ export default function RegisterForm() {
                   <label className="text-sm font-medium">{label}</label>
                   <input
                     type="password"
-                    value={(form as any)[key]}
+                    value={(form as FormData)[key as keyof FormData]}
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
