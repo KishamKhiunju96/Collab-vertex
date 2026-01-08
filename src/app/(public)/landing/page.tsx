@@ -1,11 +1,13 @@
-import Navbar from "@/components/common/Navbar";
-import CTASection from "./components/CTASection";
-import FeaturesGrid from "./components/FeaturesGrid";
-import HeroSection from "./components/HeroSection";
-import HowItWorks from "./components/HowItWorks";
-import RolePreviewCards from "./components/RolePreviewCards";
-import TestimonialsCarousel from "./components/TestimonialsCarousel";
-import Footer from "@/components/common/Footer";
+import CTASection from "@/components/landing/CTASection";
+import FeaturesGrid from "@/components/landing/FeaturesGrid";
+import HeroSection from "@/components/landing/HeroSection";
+import HowItWorks from "@/components/landing/HowItWorks";
+import RolePreviewCards from "@/components/landing/RolePreviewCards";
+import TestimonialsCarousel from "@/components/landing/TestimonialsCarousel";
+import Footer from "@/components/shared/Footer";
+import Navbar from "@/components/shared/Navbar";
+
+
 
 
 export default function LandingPage() {

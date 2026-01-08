@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Container from "../ui/Container";
-import PageHeader from "../ui/PageHeader";
-import ServiceCard from "../ui/ServiceCard";
+import Container from "../../../components/uui/Container";
+import PageHeader from "../../../components/uui/PageHeader";
+import ServiceCard from "../../../components/uui/ServiceCard";
 
 export const metadata: Metadata = {
   title: "Services | Collab-vertex",

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Container from "../ui/Container";
-import PageHeader from "../ui/PageHeader";
+import Container from "../../../components/uui/Container";
+import PageHeader from "../../../components/uui/PageHeader";
 
 export const metadata: Metadata = {
   title: "About | Collab-vertex",

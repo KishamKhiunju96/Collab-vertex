@@ -1,15 +1,60 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import axios from "axios";
+import { authService } from "@/api/services/authService";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ email, password, remember });
+    setApiError("");
+    setSuccess("");
+
+    if (!username || !password) {
+      setApiError("Username and password are required");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response: any = await authService.login({ usernameOrEmail: username, password });
+
+      if (response?.token) {
+        if (remember) {
+          localStorage.setItem("authToken", response.token);
+        } else {
+          sessionStorage.setItem("authToken", response.token);
+        }
+
+        setSuccess("Login successfully!! Redirecting...");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000);
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setApiError(
+          err.response?.data?.message ||
+            err.message ||
+            "Invalid credentials"
+        );
+      } else {
+        setApiError("Something went wrong");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-light px-4">
@@ -21,16 +66,17 @@ export default function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium mb-1 text-text-primary">
-                Email
+                 Username
               </label>
+
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
                 className="w-full px-4 py-2 border border-green-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
-              />
+              />  
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-text-primary">
@@ -61,11 +107,18 @@ export default function LoginForm() {
                 Forgot Password
               </a>
             </div>
+            {success && (
+              <p className="text-green-600 font-medium text-center">{success}</p>
+            )}
+            {apiError && (
+              <p className="text-red-600 font-medium text-center">{apiError}</p>
+            )}
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full py-2 px-4 bg-green-400 hover:bg-green-300 text-text-primary font-semibold rounded-lg disabled:opacity-70 transition-transform transform hover:scale-105"
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
             </button>
             <p className="text-center text-sm text-text-primary">
               Do not have an account?

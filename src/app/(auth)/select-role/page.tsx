@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AuthContainer from "@/components/auth/AuthContainer";
 import RoleCard from "./components/RoleCard";
 
 export default function SelectRolePage() {
@@ -19,7 +20,7 @@ export default function SelectRolePage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center py-12 px-4 ">
+    <AuthContainer>
       <div className="max-w-5xl w-full ">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-extrabold text-purple-500  mb-6">
@@ -74,6 +75,6 @@ export default function SelectRolePage() {
           )}
         </div>
       </div>
-    </main>
+    </AuthContainer>
   );
 }

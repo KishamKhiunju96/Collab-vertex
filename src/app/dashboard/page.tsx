@@ -1,7 +1,7 @@
-import DashboardHeader from "./components/DashboardHeader";
-import SideBar from "./components/SideBar";
-import StatsCard from "./components/StatsCard";
-import RecentActivity from "./components/RecentActivity";
+import DashboardHeader from "../../components/dashboard/DashboardHeader";
+import SideBar from "../../components/dashboard/SideBar";
+import StatsCard from "../../components/dashboard/StatsCard";
+import RecentActivity from "../../components/dashboard/RecentActivity";
 import { FaUsers, FaDollarSign, FaChartLine } from "react-icons/fa";
 
 export default function DashboardPage() {

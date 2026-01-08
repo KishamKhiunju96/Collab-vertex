@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Container from "../ui/Container";
-import PageHeader from "../ui/PageHeader";
+import Container from "../../../components/uui/Container";
+import PageHeader from "../../../components/uui/PageHeader";
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
