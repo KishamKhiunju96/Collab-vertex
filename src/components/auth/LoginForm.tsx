@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
+import { authService } from "@/api/services/authService";
 import { saveToken } from "@/utils/authToken";
 
 export default function LoginForm() {
@@ -31,17 +32,10 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "/api/user/login",{
-          usernameOrEmail: username, // backend le username or email accepts garxa
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await authService.login({
+        usernameOrEmail: username,
+        password,
+      });
 
       const token = response.data?.token;
 

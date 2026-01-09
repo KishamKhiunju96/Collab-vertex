@@ -1,10 +1,10 @@
 import axios from "axios";
 import { getToken } from "@/utils/authToken";
-
+import { BASE_URL } from "./apiPaths";
 
 
 const api = axios.create({
-    baseURL: process.env.Next_Public_,
+    baseURL: BASE_URL,
     timeout: 10000,
     headers: {
         "content-type": "application/json",
@@ -46,4 +46,3 @@ api.interceptors.request.use(
 
 
 export default api;
-

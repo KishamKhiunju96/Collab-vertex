@@ -6,31 +6,31 @@ import Image from "next/image";
 import axios from "axios";
 import { z } from "zod";
 import { authService } from "@/api/services/authService";
-import  {handleRegister}  from "@/api/services/registerService";
+import { handleRegister } from "@/api/services/registerService";
 
 interface FormData {
   username: string;
-  name: string;
+  // name: string;
   email: string;
   password: string;
   confirmPassword: string;
-  phoneNumber: string;
-  dateOfBirth: string;
+  // phoneNumber: string;
+  // dateOfBirth: string;
   role: string;
 }
 
 export default function RegisterForm() {
   const router = useRouter();
 
-  const [form, setForm] = useState({      //sabbai form iput value laii single onject ma store garya vayo
+  const [form, setForm] = useState<FormData>({
     username: "",
-    name: "",
+    // name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    phoneNumber: "",
-    dateOfBirth: "",
-    role: "brand", // brand | influencer
+    // phoneNumber: "",
+    // dateOfBirth: "",
+    role: "brand",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,18 +41,18 @@ export default function RegisterForm() {
   const formSchema = z
     .object({
       username: z.string().min(3, "Username must be at least 3 characters"),
-      name: z.string().min(2, "Name must be at least 2 characters"),
+      // name: z.string().min(2, "Name must be at least 2 characters"),
       email: z.string().email("Invalid email address"),
       password: z
         .string()
         .min(8, "Password must be at least 8 characters")
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          "Password must contain uppercase, lowercase & number (8+ chars)"
+          "Password must contain uppercase, lowercase & number",
         ),
       confirmPassword: z.string(),
-      phoneNumber: z.string().min(1, "Invalid phone number"),
-      dateOfBirth: z.string().min(1, "Date of birth is required"),
+      // phoneNumber: z.string().min(1, "Invalid phone number"),
+      // dateOfBirth: z.string().min(1, "Date of birth is required"),
       role: z.string().min(1, "Please select a role"),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -60,13 +60,11 @@ export default function RegisterForm() {
       message: "Passwords do not match",
     });
 
-  const handleSubmit = async (e: React.FormEvent) => {   //Page reload laii rokxa
-    e.preventDefault();                                  //Form submission manually handle garxa
-    
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     const result = formSchema.safeParse(form);
-
-    if (!result.success) {                                //Validation error
+    if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
@@ -87,27 +85,20 @@ export default function RegisterForm() {
 
       const payload = {
         username: form.username,
-        name: form.name,
         email: form.email,
         password: form.password,
-        phoneNumber: form.phoneNumber,
-        dateOfBirth: new Date(form.dateOfBirth),        //date string laii date object ma convert garxa
-        role: roleMapping[form.role] || form.role,      //required field matraii send garxa
-      }
+        role: roleMapping[form.role] || form.role,
+      };
 
-      const data = await authService.register(payload);  //API call garxa,     dataharulaii backend ma pathaunxa
-      //toen,user, message return hunxa
-
-      handleRegister(data);   //JWT token, user data localstorage ma save garxa
-
-      // await authService.register(payload);
+      const data = await authService.register(payload);
+      handleRegister(data);
 
       setSuccess("Registration successful! Redirecting...");
       setTimeout(() => router.push("/verify_otp"), 2000);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
-          err.response?.data?.message || err.message || "Registration failed"
+          err.response?.data?.message || err.message || "Registration failed",
         );
       } else {
         setApiError("Something went wrong");
@@ -143,6 +134,7 @@ export default function RegisterForm() {
             )}
 
             <form
+              onSubmit={handleSubmit}
               className="space-y-3 max-h-[600px] overflow-y-auto pr-2"
             >
               <div>
@@ -172,15 +164,15 @@ export default function RegisterForm() {
 
               {[
                 ["username", "Username", "text"],
-                ["name", "Full Name", "text"],
+                // ["name", "Full Name", "text"],
                 ["email", "Email", "email"],
-                ["phoneNumber", "Phone Number", "tel"],
+                // ["phoneNumber", "Phone Number", "tel"],
               ].map(([key, label, type]) => (
                 <div key={key}>
                   <label className="text-sm font-medium">{label}</label>
                   <input
                     type={type}
-                    value={(form as FormData)[key as keyof FormData]}
+                    value={form[key as keyof FormData]}
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
@@ -192,6 +184,8 @@ export default function RegisterForm() {
                 </div>
               ))}
 
+              {/* Date of Birth section commented */}
+              {/*
               <div>
                 <label className="text-sm font-medium">Date of Birth</label>
                 <input
@@ -208,6 +202,7 @@ export default function RegisterForm() {
                   </p>
                 )}
               </div>
+              */}
 
               {[
                 ["password", "Password"],
@@ -217,7 +212,7 @@ export default function RegisterForm() {
                   <label className="text-sm font-medium">{label}</label>
                   <input
                     type="password"
-                    value={(form as FormData)[key as keyof FormData]}
+                    value={form[key as keyof FormData]}
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
@@ -230,12 +225,13 @@ export default function RegisterForm() {
               ))}
 
               <button
+                type="submit"
                 disabled={isLoading}
-                onClick={handleSubmit}
                 className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60 shadow-md mt-4"
               >
                 {isLoading ? "Creating..." : "Create Account"}
               </button>
+
               <p className="text-center text-sm text-gray-600 pt-2">
                 Already have an account?{" "}
                 <a

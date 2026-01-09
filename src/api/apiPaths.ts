@@ -1,16 +1,16 @@
-export const BASE_URL = 'https://api.fotosfolio.com';
+export const BASE_URL = "https://w4gwd5wf-8000.inc1.devtunnels.ms";
 
- export const API_PATHS = {
-    AUTH: {
-        LOGIN: `${BASE_URL}/user/login`,
-        REGISTER: `${BASE_URL}/user/register`,
-        VERIFY_OTP: `${BASE_URL}/otp/verify-otp`,
-    },
-    TASKS: {
-        GET_ALL: `${BASE_URL}/tasks`,
-        GET_BY_ID: (id: string) => `${BASE_URL}/tasks/${id}`,
-        CREATE: `${BASE_URL}/tasks`,
-        UPDATE:  (id: string) => `${BASE_URL}/tasks/${id}`  ,
-        DELETE:  (id: string) => `${BASE_URL}/tasks/${id}`  ,  
-    },
- };
+export const API_PATHS = {
+  USER: {
+    LOGIN: `/api/user/login`,
+    REGISTER: `/api/user/register`,
+    VERIFY_OTP: `/otp/verify_otp`,
+  },
+  TASKS: {
+    GET_ALL: `/tasks`,
+    GET_BY_ID: (id: string) => `/tasks/${id}`,
+    CREATE: `/tasks`,
+    UPDATE: (id: string) => `/tasks/${id}`,
+    DELETE: (id: string) => `/tasks/${id}`,
+  },
+};
