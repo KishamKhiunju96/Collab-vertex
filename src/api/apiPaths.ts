@@ -2,8 +2,8 @@ export const BASE_URL = "https://w4gwd5wf-8000.inc1.devtunnels.ms";
 
 export const API_PATHS = {
   USER: {
-    LOGIN: `/api/user/login`,
-    REGISTER: `/api/user/register`,
+    LOGIN: `/user/login`,
+    REGISTER: `/user/register`,
     VERIFY_OTP: `/otp/verify_otp`,
   },
   TASKS: {

@@ -2,7 +2,7 @@ import { API_PATHS } from "@/api/apiPaths";
 import api from "../axiosInstance";
 
 export const authService = {
-  login: (data: { usernameOrEmail: string; password: string }) =>
+  login: (data: { username: string; password: string }) =>
     api.post(API_PATHS.USER.LOGIN, data),
   register: (data: {
     username: string;

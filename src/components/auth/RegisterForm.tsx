@@ -79,8 +79,8 @@ export default function RegisterForm() {
 
     try {
       const roleMapping: Record<string, string> = {
-        brand: "photographer",
-        influencer: "organization",
+        brand: "brand",
+        influencer: "influencer ",
       };
 
       const payload = {
