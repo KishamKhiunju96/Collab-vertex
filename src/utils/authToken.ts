@@ -9,7 +9,7 @@ export const saveToken = (token: string) => {
     localStorage.setItem(TOKEN_KEY, token);
 
     // Save to cookies for middleware
-    document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+    document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   }
 };
 

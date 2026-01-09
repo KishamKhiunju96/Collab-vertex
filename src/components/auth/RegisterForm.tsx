@@ -80,7 +80,7 @@ export default function RegisterForm() {
     try {
       const roleMapping: Record<string, string> = {
         brand: "brand",
-        influencer: "influencer ",
+        influencer: "influencer", // Fixed: removed extra space
       };
 
       const payload = {
@@ -91,17 +91,16 @@ export default function RegisterForm() {
       };
 
       const data = await authService.register(payload);
+
       handleRegister(data);
 
-      setSuccess("Registration successful! Redirecting...");
-      setTimeout(() => router.push("/verify_otp"), 2000);
+      // Redirect to OTP page
+      router.push(`/verify_otp?email=${encodeURIComponent(form.email)}`);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
           err.response?.data?.message || err.message || "Registration failed",
         );
-      } else {
-        setApiError("Something went wrong");
       }
     } finally {
       setIsLoading(false);

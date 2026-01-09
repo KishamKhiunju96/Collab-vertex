@@ -10,6 +10,8 @@ export const authService = {
     email: string;
     role: string;
   }) => api.post(API_PATHS.USER.REGISTER, data),
-  verifyOtp: (data: { userId: string; otp: string }) =>
+  verifyOtp: (data: { email: string; otp: string }) =>
     api.post(API_PATHS.USER.VERIFY_OTP, data),
+  resendOtp: (data: { email: string }) =>
+    api.post("/otp/resend_otp", data),
 };

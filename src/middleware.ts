@@ -4,23 +4,25 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Remove the dashboard token check - let client-side handle it
-  // if (pathname.startsWith('/dashboard')) {
-  //   const token = request.cookies.get('collab_vertex_token')?.value;
-  //   if (!token) {
-  //     const loginUrl = new URL('/login', request.url);
-  //     loginUrl.searchParams.set('redirect', pathname);
-  //     return NextResponse.redirect(loginUrl);
-  //   }
-  // }
-
-  if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+  // Protect dashboard routes
+  if (pathname.startsWith("/dashboard")) {
     const token = request.cookies.get("collab_vertex_token")?.value;
 
-    if (token) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (!token) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
+
+  // Remove this auto-redirect so users can logout and access login/register
+  // if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
+  //   const token = request.cookies.get('collab_vertex_token')?.value;
+  //
+  //   if (token) {
+  //     return NextResponse.redirect(new URL('/dashboard', request.url));
+  //   }
+  // }
 
   return NextResponse.next();
 }

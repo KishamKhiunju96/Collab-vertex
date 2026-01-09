@@ -1,31 +1,21 @@
 import { saveToken } from "@/utils/authToken";
 
-const handleRegister = async (data: any) => {
+const handleRegister = (data: any) => {
   try {
+    console.log("REGISTER RESPONSE:", data);
 
-    console.log("REGISTER RESPONSE ", data);
+    // Backend sends auth_token
+    const token = data?.auth_token;
 
-    const token = data?.token;
-
-    if (!token) {
-      console.error(" Token missing in response");
-      return;
+    if (token) {
+      saveToken(token);
+      console.log("Auth token saved");
+    } else {
+      console.warn("No auth_token found (OTP verification required)");
     }
-
-    saveToken(token);
-
-    console.log(" Token saved to localStorage");
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(data.user)
-    );
-
-    // Redirect handled by RegisterForm component
-
   } catch (error) {
-    console.error(" Registration error:", error);
+    console.error("Registration handling error:", error);
   }
-
 };
+
 export { handleRegister };

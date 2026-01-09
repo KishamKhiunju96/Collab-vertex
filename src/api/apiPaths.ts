@@ -5,6 +5,7 @@ export const API_PATHS = {
     LOGIN: `/user/login`,
     REGISTER: `/user/register`,
     VERIFY_OTP: `/otp/verify_otp`,
+    RESEND_OTP: `/otp/resend_otp`,
   },
   TASKS: {
     GET_ALL: `/tasks`,
