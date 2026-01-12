@@ -23,7 +23,7 @@ export default function LoginForm() {
     setApiError("");
     setIsLoading(true);
 
-    if (!username || !password) {
+    if (!username || !password) { 
       setApiError("Username and password are required");
       setIsLoading(false);
       return;

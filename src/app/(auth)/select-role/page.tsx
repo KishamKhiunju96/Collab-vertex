@@ -9,11 +9,16 @@ export default function SelectRolePage() {
   const [selectedRole, setSelectedRole] = useState<
     "Brand" | "Influencer" | null
   >(null);
+
   const router = useRouter();
 
   const handleContinue = () => {
     if (selectedRole) {
-      localStorage.setItem("pendingUserRole", selectedRole);
+      // normalize role for backend
+      const normalizedRole =
+        selectedRole === "Brand" ? "brand" : "influencer";
+
+      localStorage.setItem("pendingUserRole", normalizedRole);
 
       router.push("/register");
     }
@@ -21,9 +26,9 @@ export default function SelectRolePage() {
 
   return (
     <AuthContainer>
-      <div className="max-w-5xl  justify-center  w-full ">
+      <div className="max-w-5xl justify-center w-full">
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-purple-500  mb-6">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-purple-500 mb-6">
             Collab-vertex
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
@@ -34,7 +39,7 @@ export default function SelectRolePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto ">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
           <RoleCard
             role="Brand"
             title="I'm a Brand"
@@ -45,31 +50,30 @@ export default function SelectRolePage() {
             selected={selectedRole === "Brand"}
             onClick={() => setSelectedRole("Brand")}
           />
+
           <RoleCard
             role="Influencer"
             title="I'm an Influencer"
             description="Discover brand collaboration opportunities and paid events. Grow your audience and earnings."
             imageUrl="/images/Influencer1.jpg"
-            buttonText="Choose Influencer "
+            buttonText="Choose Influencer"
             accentColor="green"
             selected={selectedRole === "Influencer"}
             onClick={() => setSelectedRole("Influencer")}
           />
         </div>
 
-        <div className="text-center mt-16 ">
+        <div className="text-center mt-16">
           <button
             onClick={handleContinue}
             disabled={!selectedRole}
-            className={` px-10 py-4 rounded-full text-white  bg-gray-700 font-semibold text-lg transition-all transform hover:scale-105
-              shadow-lg disabled:opacity-50 ${selectedRole === "Brand" ? "" : selectedRole === "Influencer"}
-            `}
+            className="px-10 py-4 rounded-full text-white bg-gray-700 font-semibold text-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50"
           >
             Continue as {selectedRole || "Selected Role"} →
           </button>
 
           {!selectedRole && (
-            <p className="mt-4 text-gray-600 ">
+            <p className="mt-4 text-gray-600">
               Please select a role to continue
             </p>
           )}

@@ -8,19 +8,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const isAuthenticated = useAuthProtection();
+  const {loading, authenticated} = useAuthProtection();
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    if(loading) {
+      return(
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-lg">Loading...</div>
+        </div>
+      );
+    }
+
+    if(!authenticated){
+      return null;
+    }
+
+    return <>{children}</>
   }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  return <>{children}</>;
-}

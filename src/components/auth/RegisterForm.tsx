@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
@@ -10,13 +10,10 @@ import { handleRegister } from "@/api/services/registerService";
 
 interface FormData {
   username: string;
-  // name: string;
   email: string;
   password: string;
   confirmPassword: string;
-  // phoneNumber: string;
-  // dateOfBirth: string;
-  role: string;
+  role: "brand" | "influencer";
 }
 
 export default function RegisterForm() {
@@ -24,24 +21,34 @@ export default function RegisterForm() {
 
   const [form, setForm] = useState<FormData>({
     username: "",
-    // name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    // phoneNumber: "",
-    // dateOfBirth: "",
-    role: "brand",
+    role: "brand", // default, will be overridden
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState("");
   const [apiError, setApiError] = useState("");
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("pendingUserRole");
+
+    if (!storedRole || (storedRole !== "brand" && storedRole !== "influencer")) {
+      router.replace("/select-role");
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      role: storedRole as "brand" | "influencer",
+    }));
+  }, [router]);
+
 
   const formSchema = z
     .object({
       username: z.string().min(3, "Username must be at least 3 characters"),
-      // name: z.string().min(2, "Name must be at least 2 characters"),
       email: z.string().email("Invalid email address"),
       password: z
         .string()
@@ -51,9 +58,7 @@ export default function RegisterForm() {
           "Password must contain uppercase, lowercase & number",
         ),
       confirmPassword: z.string(),
-      // phoneNumber: z.string().min(1, "Invalid phone number"),
-      // dateOfBirth: z.string().min(1, "Date of birth is required"),
-      role: z.string().min(1, "Please select a role"),
+      role: z.enum(["brand", "influencer"]),
     })
     .refine((data) => data.password === data.confirmPassword, {
       path: ["confirmPassword"],
@@ -78,23 +83,18 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const roleMapping: Record<string, string> = {
-        brand: "brand",
-        influencer: "influencer", // Fixed: removed extra space
-      };
-
       const payload = {
         username: form.username,
         email: form.email,
         password: form.password,
-        role: roleMapping[form.role] || form.role,
+        role: form.role,
       };
 
       const data = await authService.register(payload);
-
       handleRegister(data);
 
-      // Redirect to OTP page
+      localStorage.removeItem("pendingUserRole");
+
       router.push(`/verify_otp?email=${encodeURIComponent(form.email)}`);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -113,7 +113,7 @@ export default function RegisterForm() {
         <div className="relative hidden md:block min-h-[700px]">
           <Image
             src="/images/collabR.jpg"
-            alt="Register"
+            alt="Register on Collab-vertex"
             fill
             className="object-cover"
             priority
@@ -123,49 +123,19 @@ export default function RegisterForm() {
 
         <div className="flex items-center justify-center px-6 md:px-12 py-8">
           <div className="w-full max-w-md">
-            <h2 className="mb-6 text-3xl font-bold">Create Account</h2>
+            <h2 className="mb-2 text-3xl font-bold">Create Account</h2>
+            <p className="mb-6 text-gray-600 capitalize">
+              Registering as <b>{form.role}</b>
+            </p>
 
-            {success && (
-              <p className="mb-4 text-green-600 font-medium">{success}</p>
-            )}
             {apiError && (
               <p className="mb-4 text-red-600 font-medium">{apiError}</p>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-3 max-h-[600px] overflow-y-auto pr-2"
-            >
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Select Role
-                </label>
-                <div className="flex gap-4">
-                  {["brand", "influencer"].map((r) => (
-                    <label key={r} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="role"
-                        value={r}
-                        checked={form.role === r}
-                        onChange={(e) =>
-                          setForm({ ...form, role: e.target.value })
-                        }
-                      />
-                      <span className="text-sm capitalize">{r}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.role && (
-                  <p className="text-xs text-red-600">{errors.role}</p>
-                )}
-              </div>
-
+            <form onSubmit={handleSubmit} className="space-y-4">
               {[
                 ["username", "Username", "text"],
-                // ["name", "Full Name", "text"],
                 ["email", "Email", "email"],
-                // ["phoneNumber", "Phone Number", "tel"],
               ].map(([key, label, type]) => (
                 <div key={key}>
                   <label className="text-sm font-medium">{label}</label>
@@ -182,26 +152,6 @@ export default function RegisterForm() {
                   )}
                 </div>
               ))}
-
-              {/* Date of Birth section commented */}
-              {/*
-              <div>
-                <label className="text-sm font-medium">Date of Birth</label>
-                <input
-                  type="date"
-                  value={form.dateOfBirth}
-                  onChange={(e) =>
-                    setForm({ ...form, dateOfBirth: e.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border px-4 py-2 text-sm"
-                />
-                {errors.dateOfBirth && (
-                  <p className="text-xs text-red-600">
-                    {errors.dateOfBirth}
-                  </p>
-                )}
-              </div>
-              */}
 
               {[
                 ["password", "Password"],
@@ -226,7 +176,7 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60 shadow-md mt-4"
+                className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60 shadow-md"
               >
                 {isLoading ? "Creating..." : "Create Account"}
               </button>
