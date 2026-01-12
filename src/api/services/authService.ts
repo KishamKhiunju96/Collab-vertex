@@ -1,5 +1,6 @@
 import { API_PATHS } from "@/api/apiPaths";
 import api from "../axiosInstance";
+import { clearToken } from "@/utils/authToken";
 
 export const authService = {
   login: (data: { username: string; password: string }) =>
@@ -14,4 +15,14 @@ export const authService = {
     api.post(API_PATHS.USER.VERIFY_OTP, data),
   resendOtp: (data: { email: string }) =>
     api.post("/otp/resend_otp", data),
+
+  logout: async () => {
+    try{
+
+    }finally {
+      clearToken();
+      window.location.href = "/login";
+    }
+  },
+  
 };

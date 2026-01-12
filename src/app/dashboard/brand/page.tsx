@@ -33,7 +33,7 @@ export default function BrandDashboardPage() {
       </div>
 
       <div className="flex gap-4">
-        <button className="px-4 py-2 rounded-md bg-black text-white">
+        <button className="px-4 py-2 rounded-md bg-green-400 text-text-primary hover:bg-green-600">
           Create Events
         </button>
         <button className="px-4 py-2 rounded-md border">
@@ -45,7 +45,7 @@ export default function BrandDashboardPage() {
         <h2 className="text-lg font-medium mb-3">Recent Activity</h2>
         <ul className="space-y-2 text-sm text-gray-600">
           <li>✔ Event "Tour" created</li>
-          <li>✔ Influencer @Sushmita joined your event</li>
+          <li>✔ Influencer Sushmita joined your event</li>
           <li>✔ Event "Tour" completed</li>
         </ul>
       </div>
@@ -62,7 +62,7 @@ function DashboardCard({
 }) {
   return (
     <div className="border rounded-lg p-4">
-      <p className="text-sm text-gray-500">{title}</p>
+      <p className=" font-bold text-gray-700">{title}</p>
       <p className="text-2xl font-semibold">{value}</p>
     </div>
   );

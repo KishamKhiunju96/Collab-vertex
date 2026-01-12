@@ -26,7 +26,7 @@ export default function SelectRolePage() {
 
   return (
     <AuthContainer>
-      <div className="max-w-5xl justify-center w-full">
+      <div className=" items-center justify-between w-full">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-extrabold text-purple-500 mb-6">
             Collab-vertex
