@@ -1,31 +1,53 @@
-import { cn } from "@/lib/utils";
+"use client";
+
+import { useAuthProtection } from "@/api/hooks/useAuth";
 import Link from "next/link";
 
-interface SideBarProps {
-  active?: string;
-}
-
-export default function SideBar({ active }: SideBarProps) {
-  const links = [
-    { label: "Home", href: "/dashboard" },
-    { label: "Analytics", href: "/dashboard/analytics" },
-    { label: "Settings", href: "/dashboard/settings" },
-  ];
+export default function SideBar() {
+  const { role } = useAuthProtection();
 
   return (
-    <aside className="w-64 bg-white  shadow-md h-screen p-6 flex flex-col gap-4">
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            "px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition",
-            active === link.label && "bg-white text-blue-500",
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
+    <aside className="w-64 h-full bg-background-light p-6 border-r">
+      <h2 className="text-text-primary">Collab Vertex</h2>
+
+      <nav className="flex flex-col">
+        {role === "brand" && (
+          <>
+            <Link
+              href="/dashboard/brand"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Brands
+            </Link>
+            <Link
+              href="/dashboard/brand/events"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Events
+            </Link>
+            <Link
+              href="/dashboard/brand/influencers"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Influencers
+            </Link>
+          </>
+        )}
+
+        {role === "influencer" && (
+          <>
+            <Link href="/dashboard/influencer">Dashboard</Link>
+            <Link href="/dashboard/influencer/events">Events</Link>
+          </>
+        )}
+
+        {role === "admin" && (
+          <>
+            <Link href="/dashboard/admin">Admin Pannel</Link>
+            <Link href="/dashboard/admin/users">Users</Link>
+          </>
+        )}
+      </nav>
     </aside>
   );
 }

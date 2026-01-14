@@ -1,50 +1,51 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getUserFromToken,UserRole } from '@/utils/authToken';
+import { useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { getUserFromToken, UserRole } from "@/utils/authToken";
 
 export function useAuthProtection() {
   const router = useRouter();
-  const [state, setState] = useState<{
+
+  const user = getUserFromToken();
+
+  const state = useMemo<{
     loading: boolean;
     authenticated: boolean;
     role: UserRole | null;
-  }>({
-    loading: true,
-    authenticated: false,
-    role: null,
-  });
+  }>(() => {
+    if (!user) {
+      return {
+        loading: false,
+        authenticated: false,
+        role: null,
+      };
+    }
 
-  useEffect(() =>{
+    return {
+      loading: false,
+      authenticated: true,
+      role: user.role,
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
+
+  return state;
+}
+
+export function useAuthRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
     const user = getUserFromToken();
 
-    if (!user) {
-      router.push("/login");
-      setState({
-        loading:false,
-        authenticated:false,
-        role:null
-      });
-    } else{
-      setState({
-        loading:false,
-        authenticated: true,
-        role: user.role,
-      });
+    if (user) {
+      router.replace(`/dashboard/${user.role}`);
     }
-      }, [router]);
-      return state;
-    }
-
-    export function useAuthRedirect(){
-      const router = useRouter();
-
-      useEffect(() =>{
-        const user =getUserFromToken();
-      
-      if (user){
-        router.push(`/dashboard/${user.role}`);
-      }
-    }, [router]);
+  }, [router]);
 }

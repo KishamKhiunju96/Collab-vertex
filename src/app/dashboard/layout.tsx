@@ -1,37 +1,31 @@
 "use client";
 
 import { useAuthProtection } from "@/api/hooks/useAuth";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import SideBar from "@/components/dashboard/SideBar";
+import { ReactNode } from "react";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { loading, authenticated } = useAuthProtection();
+interface DashboardLayoutProps {
+  children: ReactNode;
+}
 
-  if (loading) {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { loading, authenticated, role } = useAuthProtection();
+
+  if (loading || !authenticated || !role) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <span className="text-lg text-gray-600">Loading dashboard...</span>
       </div>
     );
   }
 
-  if (!authenticated) {
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <SideBar />
+      <aside className="w-64">
+        <SideBar />
+      </aside>
 
-      <main className="flex-1 flex flex-col">
-        <DashboardHeader />
-
-        <div className="p-8">{children}</div>
-      </main>
+      <main className="flex-1 p-6 overflow-auto">{children}</main>
     </div>
   );
 }

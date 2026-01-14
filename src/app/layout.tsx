@@ -1,9 +1,10 @@
-import "./globals.css";
-import type { Metadata } from "next";
+// src/app/layout.tsx
 
-export const metadata: Metadata = {
-  title: "Collab Vertex",
-  description: "Brand & Influencer Collaboration Platform",
+import "./globals.css"; // relative path from src/app/ to src/styles/
+
+export const metadata = {
+  title: "Brand Dashboard App",
+  description: "Manage your brand and events",
 };
 
 export default function RootLayout({
@@ -13,9 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-black">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -3,56 +3,54 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import axios from "axios";
-import { authService } from "@/api/services/authService";
-import { handleLogin } from "@/api/services/loginService";
+import { authService, UserProfile } from "@/api/services/authService";
+import { saveToken } from "@/utils/authToken";
 
 export default function LoginForm() {
   const router = useRouter();
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApiError("");
     setIsLoading(true);
 
-    if (!username || !password) { 
+    if (!username || !password) {
       setApiError("Username and password are required");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await authService.login({
-        username,
-        password,
-      });
+      // 1️⃣ Call login API to get access token
+      await authService.login({ username, password });
 
-      console.log("Login response:", response);
+      // 2️⃣ Fetch user profile to get role
+      const user: UserProfile = await authService.getMe();
 
-      const loginSuccess = await handleLogin(response);
-
-      if (!loginSuccess) {
-        setApiError("Failed to save authentication token");
+      if (!user?.role) {
+        setApiError("Failed to retrieve user role.");
         setIsLoading(false);
         return;
       }
 
-      console.log("Navigating to dashboard...");
-      router.replace("/dashboard");
-    } catch (error: any) {
+      // 3️⃣ Redirect based on role
+      if (user.role === "brand") {
+        router.replace("/dashboard/brand");
+      } else if (user.role === "influencer") {
+        router.replace("/dashboard/influencer");
+      } else {
+        router.replace("/select-role"); // fallback for admin / other roles
+      }
+    } catch (error: unknown) {
       console.error("Login error:", error);
-
-      setApiError(
-        error?.response?.data?.message || "Invalid username or password",
-      );
+      if (error instanceof Error) setApiError(error.message);
+      else setApiError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -61,13 +59,14 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-light px-4">
       <div className="w-full max-w-6xl h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        {/* Left */}
+        {/* Login Form */}
         <div className="p-12 flex flex-col justify-center">
           <h1 className="text-4xl text-center font-bold text-text-primary mb-8">
             Login to Collab-Vertex
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username */}
             <div>
               <label className="block text-sm font-medium mb-1">Username</label>
               <input
@@ -79,6 +78,7 @@ export default function LoginForm() {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium mb-1">Password</label>
               <div className="relative">
@@ -91,7 +91,7 @@ export default function LoginForm() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute inset-y-0 right-3 flex items-center text-xl"
                 >
                   {showPassword ? "🙈" : "👁️"}
@@ -99,6 +99,7 @@ export default function LoginForm() {
               </div>
             </div>
 
+            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="inline-flex items-center">
                 <input
@@ -109,15 +110,18 @@ export default function LoginForm() {
                 />
                 <span className="ml-2 text-sm">Remember me</span>
               </label>
+
               <a href="#" className="text-sm text-red-400 hover:underline">
                 Forgot Password
               </a>
             </div>
 
+            {/* API Error */}
             {apiError && (
               <p className="text-red-600 font-medium text-center">{apiError}</p>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -126,6 +130,7 @@ export default function LoginForm() {
               {isLoading ? "Logging in..." : "Login"}
             </button>
 
+            {/* Register Link */}
             <p className="text-center text-sm">
               Do not have an account?
               <a
@@ -138,7 +143,7 @@ export default function LoginForm() {
           </form>
         </div>
 
-        {/* Right Image */}
+        {/* Background Image */}
         <div className="hidden md:flex relative h-full w-full">
           <Image
             src="/images/collabR.jpg"
@@ -146,7 +151,7 @@ export default function LoginForm() {
             fill
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       </div>
     </div>
