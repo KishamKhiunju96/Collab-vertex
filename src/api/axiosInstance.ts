@@ -1,9 +1,10 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { clearToken, getToken } from "@/utils/authToken";
 import { BASE_URL } from "./apiPaths";
+import { clearToken, getToken } from "@/utils/3.";
 
 const api = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

@@ -1,6 +1,8 @@
 import api from "@/api/axiosInstance";
 import { API_PATHS } from "@/api/apiPaths";
-export interface CreateBrandPayload {
+
+export interface Brand {
+  id: string;
   name: string;
   description?: string;
   location: string;
@@ -8,7 +10,36 @@ export interface CreateBrandPayload {
   created_at: string;
   updated_at: string;
 }
-export const createBrand = async (payload: CreateBrandPayload) => {
-  const response = await api.post(API_PATHS.BRAND.CREATE_PROFILE, payload);
+
+export interface CreateBrandPayload {
+  name: string;
+  description?: string;
+  location: string;
+  website_url?: string;
+}
+
+export const createBrand = async (
+  payload: CreateBrandPayload
+): Promise<Brand> => {
+  const response = await api.post(
+    API_PATHS.BRAND.CREATE_PROFILE,
+    payload
+  );
   return response.data;
+};
+
+export const getBrands = async (): Promise<Brand[]> => {
+  const response = await api.get(
+    API_PATHS.BRAND.GET_BRANDS_BY_USER
+  );
+
+  return response.data?.brands ?? response.data;
+};
+
+export const deleteBrand = async (
+  brandId: string
+): Promise<void> => {
+  await api.delete(
+    `${API_PATHS.BRAND.DELETE_PROFILE}/${brandId}`
+  );
 };

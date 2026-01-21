@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/api/axiosInstance";
-import { clearToken } from "@/utils/authToken";
+import { clearToken } from "@/utils/3.";
 
 export default function DashboardRedirectPage() {
   const router = useRouter();

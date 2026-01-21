@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useState } from "react";
 import { createBrand } from "@/api/services/brandService";
-import { useState } from "react";
 
 interface BrandForm {
   name: string;
@@ -10,7 +10,11 @@ interface BrandForm {
   website_url: string;
 }
 
-export default function CreateBrandForm() {
+interface CreateBrandFormProps {
+  onSuccess?: () => void;
+}
+
+const CreateBrandForm: React.FC<CreateBrandFormProps> = ({ onSuccess }) => {
   const [form, setForm] = useState<BrandForm>({
     name: "",
     description: "",
@@ -24,10 +28,8 @@ export default function CreateBrandForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,111 +38,87 @@ export default function CreateBrandForm() {
     setError(null);
 
     try {
-      const timestamp = new Date().toISOString();
-
       await createBrand({
-        ...form,
-        created_at: timestamp,
-        updated_at: timestamp,
+        name: form.name.trim(),
+        description: form.description.trim() || undefined,
+        location: form.location.trim(),
+        website_url: form.website_url.trim() || undefined,
       });
 
-      alert("Brand created successfully!");
       setForm({
         name: "",
         description: "",
         location: "",
         website_url: "",
       });
+
+      onSuccess?.();
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create brand";
-      setError(message);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create brand. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-50 border border-red-200 p-3 rounded text-red-700 text-sm">
+          {error}
         </div>
       )}
 
-      <div className="space-y-1">
-        <label htmlFor="name" className="block text-sm font-medium">
-          Brand Name *
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          placeholder="Enter brand name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      <input
+        type="text"
+        name="name"
+        placeholder="Brand name"
+        value={form.name}
+        onChange={handleChange}
+        required
+        className="w-full border text-text-primary p-3 rounded-md focus:ring-2 focus:ring-green-500"
+      />
 
-      <div className="space-y-1">
-        <label htmlFor="description" className="block text-sm font-medium">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          placeholder="Tell us about your brand..."
-          value={form.description}
-          onChange={handleChange}
-          rows={4}
-          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      <textarea
+        name="description"
+        placeholder="Brand description"
+        value={form.description}
+        onChange={handleChange}
+        rows={4}
+        className="w-full border text-text-primary p-3 rounded-md focus:ring-2 focus:ring-green-500"
+      />
 
-      <div className="space-y-1">
-        <label htmlFor="location" className="block text-sm font-medium">
-          Location
-        </label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          placeholder="City, Country"
-          value={form.location}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      <input
+        type="text"
+        name="location"
+        placeholder="City, Country"
+        value={form.location}
+        onChange={handleChange}
+        required
+        className="w-full border text-text-primary p-3 rounded-md focus:ring-2 focus:ring-green-500"
+      />
 
-      <div className="space-y-1">
-        <label htmlFor="website_url" className="block text-sm font-medium">
-          Website URL
-        </label>
-        <input
-          type="url"
-          id="website_url"
-          name="website_url"
-          placeholder="https://yourbrand.com"
-          value={form.website_url}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      <input
+        type="url"
+        name="website_url"
+        placeholder="https://brand.com"
+        value={form.website_url}
+        onChange={handleChange}
+        className="w-full border text-text-primary p-3 rounded-md focus:ring-2 focus:ring-green-500"
+      />
 
       <button
         type="submit"
         disabled={loading}
-        className={`
-          w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium
-          hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-          disabled:opacity-50 disabled:cursor-not-allowed
-          transition-colors duration-200
-        `}
+        className="w-full bg-green-600 text-white py-3 rounded-md font-medium hover:bg-green-700 disabled:opacity-50"
       >
         {loading ? "Creating..." : "Create Brand"}
       </button>
     </form>
   );
-}
+};
+
+export default CreateBrandForm;

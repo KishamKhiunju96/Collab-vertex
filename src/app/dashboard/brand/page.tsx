@@ -3,19 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/api/axiosInstance";
-import { clearToken } from "@/utils/authToken";
 import { useUserData } from "@/api/hooks/useUserData";
-import { useAuthProtection } from "@/api/hooks/useAuth";
+import BrandTable from "@/components/brand/BrandTable";
+import CreateBrandForm from "@/components/dashboard/CreateBrandForm";
+import { clearToken } from "@/utils/3.";
 
 type Status = "loading" | "authorized" | "unauthorized";
 
 export default function BrandDashboardPage() {
-  const { loading } = useAuthProtection();
-
   const router = useRouter();
+  const { user, loading: userLoading } = useUserData();
   const [status, setStatus] = useState<Status>("loading");
-  const { user } = useUserData();
 
+  const [showForm, setShowForm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Validate role
   useEffect(() => {
     const validateRole = async () => {
       try {
@@ -60,47 +63,44 @@ export default function BrandDashboardPage() {
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {loading
-              ? "Hi.."
+            {userLoading
+              ? "Hi..."
               : `Hi! ${user?.username}, Welcome to Collab Vertex`}
-            x
-          </h1>{" "}
+          </h1>
           <p className="text-gray-500 mt-1">
-            Manage events, collaborate with influencers, and track performance.
+            Manage your brands, collaborate with influencers, and track
+            performance.
           </p>
         </div>
 
         <button
-          onClick={() => router.push("/dashboard/brand/create")}
+          onClick={() => setShowForm(true)}
           className="px-4 py-2 rounded-md bg-green-500 text-white font-medium hover:bg-green-600 transition"
         >
           + Create Brand
         </button>
       </header>
 
-      {/*<div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500 text-sm">Active Events</p>
-          <h2 className="text-xl font-bold mt-2">2</h2>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500 text-sm">Influencers Collaborated</p>
-          <h2 className="text-xl font-bold mt-2">15</h2>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500 text-sm">Total Reach</p>
-          <h2 className="text-xl font-bold mt-2">100</h2>
-        </div>
-      </div>*/}
+      <BrandTable refreshKey={refreshKey} />
 
-      {/*<div className="border rounded-lg p-4">
-        <h2 className="text-lg font-medium mb-3">Recent Activity</h2>
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>✔ Event Tour created</li>
-          <li>✔ Influencer Sushmita joined your event</li>
-          <li>✔ Event Tour completed</li>
-        </ul>
-      </div>*/}
+      {showForm && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg w-[420px] shadow-lg"
+            onClick={(e) => e.stopPropagation()} // Prevent modal close on inner click
+          >
+            <CreateBrandForm
+              onSuccess={() => {
+                setRefreshKey((prev) => prev + 1);
+                setShowForm(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

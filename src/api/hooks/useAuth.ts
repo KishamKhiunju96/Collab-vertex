@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getUserFromToken, UserRole } from "@/utils/authToken";
+import { getUserFromToken, UserRole } from "@/utils/3.";
 
 export function useAuthProtection() {
   const router = useRouter();

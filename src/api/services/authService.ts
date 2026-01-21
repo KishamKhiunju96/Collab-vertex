@@ -1,6 +1,9 @@
 import { API_PATHS } from "@/api/apiPaths";
 import api from "../axiosInstance";
-import { clearToken, saveToken } from "@/utils/authToken";
+import { notify } from "@/utils/notify";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { clearToken, saveToken } from "@/utils/3.";
 
 export interface UserProfile {
   id?: string;
@@ -9,40 +12,98 @@ export interface UserProfile {
   role: "brand" | "influencer" | "admin";
 }
 
+// helper to extract error message safely
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message || fallback;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 export const authService = {
   login: async (data: { username: string; password: string }) => {
-    const res = await api.post(API_PATHS.USER.LOGIN, data);
+    const toastId = notify.loading("Logging in...");
 
-    const { access_token } = res.data;
+    try {
+      const res = await api.post(API_PATHS.USER.LOGIN, data);
+      const { access_token } = res.data;
 
-    if (!access_token) {
-      throw new Error("Access token not found in login response");
+      if (!access_token) {
+        throw new Error("Access token not found in login response");
+      }
+
+      saveToken(access_token);
+      notify.success("Login successful");
+      return true;
+    } catch (error: unknown) {
+      notify.error(getErrorMessage(error, "Login failed. Please try again."));
+      throw error;
+    } finally {
+      toast.dismiss(toastId);
     }
-
-    saveToken(access_token);
-
-    return true;
   },
 
   getMe: async (): Promise<UserProfile> => {
-    const res = await api.get(API_PATHS.USER.ME);
-    return res.data;
+    try {
+      const res = await api.get(API_PATHS.USER.ME);
+      return res.data;
+    } catch (error: unknown) {
+      notify.error(getErrorMessage(error, "Failed to fetch user profile"));
+      throw error;
+    }
   },
 
-  register: (data: {
+  register: async (data: {
     username: string;
     password: string;
     email: string;
     role: string;
-  }) => api.post(API_PATHS.USER.REGISTER, data),
+  }) => {
+    const toastId = notify.loading("Creating account...");
 
-  verifyOtp: (data: { email: string; otp: string }) =>
-    api.post(API_PATHS.USER.VERIFY_OTP, data),
+    try {
+      const res = await api.post(API_PATHS.USER.REGISTER, data);
+      notify.success("Registration successful. Please verify OTP.");
+      return res;
+    } catch (error: unknown) {
+      notify.error(getErrorMessage(error, "Registration failed"));
+      throw error;
+    } finally {
+      toast.dismiss(toastId);
+    }
+  },
 
-  resendOtp: (data: { email: string }) => api.post("/otp/resend_otp", data),
+  verifyOtp: async (data: { email: string; otp: string }) => {
+    const toastId = notify.loading("Verifying OTP...");
+
+    try {
+      const res = await api.post(API_PATHS.USER.VERIFY_OTP, data);
+      notify.success("OTP verified successfully");
+      return res;
+    } catch (error: unknown) {
+      notify.error(getErrorMessage(error, "Invalid OTP"));
+      throw error;
+    } finally {
+      toast.dismiss(toastId);
+    }
+  },
+
+  resendOtp: async (data: { email: string }) => {
+    try {
+      await api.post("/otp/resend_otp", data);
+      notify.success("OTP resent successfully");
+    } catch (error: unknown) {
+      notify.error(getErrorMessage(error, "Failed to resend OTP"));
+      throw error;
+    }
+  },
 
   logout: async () => {
     try {
+      notify.success("Logged out successfully");
     } finally {
       clearToken();
       window.location.replace("/login");

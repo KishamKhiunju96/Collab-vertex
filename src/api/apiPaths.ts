@@ -1,4 +1,4 @@
-export const BASE_URL = "https://w4gwd5wf-8000.inc1.devtunnels.ms";
+export const BASE_URL = "https://api.dixam.me";
 
 export const API_PATHS = {
   USER: {
@@ -9,11 +9,20 @@ export const API_PATHS = {
     RESEND_OTP: "/otp/resend_otp",
     LOGOUT: "/user/logout",
   },
+
   BRAND: {
     CREATE_PROFILE: "/brand/create_brandprofile",
     GET_PROFILE: "/brand/get_brandprofile",
     UPDATE_PROFILE: "/brand/update_brandprofile",
+    DELETE_PROFILE: "/brand/delete_brandprofile",
+
+    GET_BRANDS_BY_USER: "/brand/brandsbyuser",
   },
+
+  EVENT: {
+    CREATE: (brandId: string) => `/event/create_event${brandId}`,
+  },
+
   TASKS: {
     GET_ALL: "/tasks",
     GET_BY_ID: (id: string) => `/tasks/${id}`,

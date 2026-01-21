@@ -1,10 +1,9 @@
-import { saveToken } from "@/utils/authToken";
+import { saveToken } from "@/utils/3.";
 
 const handleRegister = (data: any) => {
   try {
     console.log("REGISTER RESPONSE:", data);
 
-    // Backend sends auth_token
     const token = data?.auth_token;
 
     if (token) {

@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 
+import ToastProvider from "@/components/ui/ToastProvider";
 import "./globals.css"; // relative path from src/app/ to src/styles/
 
 export const metadata = {
@@ -14,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ToastProvider />
+        {children}
+      </body>
     </html>
   );
 }

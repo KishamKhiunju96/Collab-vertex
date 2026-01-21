@@ -34,7 +34,10 @@ export default function RegisterForm() {
   useEffect(() => {
     const storedRole = localStorage.getItem("pendingUserRole");
 
-    if (!storedRole || (storedRole !== "brand" && storedRole !== "influencer")) {
+    if (
+      !storedRole ||
+      (storedRole !== "brand" && storedRole !== "influencer")
+    ) {
       router.replace("/select-role");
       return;
     }
@@ -44,7 +47,6 @@ export default function RegisterForm() {
       role: storedRole as "brand" | "influencer",
     }));
   }, [router]);
-
 
   const formSchema = z
     .object({
@@ -122,7 +124,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="flex items-center justify-center px-6 md:px-12 py-8">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md text-text-primary">
             <h2 className="mb-2 text-3xl font-bold">Create Account</h2>
             <p className="mb-6 text-gray-600 capitalize">
               Registering as <b>{form.role}</b>
@@ -145,7 +147,7 @@ export default function RegisterForm() {
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
-                    className="mt-1 w-full rounded-md border px-4 py-2 text-sm"
+                    className="mt-1 w-full text-text-primary rounded-md border px-4 py-2 text-sm"
                   />
                   {errors[key] && (
                     <p className="text-xs text-red-600">{errors[key]}</p>
