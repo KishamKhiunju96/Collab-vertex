@@ -10,6 +10,7 @@ export interface CreateEventPayload {
   category: string;
   location: string;
   status: "active" | "inactive";
+  brand_id: string;
 }
 
 export interface Event {
@@ -21,6 +22,11 @@ export interface Event {
   budget: number;
   start_date: string;
   end_date: string;
-  status: string;
+  deliverables: string;
+  target_audience: string;
+  category: string;
+  location: string;
+  status: "active" | "inactive";
   created_at: string;
+  updated_at?: string;
 }

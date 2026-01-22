@@ -1,51 +1,43 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUserFromToken, UserRole } from "@/utils/3.";
+import api from "@/api/axiosInstance";
+
+export type UserRole = "brand" | "influencer" | "admin";
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  is_verified: boolean;
+}
 
 export function useAuthProtection() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [role, setRole] = useState<UserRole | null>(null);
 
-  const user = getUserFromToken();
-
-  const state = useMemo<{
-    loading: boolean;
-    authenticated: boolean;
-    role: UserRole | null;
-  }>(() => {
-    if (!user) {
-      return {
-        loading: false,
-        authenticated: false,
-        role: null,
-      };
-    }
-
-    return {
-      loading: false,
-      authenticated: true,
-      role: user.role,
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get<User>("/user/me", { withCredentials: true });
+        setAuthenticated(true);
+        setRole(res.data.role);
+      } catch (err) {
+        setAuthenticated(false);
+        setRole(null);
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [user]);
 
-  useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, router]);
-
-  return state;
-}
-
-export function useAuthRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const user = getUserFromToken();
-
-    if (user) {
-      router.replace(`/dashboard/${user.role}`);
-    }
+    fetchUser();
   }, [router]);
+
+  return { loading, authenticated, role };
 }

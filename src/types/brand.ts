@@ -1,8 +1,9 @@
 export interface Brand {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   location: string;
-  websiteUrl: string;
+  websiteUrl?: string;
   createdAt: string;
+  updatedAt: string;
 }

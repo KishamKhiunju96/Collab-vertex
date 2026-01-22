@@ -3,7 +3,7 @@ import api from "../axiosInstance";
 import { notify } from "@/utils/notify";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { clearToken, saveToken } from "@/utils/3.";
+import { clearToken, saveToken } from "@/utils/auth";
 
 export interface UserProfile {
   id?: string;
@@ -12,7 +12,6 @@ export interface UserProfile {
   role: "brand" | "influencer" | "admin";
 }
 
-// helper to extract error message safely
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message || fallback;

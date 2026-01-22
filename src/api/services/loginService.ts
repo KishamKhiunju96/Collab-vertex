@@ -1,17 +1,11 @@
-import { saveToken } from "@/utils/authToken";
 import api from "../axiosInstance";
 import axios from "axios";
-
-export interface LoginResponseData {
-  access_token?: string;
-  token_type?: string;
-}
 
 export interface User {
   id: string;
   username: string;
   email: string;
-  role: "brand" | "influencer";
+  role: "brand" | "influencer" | "admin";
   is_active: boolean;
   is_verified: boolean;
 }
@@ -20,33 +14,33 @@ export interface HandleLoginResult {
   success: boolean;
   redirectTo?: string;
   user?: User;
+  message?: string;
 }
 
+/**
+ * Token-based login function
+ */
 export async function handleLogin(
-  responseData: LoginResponseData,
+  username: string,
+  password: string,
 ): Promise<HandleLoginResult> {
   try {
-    console.log("handleLogin received:", responseData);
-
-    const token = responseData?.access_token;
-    if (!token) {
-      console.error("No access_token found in login response");
-      return { success: false };
-    }
-
-    // Save token for subsequent requests
-    saveToken(token);
-    console.log("Token saved successfully");
-
-    // Fetch current user using api instance
-    const userResponse = await api.get<User>("/user/me", {
-      headers: { Authorization: `Bearer ${token}` }, // double ensure header
+    // 1️⃣ Call login → backend returns JSON with access_token
+    const loginRes = await api.post<{ access_token: string }>("/auth/login", {
+      username,
+      password,
     });
+
+    const token = loginRes.data.access_token;
+
+    // 2️⃣ Save token in localStorage
+    localStorage.setItem("collab_vertex_token", token);
+
+    // 3️⃣ Fetch current user using token (axios instance will attach Authorization header)
+    const userResponse = await api.get<User>("/user/me");
     const user = userResponse.data;
 
-    console.log("Fetched current user:", user);
-
-    // Determine redirect route
+    // 4️⃣ Determine redirect path based on role
     let redirectTo: string;
     switch (user.role) {
       case "brand":
@@ -55,23 +49,40 @@ export async function handleLogin(
       case "influencer":
         redirectTo = "/dashboard/influencer";
         break;
+      case "admin":
+        redirectTo = "/dashboard/admin";
+        break;
       default:
         redirectTo = "/select-role";
     }
 
     return { success: true, redirectTo, user };
   } catch (err: unknown) {
+    let message = "Login failed";
+
     if (axios.isAxiosError(err)) {
+      message = err.response?.data?.message || err.message;
       console.error(
         "Axios error in handleLogin:",
         err.response?.status,
-        err.response?.data || err.message,
+        message,
       );
     } else if (err instanceof Error) {
-      console.error("Error in handleLogin:", err.message);
+      message = err.message;
+      console.error("Error in handleLogin:", message);
     } else {
       console.error("Unknown error in handleLogin:", err);
     }
-    return { success: false };
+
+    return { success: false, message };
   }
+}
+
+/**
+ * Logout function
+ */
+export function logout() {
+  localStorage.removeItem("collab_vertex_token");
+  // optional: redirect to login
+  // window.location.href = "/login";
 }

@@ -1,13 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { AxiosError } from "axios";
-import { userService } from "@/api/services/userService";
 
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  name?: string;
-}
+import { userService } from "@/api/services/userService";
+import { User } from "@/types/user";
 
 interface ApiErrorResponse {
   detail?: string;
@@ -24,11 +19,13 @@ export function useUserData() {
       setError(null);
 
       const response = await userService.me();
-      setUser(response.data);
-    } catch (error) {
-      const err = error as AxiosError<ApiErrorResponse>;
+
+      setUser(response.data as User);
+    } catch (err) {
+      const error = err as AxiosError<ApiErrorResponse>;
+
       setUser(null);
-      setError(err.response?.data?.detail ?? "Failed to fetch user");
+      setError(error.response?.data?.detail ?? "Failed to fetch user");
     } finally {
       setLoading(false);
     }

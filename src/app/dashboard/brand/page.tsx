@@ -2,45 +2,34 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/api/axiosInstance";
+
 import { useUserData } from "@/api/hooks/useUserData";
 import BrandTable from "@/components/brand/BrandTable";
 import CreateBrandForm from "@/components/dashboard/CreateBrandForm";
-import { clearToken } from "@/utils/3.";
-
-type Status = "loading" | "authorized" | "unauthorized";
+import { clearToken } from "@/utils/auth";
 
 export default function BrandDashboardPage() {
   const router = useRouter();
-  const { user, loading: userLoading } = useUserData();
-  const [status, setStatus] = useState<Status>("loading");
+  const { user, loading: userLoading, error } = useUserData();
 
   const [showForm, setShowForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Validate role
   useEffect(() => {
-    const validateRole = async () => {
-      try {
-        const res = await api.get("/user/me");
-        const role = res.data?.role;
+    if (userLoading) return;
 
-        if (role !== "brand") {
-          router.replace("/401");
-          return;
-        }
+    if (error || !user) {
+      clearToken();
+      router.replace("/login");
+      return;
+    }
 
-        setStatus("authorized");
-      } catch (error) {
-        clearToken();
-        router.replace("/login");
-      }
-    };
+    if (user.role !== "brand") {
+      router.replace("/401");
+    }
+  }, [user, userLoading, error, router]);
 
-    validateRole();
-  }, [router]);
-
-  if (status === "loading") {
+  if (userLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <span className="text-lg text-gray-600">
@@ -50,7 +39,7 @@ export default function BrandDashboardPage() {
     );
   }
 
-  if (status !== "authorized") {
+  if (!user || user.role !== "brand") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <span className="text-sm text-gray-500">Redirecting...</span>
@@ -63,9 +52,7 @@ export default function BrandDashboardPage() {
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {userLoading
-              ? "Hi..."
-              : `Hi! ${user?.username}, Welcome to Collab Vertex`}
+            Hi {user.username}, Welcome to Collab Vertex
           </h1>
           <p className="text-gray-500 mt-1">
             Manage your brands, collaborate with influencers, and track
@@ -90,13 +77,14 @@ export default function BrandDashboardPage() {
         >
           <div
             className="bg-white p-6 rounded-lg w-[420px] shadow-lg"
-            onClick={(e) => e.stopPropagation()} // Prevent modal close on inner click
+            onClick={(e) => e.stopPropagation()}
           >
             <CreateBrandForm
               onSuccess={() => {
                 setRefreshKey((prev) => prev + 1);
                 setShowForm(false);
               }}
+              onCancel={() => setShowForm(false)}
             />
           </div>
         </div>

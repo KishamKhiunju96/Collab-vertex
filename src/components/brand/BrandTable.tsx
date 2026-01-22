@@ -1,7 +1,10 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Brand, getBrands, deleteBrand } from "@/api/services/brandService";
 import { Trash2, Edit, Eye } from "lucide-react";
+import BrandViewModal from "./BrandViewModal";
 
 interface BrandTableProps {
   refreshKey: number;
@@ -9,13 +12,16 @@ interface BrandTableProps {
 }
 
 const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
+  const router = useRouter();
+
+  const [viewBrand, setViewBrand] = useState<Brand | null>(null);
+
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // For modal handling
-  const [viewBrand, setViewBrand] = useState<Brand | null>(null);
+  // Edit modal
   const [editBrand, setEditBrand] = useState<Brand | null>(null);
 
   const fetchBrands = async () => {
@@ -26,11 +32,7 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
       setBrands(data);
     } catch (err: unknown) {
       console.error("Failed to fetch brands", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to fetch brands. Please try again.",
-      );
+      setError("Failed to load brands. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +41,10 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
   useEffect(() => {
     fetchBrands();
   }, [refreshKey]);
+
+  const handleNavigate = (brandId: string) => {
+    router.push(`/dashboard/brand/${brandId}`);
+  };
 
   const handleDelete = async (brandId: string) => {
     if (
@@ -57,42 +63,25 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
       alert("Brand deleted successfully");
     } catch (err: unknown) {
       console.error("Delete failed:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to delete brand. Please try again.",
-      );
+      alert("Failed to delete brand. Please try again.");
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleView = (brandId: string) => {
-    const brand = brands.find((b) => b.id === brandId) || null;
-    setViewBrand(brand);
-  };
-
-  const handleEdit = (brandId: string) => {
-    const brand = brands.find((b) => b.id === brandId) || null;
-    setEditBrand(brand);
-  };
-
-  const closeModal = () => {
-    setViewBrand(null);
-    setEditBrand(null);
-  };
-
   if (loading)
     return <p className="text-sm text-text-primary">Loading brands...</p>;
+
   if (error) return <p className="text-sm text-red-600">{error}</p>;
+
   if (brands.length === 0)
     return <p className="text-sm text-text-primary">No brands created yet.</p>;
 
   return (
     <>
-      <div className="border rounded-lg text-text-primary bg-white overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px]">
-          <thead className="bg-gray-100 text-text-primary">
+      <div className="border rounded-lg bg-white overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
+          <thead className="bg-background-light text-text-primary">
             <tr>
               <th className="p-3 text-left">Name</th>
               <th className="p-3 text-left">Description</th>
@@ -101,19 +90,26 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
               <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {brands.map((brand) => (
               <tr key={brand.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-medium text-text-primary">
+                <td
+                  className="p-3 font-medium cursor-pointer hover:underline text-black"
+                  onClick={() => handleNavigate(brand.id)}
+                >
                   {brand.name}
                 </td>
+
                 <td className="p-3 text-text-primary">
                   {brand.description || "—"}
                 </td>
+
                 <td className="p-3 text-text-primary">
                   {brand.location || "—"}
                 </td>
-                <td className="p-3 text-blue-600">
+
+                <td className="p-3 text-text-primary">
                   {brand.website_url ? (
                     <a
                       href={brand.website_url}
@@ -127,42 +123,35 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
                     "—"
                   )}
                 </td>
+
                 <td className="p-3 flex gap-2">
                   <button
-                    onClick={() => handleView(brand.id)}
+                    onClick={() => setViewBrand(brand)}
                     title="View brand"
-                    className="p-2 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100 transition-colors"
+                    className="p-2 rounded-md text-blue-600 hover:bg-blue-50"
                   >
-                    <Eye size={18} strokeWidth={2} />
+                    <Eye size={18} />
                   </button>
 
                   <button
-                    onClick={() => handleEdit(brand.id)}
+                    onClick={() => setEditBrand(brand)}
                     title="Edit brand"
-                    className="p-2 rounded-md text-green-600 hover:bg-green-50 hover:text-green-700 active:bg-green-100 transition-colors"
+                    className="p-2 rounded-md text-green-600 hover:bg-green-50"
                   >
-                    <Edit size={18} strokeWidth={2} />
+                    <Edit size={18} />
                   </button>
 
                   <button
                     onClick={() => handleDelete(brand.id)}
                     disabled={deletingId === brand.id}
                     title="Delete brand"
-                    className={`
-                      p-2 rounded-md transition-colors
-                      ${
-                        deletingId === brand.id
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100"
-                      }
-                    `}
+                    className={`p-2 rounded-md ${
+                      deletingId === brand.id
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-red-600 hover:bg-red-50"
+                    }`}
                   >
-                    <Trash2 size={18} strokeWidth={2} />
-                    {deletingId === brand.id && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        Deleting...
-                      </span>
-                    )}
+                    <Trash2 size={18} />
                   </button>
                 </td>
               </tr>
@@ -171,50 +160,31 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
         </table>
       </div>
 
-      {viewBrand && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background-light text-text-primary p-6 rounded-lg w-96 max-w-full relative">
-            <h2 className="text-lg font-semibold mb-4">{viewBrand.name}</h2>
-            <p>
-              <strong>Description:</strong> {viewBrand.description || "—"}
-            </p>
-            <p>
-              <strong>Location:</strong> {viewBrand.location || "—"}
-            </p>
-            <p>
-              <strong>Website:</strong>{" "}
-              {viewBrand.website_url ? (
-                <a
-                  href={viewBrand.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  {viewBrand.website_url}
-                </a>
-              ) : (
-                "—"
-              )}
-            </p>
-            <button
-              onClick={closeModal}
-              className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <BrandViewModal
+        open={!!viewBrand}
+        brand={viewBrand}
+        onClose={() => setViewBrand(null)}
+        onUpdated={(updatedBrand) => {
+          setBrands((prev) =>
+            prev.map((b) => (b.id === updatedBrand.id ? updatedBrand : b)),
+          );
+          setViewBrand(updatedBrand);
+        }}
+      />
 
       {editBrand && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background-light text-text-primary p-6 rounded-lg w-96 max-w-full relative">
+          <div className="bg-white p-6 rounded-lg w-96">
             <h2 className="text-lg font-semibold mb-4">
               Edit {editBrand.name}
             </h2>
-            <p>Here you can put a form to edit brand details.</p>
+
+            <p className="text-sm text-gray-600">
+              Hook this modal to <code>updateBrand()</code>.
+            </p>
+
             <button
-              onClick={closeModal}
+              onClick={() => setEditBrand(null)}
               className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
             >
               Close

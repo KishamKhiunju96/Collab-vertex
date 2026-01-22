@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthProtection } from "@/api/hooks/useAuth";
-import { clearToken } from "@/utils/3.";
+import { clearToken } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

@@ -17,7 +17,7 @@ export default function SideBar() {
     try {
       const response = await fetch("/user/logout", {
         method: "POST",
-        credentials: "include", // sends cookies/session
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

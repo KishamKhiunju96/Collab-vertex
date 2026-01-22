@@ -15,12 +15,14 @@ export const API_PATHS = {
     GET_PROFILE: "/brand/get_brandprofile",
     UPDATE_PROFILE: "/brand/update_brandprofile",
     DELETE_PROFILE: "/brand/delete_brandprofile",
-
     GET_BRANDS_BY_USER: "/brand/brandsbyuser",
   },
 
   EVENT: {
-    CREATE: (brandId: string) => `/event/create_event${brandId}`,
+    CREATE: (brandId: string) => `/event/create_event/${brandId}`,
+    GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
+    UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
+    DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
   },
 
   TASKS: {

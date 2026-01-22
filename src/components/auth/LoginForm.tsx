@@ -40,6 +40,8 @@ export default function LoginForm() {
         router.replace("/dashboard/brand");
       } else if (user.role === "influencer") {
         router.replace("/dashboard/influencer");
+      } else if (user.role === "admin") {
+        router.replace("/dashboard/admin");
       } else {
         router.replace("/select-role");
       }

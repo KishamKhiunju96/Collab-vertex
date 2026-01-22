@@ -8,6 +8,7 @@ export default function CreateBrandModal({
 }: {
   onClose: () => void;
   onCreated: () => void;
+  onCancel?: () => void;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -86,7 +87,7 @@ export default function CreateBrandModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!form.name.trim()} // basic required field check
+            disabled={!form.name.trim()}
             className="px-6 py-2.5 bg-red-700 text-white rounded-md hover:bg-red-800 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
           >
             Create

@@ -1,21 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/api/axiosInstance";
 import { AxiosError } from "axios";
-
-// Reuse Brand interface
-interface Brand {
-  id: string;
-  name: string;
-  description: string;
-  location?: string;
-  websiteUrl?: string;
-}
+import {
+  Brand,
+  updateBrand,
+  UpdateBrandPayload,
+} from "@/api/services/brandService";
 
 interface UpdateBrandFormProps {
   brand: Brand;
-  onUpdate: (updatedBrand: Brand) => void; // <-- FIXED: unknown -> Brand
+  onUpdate: (updatedBrand: Brand) => void;
   onClose?: () => void;
 }
 
@@ -24,29 +19,32 @@ export default function UpdateBrandForm({
   onUpdate,
   onClose,
 }: UpdateBrandFormProps) {
-  const [name, setName] = useState(brand.name);
-  const [description, setDescription] = useState(brand.description);
-  const [location, setLocation] = useState(brand.location || "");
-  const [websiteUrl, setWebsiteUrl] = useState(brand.websiteUrl || "");
+  const [form, setForm] = useState<UpdateBrandPayload>({
+    name: brand.name,
+    description: brand.description ?? "",
+    location: brand.location,
+    website_url: brand.website_url ?? "",
+  });
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError(null);
 
     try {
-      const res = await api.put("/brand/update_brandprofile", {
-        id: brand.id,
-        name,
-        description,
-        location,
-        websiteUrl,
-      });
-
-      onUpdate(res.data); // Type-safe now
-      if (onClose) onClose();
+      const updatedBrand = await updateBrand(brand.id, form);
+      onUpdate(updatedBrand);
+      onClose?.();
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         setError(
@@ -63,46 +61,49 @@ export default function UpdateBrandForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <p className="text-red-500">{error}</p>}
+    <form onSubmit={handleSubmit} className="space-y-4 ">
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <input
+        name="name"
         type="text"
         placeholder="Brand Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full border p-2 rounded-md"
+        value={form.name || ""}
+        onChange={handleChange}
         required
+        className="w-full border p-2 text-text-primary rounded-md"
       />
 
       <textarea
+        name="description"
         placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full border p-2 rounded-md"
-        required
+        value={form.description || ""}
+        onChange={handleChange}
+        className="w-full border p-2 text-text-primary rounded-md"
       />
 
       <input
+        name="location"
         type="text"
         placeholder="Location"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-        className="w-full border p-2 rounded-md"
+        value={form.location || ""}
+        onChange={handleChange}
+        className="w-full border p-2 text-text-primary rounded-md"
       />
 
       <input
+        name="website_url"
         type="text"
         placeholder="Website URL"
-        value={websiteUrl}
-        onChange={(e) => setWebsiteUrl(e.target.value)}
-        className="w-full border p-2 rounded-md"
+        value={form.website_url || ""}
+        onChange={handleChange}
+        className="w-full border text-text-primary p-2 rounded-md"
       />
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+        className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-500 transition"
       >
         {loading ? "Updating..." : "Update Brand"}
       </button>

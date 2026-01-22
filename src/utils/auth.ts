@@ -12,12 +12,7 @@ interface DecodedToken {
 
 export const saveToken = (token: string) => {
   if (typeof window === "undefined") return;
-
   localStorage.setItem(TOKEN_KEY, token);
-
-  document.cookie = `${TOKEN_KEY}=${encodeURIComponent(
-    token,
-  )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax; Secure`;
 };
 
 export const getToken = (): string | null => {
@@ -31,15 +26,8 @@ export const getUserFromToken = (): DecodedToken | null => {
 
   try {
     const decoded = jwtDecode<DecodedToken>(token);
-
-    if (decoded.exp * 1000 < Date.now()) {
-      clearToken();
-      return null;
-    }
-
     return decoded;
   } catch {
-    clearToken();
     return null;
   }
 };
@@ -54,5 +42,20 @@ export const clearToken = () => {
 
   localStorage.removeItem(TOKEN_KEY);
 
-  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax; Secure`;
+  const isProduction = process.env.NODE_ENV === "production";
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax; ${
+    isProduction ? "Secure" : ""
+  }`;
+};
+
+export const isLoggedIn = (): boolean => {
+  const token = getToken();
+  if (!token) return false;
+
+  try {
+    const decoded = jwtDecode<DecodedToken>(token);
+    return decoded.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
 };
