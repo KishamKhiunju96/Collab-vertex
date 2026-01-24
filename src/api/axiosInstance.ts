@@ -16,12 +16,10 @@ const api = axios.create({
   }),
 });
 
-// ✅ Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("collab_vertex_token");
     if (token) {
-      // Ensure headers is always AxiosHeaders
       if (!(config.headers instanceof AxiosHeaders)) {
         config.headers = new AxiosHeaders(config.headers);
       }
@@ -32,15 +30,12 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
-// ✅ Response interceptor
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       console.warn("Unauthorized! Token missing or expired.");
       localStorage.removeItem("collab_vertex_token");
-      // Optional: redirect to login
-      // window.location.href = "/login";
     }
     return Promise.reject(error);
   },
