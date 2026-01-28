@@ -41,25 +41,44 @@ export default function SideBar() {
       </h2>
 
       <nav className="flex flex-col gap-1 flex-grow">
+
         {role === "brand" && (
           <>
             <Link
               href="/dashboard/brand"
               className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
             >
-              Brands
+              Dashboard Overview
             </Link>
             <Link
               href="/dashboard/brand/events"
               className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
             >
-              Events
+              Manage Events
             </Link>
             <Link
               href="/dashboard/brand/influencers"
               className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
             >
-              Influencers
+              Find Influencers
+            </Link>
+            <Link
+              href="/dashboard/brand/collaborations"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Collaborations
+            </Link>
+            <Link
+              href="/dashboard/brand/analytics"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/dashboard/brand/settings"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Settings
             </Link>
           </>
         )}
@@ -70,13 +89,37 @@ export default function SideBar() {
               href="/dashboard/influencer"
               className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
             >
-              Dashboard
+              Dashboard Overview
             </Link>
             <Link
               href="/dashboard/influencer/events"
               className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
             >
-              Events
+              My Events
+            </Link>
+            <Link
+              href="/dashboard/influencer/collaborations"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Collaborations
+            </Link>
+            <Link
+              href="/dashboard/influencer/social-links"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Social Links
+            </Link>
+            <Link
+              href="/dashboard/influencer/analytics"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/dashboard/influencer/settings"
+              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+            >
+              Settings
             </Link>
           </>
         )}

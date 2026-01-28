@@ -32,4 +32,11 @@ export const API_PATHS = {
     UPDATE: (id: string) => `/tasks/${id}`,
     DELETE: (id: string) => `/tasks/${id}`,
   },
+
+  INFLUENCER: {
+    CREATE_SOCIAL_LINK: "/influencer/create_sociallink",
+    GET_SOCIAL_LINKS: "/influencer/get_sociallinks",
+    UPDATE_SOCIAL_LINK: (sociallinkId: string) => `/influencer/update_sociallink/${sociallinkId}`,
+    DELETE_SOCIAL_LINK: (sociallinkId: string) => `/influencer/delete_sociallink/${sociallinkId}`,
+  },
 } as const;

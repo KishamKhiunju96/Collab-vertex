@@ -5,6 +5,7 @@ import { useUserData } from "@/api/hooks/useUserData";
 import { authService } from "@/api/services/authService";
 import Link from "next/link";
 import { useState } from "react";
+import SocialLinks from "@/components/influencer/SocialLinks";
 
 export default function InfluencerDashboardPage() {
   const { loading, authenticated, role } = useAuthProtection();
@@ -71,6 +72,11 @@ export default function InfluencerDashboardPage() {
         <DashboardCard title="Active Events" value="5" />
         <DashboardCard title="Collaborations" value="12" />
         <DashboardCard title="Total Earnings" value="$1,250" />
+      </section>
+
+      {/* Social Links Section */}
+      <section>
+        <SocialLinks />
       </section>
     </div>
   );
