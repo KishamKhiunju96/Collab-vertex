@@ -1,4 +1,4 @@
-export const BASE_URL = "https://api.dixam.me";
+export const BASE_URL = "http://localhost:8000";
 
 export const API_PATHS = {
   USER: {
@@ -11,11 +11,11 @@ export const API_PATHS = {
   },
 
   BRAND: {
-    CREATE_PROFILE: "/brand/create_brandprofile",
-    GET_PROFILE: "/brand/get_brandprofile",
-    UPDATE_PROFILE: "/brand/update_brandprofile",
-    DELETE_PROFILE: "/brand/delete_brandprofile",
-    GET_BRANDS_BY_USER: "/brand/brandsbyuser",
+     CREATE_PROFILE: "/brand/create_brandprofile",
+     GET_BY_ID: (brandId: string) => `/brand/brandbyid/${brandId}`,
+     GET_BRANDS_BY_USER: "/brand/brandsbyuser",
+     UPDATE_PROFILE: (brandId: string) => `/brand/update_brandprofile/${brandId}`,
+     DELETE_PROFILE: (brandId: string) => `/brand/delete_brandprofile/${brandId}`,
   },
 
   EVENT: {

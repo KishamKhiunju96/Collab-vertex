@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSocialLinks } from "../../hooks/useSocialLinks";
+import { useSocialLinks } from "../../api/hooks/useSocialLinks";
 
 const platforms = ["instagram", "twitter", "facebook", "youtube", "tiktok", "linkedin"];
 

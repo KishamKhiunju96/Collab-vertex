@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuthProtection } from "@/api/hooks/useAuth";
-import { clearToken } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -45,7 +44,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = () => {
-    clearToken();
+    document.cookie = `collab_vertex_token=; path=/; max-age=0; SameSite=Lax`;
     router.replace("/login");
   };
 

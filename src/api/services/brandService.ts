@@ -40,7 +40,7 @@ export const getBrands = async (): Promise<Brand[]> => {
 };
 
 export const getBrandById = async (brandId: string): Promise<Brand> => {
-  const response = await api.get(`${API_PATHS.BRAND.GET_PROFILE}/${brandId}`);
+  const response = await api.get(API_PATHS.BRAND.GET_BY_ID(brandId));
 
   return response.data;
 };
@@ -50,7 +50,7 @@ export const updateBrand = async (
   payload: UpdateBrandPayload,
 ): Promise<Brand> => {
   const response = await api.put(
-    `${API_PATHS.BRAND.UPDATE_PROFILE}/${brandId}`,
+    API_PATHS.BRAND.UPDATE_PROFILE(brandId),
     payload,
   );
 
@@ -58,5 +58,5 @@ export const updateBrand = async (
 };
 
 export const deleteBrand = async (brandId: string): Promise<void> => {
-  await api.delete(`${API_PATHS.BRAND.DELETE_PROFILE}/${brandId}`);
+  await api.delete(API_PATHS.BRAND.DELETE_PROFILE(brandId));
 };

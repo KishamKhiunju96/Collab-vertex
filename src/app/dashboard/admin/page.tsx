@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/api/hooks/useUserData";
-import { clearToken } from "@/utils/auth";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -13,7 +12,6 @@ export default function AdminDashboardPage() {
     if (userLoading) return;
 
     if (error || !user) {
-      clearToken();
       router.replace("/login");
       return;
     }

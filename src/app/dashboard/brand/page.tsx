@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useUserData } from "@/api/hooks/useUserData";
 import BrandTable from "@/components/brand/BrandTable";
 import CreateBrandForm from "@/components/dashboard/CreateBrandForm";
-import { clearToken } from "@/utils/auth";
 
 export default function BrandDashboardPage() {
   const router = useRouter();
@@ -19,7 +18,6 @@ export default function BrandDashboardPage() {
     if (userLoading) return;
 
     if (error || !user) {
-      clearToken();
       router.replace("/login");
       return;
     }

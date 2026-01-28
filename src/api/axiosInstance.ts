@@ -5,6 +5,7 @@ import axios, {
   AxiosHeaders,
 } from "axios";
 import { BASE_URL } from "./apiPaths";
+import { getToken } from "@/utils/auth";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -18,7 +19,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("collab_vertex_token");
+    const token = getToken();
     if (token) {
       if (!(config.headers instanceof AxiosHeaders)) {
         config.headers = new AxiosHeaders(config.headers);
@@ -35,7 +36,7 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       console.warn("Unauthorized! Token missing or expired.");
-      localStorage.removeItem("collab_vertex_token");
+      // Token is now managed via cookies
     }
     return Promise.reject(error);
   },

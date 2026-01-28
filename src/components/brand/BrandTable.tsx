@@ -12,6 +12,7 @@ interface BrandTableProps {
 }
 
 const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
+    const [showCreateModal, setShowCreateModal] = useState(false);
   const router = useRouter();
 
   const [viewBrand, setViewBrand] = useState<Brand | null>(null);
@@ -75,10 +76,23 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
   if (error) return <p className="text-sm text-red-600">{error}</p>;
 
   if (brands.length === 0)
-    return <p className="text-sm text-text-primary">No brands created yet.</p>;
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-sm text-text-primary">No brands created yet.</p>
+        <button
+          className="px-6 py-2.5 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors"
+          onClick={() => setShowCreateModal(true)}
+        >
+          + Create Brand
+        </button>
+
+      </div>
+    );
 
   return (
     <>
+      <div className="flex justify-end mb-4">
+      </div>
       <div className="border rounded-lg bg-white overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-background-light text-text-primary">

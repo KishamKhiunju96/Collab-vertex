@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/api/axiosInstance";
-import { clearToken } from "@/utils/auth";
 
 export default function DashboardRedirectPage() {
   const router = useRouter();
@@ -20,7 +19,6 @@ export default function DashboardRedirectPage() {
         router.replace(`/dashboard/${role}`);
       } catch (error) {
         console.error("Dashboard redirect error:", error);
-        clearToken();
         router.replace("/login");
       }
     };

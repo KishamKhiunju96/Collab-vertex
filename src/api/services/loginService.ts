@@ -1,5 +1,6 @@
 import api from "../axiosInstance";
 import axios from "axios";
+import { saveToken, clearToken } from "@/utils/auth";
 
 export interface User {
   id: string;
@@ -33,8 +34,8 @@ export async function handleLogin(
 
     const token = loginRes.data.access_token;
 
-    // 2️⃣ Save token in localStorage
-    localStorage.setItem("collab_vertex_token", token);
+    // 2️⃣ Save token in cookie
+    saveToken(token);
 
     // 3️⃣ Fetch current user using token (axios instance will attach Authorization header)
     const userResponse = await api.get<User>("/user/me");
@@ -82,7 +83,7 @@ export async function handleLogin(
  * Logout function
  */
 export function logout() {
-  localStorage.removeItem("collab_vertex_token");
+  clearToken();
   // optional: redirect to login
   // window.location.href = "/login";
 }

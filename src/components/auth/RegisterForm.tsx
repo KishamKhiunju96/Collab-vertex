@@ -32,7 +32,15 @@ export default function RegisterForm() {
   const [apiError, setApiError] = useState("");
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("pendingUserRole");
+    const getCookie = (name: string): string | null => {
+      return (
+        document.cookie
+          .split('; ')
+          .find((row) => row.startsWith(name + '='))
+          ?.split('=')[1] || null
+      );
+    };
+    const storedRole = getCookie("pendingUserRole");
 
     if (
       !storedRole ||
@@ -95,7 +103,7 @@ export default function RegisterForm() {
       const data = await authService.register(payload);
       handleRegister(data);
 
-      localStorage.removeItem("pendingUserRole");
+      document.cookie = `pendingUserRole=; path=/; max-age=0; SameSite=Lax`;
 
       router.push(`/verify_otp?email=${encodeURIComponent(form.email)}`);
     } catch (err: unknown) {
