@@ -1,24 +1,25 @@
-/* =======================
-   Core Brand Model
-======================= */
+// ------------------------
+// Brand Types & Normalizers
+// ------------------------
 
+/**
+ * Frontend-friendly Brand type (camelCase preferred)
+ */
 export interface Brand {
   id: string;
   name: string;
   description?: string;
   location: string;
-  websiteUrl?: string;
-  createdAt: string;
-  updatedAt: string;
+  websiteUrl?: string; // ✅ camelCase for frontend
+  createdAt: string;   // ✅ camelCase
+  updatedAt: string;   // ✅ camelCase
 }
 
-/* =======================
-   Backend Raw Brand
-   (snake_case)
-======================= */
-
+/**
+ * Raw API response from backend
+ */
 export interface BrandApiResponse {
-  id: string;
+  id: string | number;
   name: string;
   description?: string;
   location: string;
@@ -27,48 +28,45 @@ export interface BrandApiResponse {
   updated_at: string;
 }
 
-/* =======================
-   Payloads
-======================= */
-
+/**
+ * Payload for creating a brand
+ */
 export interface CreateBrandPayload {
   name: string;
   description?: string;
   location: string;
-  websiteUrl?: string;
+  websiteUrl?: string; // camelCase for consistency
 }
 
+/**
+ * Payload for updating a brand
+ */
 export interface UpdateBrandPayload {
   name?: string;
   description?: string;
   location?: string;
-  websiteUrl?: string;
+  websiteUrl?: string; // camelCase
 }
 
-/* =======================
-   Normalizer
-======================= */
+/* ------------------------
+   Normalizers
+------------------------ */
 
 /**
- * Convert a backend BrandApiResponse (snake_case) into frontend Brand (camelCase)
+ * Normalize a single API brand response to frontend Brand type
  */
-export const normalizeBrand = (raw: BrandApiResponse | any): Brand => ({
-  id: String(raw?.id ?? ""),
-  name: raw?.name ?? "",
-  description: raw?.description ?? undefined,
-  location: raw?.location ?? "",
-  websiteUrl: raw?.website_url ?? raw?.websiteUrl ?? undefined,
-  createdAt: raw?.created_at ?? raw?.createdAt ?? "",
-  updatedAt: raw?.updated_at ?? raw?.updatedAt ?? "",
+export const normalizeBrand = (raw: BrandApiResponse): Brand => ({
+  id: String(raw.id ?? ""),
+  name: raw.name ?? "",
+  description: raw.description ?? undefined,
+  location: raw.location ?? "",
+  websiteUrl: raw.website_url ?? undefined, // normalize snake_case -> camelCase
+  createdAt: raw.created_at ?? "",          // normalize snake_case -> camelCase
+  updatedAt: raw.updated_at ?? "",          // normalize snake_case -> camelCase
 });
 
-/* =======================
-   Helpers
-======================= */
-
 /**
- * Normalize an array of BrandApiResponse objects into an array of Brand
+ * Normalize an array of API brands
  */
-export const normalizeBrands = (
-  brands: BrandApiResponse[] | any[] = []
-): Brand[] => brands.map(normalizeBrand);
+export const normalizeBrands = (brands: BrandApiResponse[] = []): Brand[] =>
+  brands.map(normalizeBrand);

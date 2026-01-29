@@ -1,131 +1,97 @@
 "use client";
 
-import { useState } from "react";
-import api from "@/api/axiosInstance";
-import { AxiosError } from "axios";
+import React, { useState } from "react";
+import { brandService, CreateBrandPayload, Brand } from "@/api/services/brandService";
 
-// ── Import the real shared type ────────────────────────────────
-import type { Event } from "@/api/types/event"; // ← adjust path if needed
-
-interface CreateEventFormProps {
-  brandId: string;
-  onCreate: (newEvent: Event) => void; // ← use Event here
-  onClose?: () => void;
+interface CreateBrandFormProps {
+  onSuccess: (brand: Brand) => void;
+  onCancel: () => void;
 }
 
-export default function CreateEventForm({
-  brandId,
-  onCreate,
-  onClose,
-}: CreateEventFormProps) {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export default function CreateBrandForm({ onSuccess, onCancel }: CreateBrandFormProps) {
+  const [form, setForm] = useState<CreateBrandPayload>({
+    name: "",
+    description: "",
+    location: "",
+    websiteUrl: "",
+  });
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
+
+    if (!form.name || !form.location) {
+      setError("Brand name and location are required.");
+      return;
+    }
 
     try {
-      const response = await api.post<Event>(
-        `/brands/${brandId}/events`,
-
-        {
-          brandId,
-          title: title.trim(),
-          date,
-        },
-      );
-
-      onCreate(response.data);
-
-      setTitle("");
-      setDate("");
-      onClose?.();
-    } catch (err: unknown) {
-      console.error("Event creation failed:", err);
-
-      let message = "Failed to create event. Please try again.";
-      if (err instanceof AxiosError) {
-        message = err.response?.data?.message || err.message || message;
-      } else if (err instanceof Error) {
-        message = err.message;
-      }
-      setError(message);
+      setLoading(true);
+      const brand = await brandService.createBrand(form);
+      onSuccess(brand);
+    } catch (err: any) {
+      setError(err?.message || "Failed to create brand");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 max-w-md mx-auto p-2"
-      noValidate
-    >
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
+        <div className="bg-red-50 text-red-700 text-sm p-3 rounded-md">
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Event Title
-        </label>
-        <input
-          id="title"
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Product Launch 2025"
-          required
-          disabled={isLoading}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      <input
+        autoFocus
+        placeholder="Brand Name *"
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none"
+      />
 
-      <div>
-        <label htmlFor="date" className="block text-sm font-medium mb-1">
-          Event Date
-        </label>
-        <input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          disabled={isLoading}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      <textarea
+        placeholder="Description"
+        value={form.description}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        className="w-full border rounded-md p-2 resize-none focus:ring-2 focus:ring-green-500 outline-none"
+        rows={3}
+      />
 
-      <div className="flex justify-end gap-2 mt-4">
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-        )}
+      <input
+        placeholder="Location *"
+        value={form.location}
+        onChange={(e) => setForm({ ...form, location: e.target.value })}
+        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none"
+      />
+
+      <input
+        placeholder="Website URL"
+        value={form.websiteUrl}
+        onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
+        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none"
+      />
+
+      <div className="flex justify-end gap-3 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200"
+        >
+          Cancel
+        </button>
+
         <button
           type="submit"
-          disabled={isLoading || !title.trim() || !date}
-          className={`
-            px-5 py-2 rounded-md font-medium text-white transition-colors
-            ${
-              isLoading || !title.trim() || !date
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }
-          `}
+          disabled={loading}
+          className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
         >
-          {isLoading ? "Creating..." : "Create Event"}
+          {loading ? "Creating..." : "Create Brand"}
         </button>
       </div>
     </form>

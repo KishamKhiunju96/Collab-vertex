@@ -1,74 +1,107 @@
 "use client";
 
 import { useState } from "react";
-import { Brand, UpdateBrandPayload } from "@/api/services/brandService";
+import type { Brand, UpdateBrandPayload } from "@/api/services/brandService";
 import UpdateBrandModal from "./UpdateBrandModal";
 
 interface BrandDetailProps {
-  brand: Brand;
+  brand: Brand; // Fully loaded brand
   onCreateEvent: () => void;
   onUpdateBrand: (payload: UpdateBrandPayload) => void;
+  updating?: boolean; // Optional loading state
+  totalEvents?: number; // optional metric
+  totalCollaborations?: number; // optional metric
 }
 
 export default function BrandDetail({
   brand,
   onCreateEvent,
   onUpdateBrand,
+  updating = false,
+  totalEvents = 0,
+  totalCollaborations = 0,
 }: BrandDetailProps) {
   const [showUpdate, setShowUpdate] = useState(false);
 
+  if (!brand) return null;
+
   return (
-    <div className="flex justify-between items-center p-4 border rounded shadow-sm bg-white">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{brand.name}</h1>
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
+
+      {/* ---------------- Brand Info ---------------- */}
+      <div className="flex-1 space-y-3 max-w-md">
+        <h1 className="text-2xl font-bold text-gray-900">{brand.name}</h1>
 
         {brand.description && (
           <p className="text-gray-700">{brand.description}</p>
         )}
 
-        {brand.location && (
-          <p className="text-gray-600">Location: {brand.location}</p>
-        )}
+        <div className="flex flex-wrap gap-3 text-gray-600 text-sm">
+          {brand.location && <span>📍 {brand.location}</span>}
+          {brand.websiteUrl && (
+            <a
+              href={brand.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              🔗 Visit Website
+            </a>
+          )}
+        </div>
 
-        {brand.websiteUrl && (
-          <a
-            href={brand.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline"
-          >
-            Visit Website
-          </a>
-        )}
+        {/* ---------------- Metrics / Stats ---------------- */}
+        <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-500">
+          <span className="bg-gray-100 px-2 py-1 rounded-full">
+            🗓️ Events: {totalEvents}
+          </span>
+          <span className="bg-gray-100 px-2 py-1 rounded-full">
+            🤝 Collaborations: {totalCollaborations}
+          </span>
+        </div>
+
+        {/* ---------------- Dates ---------------- */}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-400 mt-2">
+          <span>Created: {new Date(brand.createdAt).toLocaleString()}</span>
+          <span>Updated: {new Date(brand.updatedAt).toLocaleString()}</span>
+        </div>
       </div>
 
-      <div className="flex space-x-2">
+      {/* ---------------- Action Buttons ---------------- */}
+      <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
         <button
           onClick={onCreateEvent}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Create Event
         </button>
 
         <button
           onClick={() => setShowUpdate(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+          className="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={updating}
         >
-          Update Brand
+          {updating ? "Updating..." : "Update Brand"}
         </button>
       </div>
 
-      <UpdateBrandModal
-        open={showUpdate}
-        onClose={() => setShowUpdate(false)}
-        onUpdate={onUpdateBrand}
-        initial={{
-          name: brand.name,
-          description: brand.description,
-          location: brand.location,
-          websiteUrl: brand.websiteUrl, // Fixed camelCase
-        }}
-      />
+      {/* ---------------- Update Brand Modal ---------------- */}
+      {showUpdate && (
+        <UpdateBrandModal
+          open={showUpdate}
+          onClose={() => setShowUpdate(false)}
+          onUpdate={(payload: UpdateBrandPayload) => {
+            onUpdateBrand(payload);
+            setShowUpdate(false);
+          }}
+          initial={{
+            name: brand.name,
+            description: brand.description ?? "",
+            location: brand.location ?? "",
+            websiteUrl: brand.websiteUrl ?? "",
+          }}
+        />
+      )}
     </div>
   );
 }

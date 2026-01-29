@@ -1,180 +1,142 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Globe } from "lucide-react";
+import { brandService, Brand } from "@/api/services/brandService";
 
-import BrandDetail from "@/components/brand/BrandDetail";
-import CreateEventModal from "@/components/event/CreateEventModal";
-
-import type { Event } from "@/api/types/event";
-import { Brand } from "@/types/brand";
-import EventTable from "@/components/brand/EventTable";
-
-interface BrandPageProps {
-  params: {
-    brandId?: string;
-  };
-}
-
-export default function BrandPage({ params }: BrandPageProps) {
-  const brandId = params?.brandId;
+export default function BrandDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const brandId = Array.isArray(params.brandID)
+    ? params.brandID[0]
+    : params.brandID;
 
   const [brand, setBrand] = useState<Brand | null>(null);
-  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [eventModalOpen, setEventModalOpen] = useState(false);
 
-  /* =======================
-     Normalizers
-  ======================= */
-  const normalizeBrand = (raw: any): Brand => ({
-    id: String(raw?.id ?? ""),
-    name: raw?.name ?? "",
-    description: raw?.description ?? undefined,
-    location: raw?.location ?? "",
-    websiteUrl: raw?.website_url ?? undefined,
-    createdAt: raw?.created_at ?? "",
-    updatedAt: raw?.updated_at ?? "",
-  });
-
-  const normalizeEvent = (raw: any): Event => ({
-    id: String(raw?.id ?? ""),
-    brandId: String(raw?.brand_id ?? raw?.brand?.id ?? ""),
-    title: raw?.title ?? raw?.name ?? "",
-    description: raw?.description ?? "",
-    objectives: raw?.objectives ?? undefined,
-    budget: raw?.budget ?? undefined,
-    startDate: raw?.start_date ?? raw?.date ?? "",
-    endDate: raw?.end_date ?? undefined,
-    deliverables: raw?.deliverables ?? undefined,
-    targetAudience: raw?.target_audience ?? undefined,
-    category: raw?.category ?? undefined,
-    location: raw?.location ?? undefined,
-    status: raw?.status ?? "active",
-    createdAt: raw?.created_at ?? undefined,
-    updatedAt: raw?.updated_at ?? undefined,
-  });
-
-  /* =======================
-     Fetch Brand & Events
-  ======================= */
-  const fetchBrandPageData = useCallback(async () => {
+  const fetchBrand = useCallback(async () => {
     if (!brandId) return;
 
     try {
       setLoading(true);
       setError(null);
-
-      // Fetch brand
-      const brandRes = await axios.get(`/get/brand/brandbyid/${brandId}`);
-      const brandData = normalizeBrand(brandRes.data);
-      setBrand(brandData);
-
-      // Fetch events for this brand
-      const eventsRes = await axios.get(
-        `/forpost/event/eventsusinghybrid?brand_id=${brandData.id}`,
-      );
-      const eventsData = Array.isArray(eventsRes.data)
-        ? eventsRes.data.map(normalizeEvent)
-        : [];
-      setEvents(eventsData);
-    } catch (err: unknown) {
-      console.error("Failed to load brand page:", err);
-      setBrand(null);
-      setEvents([]);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load brand data. Please try again.",
-      );
+      const fetchedBrand = await brandService.getBrandById(brandId);
+      setBrand(fetchedBrand);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load brand details.");
     } finally {
       setLoading(false);
     }
   }, [brandId]);
 
   useEffect(() => {
-    fetchBrandPageData();
-  }, [fetchBrandPageData]);
+    fetchBrand();
+  }, [fetchBrand]);
 
-  /* =======================
-     Event Handlers
-  ======================= */
-  const handleEventCreated = (newEvent: Event) => {
-    setEvents((prev) => [newEvent, ...prev]);
-    setEventModalOpen(false);
-  };
-
-  const handleUpdateBrand = async (payload: Partial<Brand>) => {
-    if (!brand) return;
-
-    try {
-      setLoading(true);
-      const res = await axios.put(
-        `/update/brand/${brand.id}`,
-        {
-          name: payload.name,
-          description: payload.description,
-          location: payload.location,
-          website_url: payload.websiteUrl,
-        },
-      );
-      setBrand(normalizeBrand(res.data));
-      alert("Brand profile updated successfully.");
-    } catch (err: unknown) {
-      console.error("Brand update failed:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to update brand profile.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* =======================
-     Render States
-  ======================= */
-  if (!brandId) {
+  /* -----------------------------
+     Loading State
+  ------------------------------ */
+  if (loading) {
     return (
-      <div className="p-8 text-red-600">
-        Error: Brand ID is missing from the route.
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 w-32 bg-gray-200 rounded" />
+          <div className="h-8 w-2/3 bg-gray-200 rounded" />
+          <div className="h-4 w-full bg-gray-200 rounded" />
+          <div className="h-4 w-1/2 bg-gray-200 rounded" />
+        </div>
       </div>
     );
   }
 
-  if (loading) {
-    return <div className="p-6 text-text-primary">Loading brand details…</div>;
-  }
-
+  /* -----------------------------
+     Error State
+  ------------------------------ */
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return (
+      <div className="p-6 max-w-4xl mx-auto text-center">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={fetchBrand}
+          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   if (!brand) {
-    return <div className="p-6 text-text-primary">Brand not found.</div>;
+    return (
+      <div className="p-6 max-w-4xl mx-auto text-center text-gray-600">
+        Brand not found.
+      </div>
+    );
   }
 
-  /* =======================
-     Page Layout
-  ======================= */
+  /* -----------------------------
+     Main UI
+  ------------------------------ */
   return (
-    <div className="p-4 space-y-6">
-      <BrandDetail
-        brand={brand}
-        onCreateEvent={() => setEventModalOpen(true)}
-        onUpdateBrand={handleUpdateBrand}
-      />
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded hover:bg-gray-100"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-3xl font-bold text-text-primary">
+          {brand.name}
+        </h1>
+      </div>
 
-      <EventTable events={events} />
+      {/* Brand Info Card */}
+      <div className="bg-white rounded-lg shadow border p-6 space-y-4">
+        {brand.description && (
+          <p className="text-gray-700 leading-relaxed">
+            {brand.description}
+          </p>
+        )}
 
-      <CreateEventModal
-        open={eventModalOpen}
-        brandId={brand.id}
-        onClose={() => setEventModalOpen(false)}
-        onCreate={handleEventCreated}
-      />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Location</p>
+            <p className="font-medium text-text-primary">
+              {brand.location || "—"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Website</p>
+            {brand.websiteUrl ? (
+              <a
+                href={brand.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+              >
+                <Globe className="h-4 w-4" />
+                {brand.websiteUrl}
+              </a>
+            ) : (
+              <p className="text-text-primary">—</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Future Sections Placeholder */}
+      {/* 
+        - Events under this brand
+        - Analytics
+        - Edit/Delete actions
+        - Activity logs
+      */}
     </div>
   );
 }

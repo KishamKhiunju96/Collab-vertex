@@ -1,5 +1,4 @@
 import api from "@/api/axiosInstance";
-import { API_PATHS } from "@/api/apiPaths";
 
 /* =======================
    Types
@@ -30,11 +29,11 @@ export interface UpdateBrandPayload {
 }
 
 /* =======================
-   API Response Types
+   Backend Response Types
 ======================= */
 
 interface BrandApiResponse {
-  id: string;
+  id: string | number;
   name: string;
   description?: string;
   location: string;
@@ -43,88 +42,77 @@ interface BrandApiResponse {
   updated_at: string;
 }
 
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success?: boolean;
-}
-
 /* =======================
-   Normalizers
+   Normalization Helpers
 ======================= */
 
-/** Convert backend snake_case brand to frontend camelCase */
 const normalizeBrand = (raw: BrandApiResponse): Brand => ({
   id: String(raw.id),
   name: raw.name,
-  description: raw.description,
+  description: raw.description ?? "",
   location: raw.location,
-  websiteUrl: raw.website_url,
+  websiteUrl: raw.website_url ?? "",
   createdAt: raw.created_at,
   updatedAt: raw.updated_at,
 });
 
-/** Normalize an array of brands */
-const normalizeBrands = (brands: BrandApiResponse[] = []): Brand[] =>
-  brands.map(normalizeBrand);
+const normalizeBrands = (rawBrands: BrandApiResponse[] = []): Brand[] =>
+  rawBrands.map(normalizeBrand);
 
 /* =======================
    Brand Service
 ======================= */
 
 export const brandService = {
-  /** Create a brand */
+  /** Create a new brand */
   createBrand: async (payload: CreateBrandPayload): Promise<Brand> => {
-    const response = await api.post<ApiResponse<BrandApiResponse>>(
-      API_PATHS.BRAND.CREATE_PROFILE,
-      payload
-    );
-    // Debug log to inspect backend response
-    if (typeof window !== 'undefined') {
-      // Only log in browser/client
-      console.log('CreateBrand API response:', response.data);
-    }
-    // Handle both possible response shapes
-    const brandData = response.data?.data ?? response.data;
-    if (!brandData || !brandData.id) {
-      throw new Error('Invalid response from server: missing brand id');
-    }
+    const response = await api.post<BrandApiResponse>("/brand/create_brandprofile", {
+      name: payload.name,
+      description: payload.description ?? "",
+      location: payload.location,
+      website_url: payload.websiteUrl ?? "",
+    });
+
+    if (!response.data?.id) throw new Error("Invalid response from server: missing brand id");
+    return normalizeBrand(response.data);
+  },
+
+  /** Get all brands of current user */
+  getBrands: async (): Promise<Brand[]> => {
+    const response = await api.get<BrandApiResponse[]>("/brand/brandsbyuser");
+    const rawBrands = Array.isArray(response.data) ? response.data : [];
+    return normalizeBrands(rawBrands);
+  },
+
+  /** Get a single brand by ID */
+  getBrandById: async (brandId: string): Promise<Brand> => {
+    if (!brandId) throw new Error("Brand ID is required");
+
+    const response = await api.get<BrandApiResponse>(`/brand/brandbyid/${brandId}`);
+    const brandData = response.data;
+
+    if (!brandData?.id) throw new Error("Brand not found");
     return normalizeBrand(brandData);
   },
 
-  /** Get all brands of logged-in user */
-  getBrands: async (): Promise<Brand[]> => {
-    const response = await api.get<ApiResponse<{ brands: BrandApiResponse[] }>>(
-      API_PATHS.BRAND.GET_BRANDS_BY_USER
-    );
-    if (typeof window !== 'undefined') {
-      console.log('GetBrands API response:', response.data);
-    }
-    return normalizeBrands(response.data.data?.brands ?? []);
+  /** Update brand details */
+  updateBrand: async (brandId: string, payload: UpdateBrandPayload): Promise<Brand> => {
+    if (!brandId) throw new Error("Brand ID is required");
+
+    const response = await api.put<BrandApiResponse>(`/brand/update/${brandId}`, {
+      name: payload.name,
+      description: payload.description,
+      location: payload.location,
+      website_url: payload.websiteUrl,
+    });
+
+    if (!response.data?.id) throw new Error("Failed to update brand");
+    return normalizeBrand(response.data);
   },
 
-  /** Get brand by ID */
-  getBrandById: async (brandId: string): Promise<Brand> => {
-    const response = await api.get<ApiResponse<BrandApiResponse>>(
-      API_PATHS.BRAND.GET_BY_ID(brandId)
-    );
-    return normalizeBrand(response.data.data);
-  },
-
-  /** Update brand */
-  updateBrand: async (
-    brandId: string,
-    payload: UpdateBrandPayload
-  ): Promise<Brand> => {
-    const response = await api.put<ApiResponse<BrandApiResponse>>(
-      API_PATHS.BRAND.UPDATE_PROFILE(brandId),
-      payload
-    );
-    return normalizeBrand(response.data.data);
-  },
-
-  /** Delete brand */
+  /** Delete a brand */
   deleteBrand: async (brandId: string): Promise<void> => {
-    await api.delete(API_PATHS.BRAND.DELETE_PROFILE(brandId));
+    if (!brandId) throw new Error("Brand ID is required");
+    await api.delete(`/brand/delete/${brandId}`);
   },
 };

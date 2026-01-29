@@ -1,119 +1,90 @@
-// services/eventService.ts
-import api from "@/api/axiosInstance";
-import { API_PATHS } from "@/api/apiPaths";
-import { Event, CreateEventPayload } from "@/api/types/event";
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success?: boolean;
-}
+// import api from "@/api/axiosInstance";
+// import { API_PATHS } from "@/api/apiPaths";
+// import { Event, CreateEventPayload } from "@/api/types/event";
 
-const normalizeEvent = (raw: any): Event => ({
-  id: String(raw?.id ?? ""),
-  brand_id: String(raw?.brand_id ?? raw?.brand?.id ?? ""),
+// interface ApiResponse<T> {
+//   data: T;
+//   message?: string;
+//   success?: boolean;
+// }
 
-  title: raw?.title ?? raw?.name ?? "",
-  description: raw?.description ?? "",
+// const normalizeEvent = (raw: any): Event => ({
+//   id: String(raw?.id ?? ""),
+//   brand_id: String(raw?.brand_id ?? raw?.brand?.id ?? ""),
+//   title: raw?.title ?? raw?.name ?? "",
+//   description: raw?.description ?? "",
+//   objectives: raw?.objectives ?? "",
+//   budget: Number(raw?.budget ?? 0),
+//   start_date: raw?.start_date ?? raw?.date ?? "",
+//   end_date: raw?.end_date ?? "",
+//   deliverables: raw?.deliverables ?? "",
+//   target_audience: raw?.target_audience ?? "",
+//   category: raw?.category ?? "",
+//   location: raw?.location ?? "",
+//   status: raw?.status ?? "active",
+//   created_at: raw?.created_at ?? "",
+//   updated_at: raw?.updated_at ?? "",
+// });
 
-  objectives: raw?.objectives ?? "",
-  budget: Number(raw?.budget ?? 0),
+// const normalizeEvents = (events: any[] = []): Event[] =>
+//   events.map(normalizeEvent);
 
-  start_date: raw?.start_date ?? raw?.date ?? "",
-  end_date: raw?.end_date ?? "",
+// /* =======================
+//    Event Service
+// ======================= */
 
-  deliverables: raw?.deliverables ?? "",
-  target_audience: raw?.target_audience ?? "",
-  category: raw?.category ?? "",
-  location: raw?.location ?? "",
+// export const eventService = {
+//   /** Create event for a brand */
+//   createEvent: async (brandId: string, payload: CreateEventPayload): Promise<Event> => {
+//     if (!brandId) throw new Error("Brand ID is required");
 
-  status: raw?.status ?? "active",
-  created_at: raw?.created_at ?? "",
-  updated_at: raw?.updated_at ?? "",
-});
+//     const response = await api.post<ApiResponse<any>>(API_PATHS.EVENT.CREATE(brandId), {
+//       ...payload,
+//       brand_id: brandId,
+//     });
 
-const normalizeEvents = (events: any[] = []): Event[] =>
-  events.map(normalizeEvent);
+//     const data = response.data?.data ?? response.data;
+//     return normalizeEvent(data);
+//   },
 
-/* =======================
-   Event Service
-======================= */
+//   /** Get events by brand */
+//   getEventsByBrand: async (brandId: string): Promise<Event[]> => {
+//     if (!brandId) throw new Error("Brand ID is required");
 
-export const eventService = {
-  /** Create event for a brand */
-  createEvent: async (
-    brandId: string,
-    payload: CreateEventPayload,
-  ): Promise<Event> => {
-    const response = await api.post<ApiResponse<any> | any>(
-      API_PATHS.EVENT.CREATE(brandId),
-      { ...payload, brand_id: brandId },
-    );
+//     try {
+//       const response = await api.get<ApiResponse<any[]>>(API_PATHS.EVENT.GET_BY_BRAND(brandId));
+//       const data = Array.isArray(response.data) ? response.data : response.data?.data;
+//       return Array.isArray(data) ? normalizeEvents(data) : [];
+//     } catch (error) {
+//       console.error(`Failed to fetch events for brand ${brandId}:`, error);
+//       return [];
+//     }
+//   },
 
-    const data =
-      (response.data as ApiResponse<any>)?.data ?? response.data;
+//   /** Update event */
+//   updateEvent: async (eventId: string, payload: Partial<CreateEventPayload>): Promise<Event> => {
+//     if (!eventId) throw new Error("Event ID is required");
 
-    return normalizeEvent(data);
-  },
+//     const response = await api.put<ApiResponse<any>>(API_PATHS.EVENT.UPDATE(eventId), payload);
+//     const data = response.data?.data ?? response.data;
+//     return normalizeEvent(data);
+//   },
 
-  /** Get events by brand */
-  getEventsByBrand: async (
-    brandId: string,
-  ): Promise<Event[]> => {
-    try {
-      const response = await api.get<
-        ApiResponse<any[]> | any[]
-      >(API_PATHS.EVENT.GET_BY_BRAND(brandId));
+//   /** Delete event */
+//   deleteEvent: async (eventId: string): Promise<void> => {
+//     if (!eventId) throw new Error("Event ID is required");
+//     await api.delete(API_PATHS.EVENT.DELETE(eventId));
+//   },
 
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.data?.data;
-
-      return Array.isArray(data) ? normalizeEvents(data) : [];
-    } catch (error) {
-      console.error(
-        `Failed to fetch events for brand ${brandId}:`,
-        error,
-      );
-      return [];
-    }
-  },
-
-  /** Update event */
-  updateEvent: async (
-    eventId: string,
-    payload: Partial<CreateEventPayload>,
-  ): Promise<Event> => {
-    const response = await api.put<ApiResponse<any> | any>(
-      API_PATHS.EVENT.UPDATE(eventId),
-      payload,
-    );
-
-    const data =
-      (response.data as ApiResponse<any>)?.data ?? response.data;
-
-    return normalizeEvent(data);
-  },
-
-  /** Delete event */
-  deleteEvent: async (eventId: string): Promise<void> => {
-    await api.delete(API_PATHS.EVENT.DELETE(eventId));
-  },
-
-  /** Get all events (admin / influencer feed) */
-  getAllEvents: async (): Promise<Event[]> => {
-    try {
-      const response = await api.get<
-        ApiResponse<any[]> | any[]
-      >("/event/all_events");
-
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.data?.data;
-
-      return Array.isArray(data) ? normalizeEvents(data) : [];
-    } catch (error) {
-      console.error("Failed to fetch all events:", error);
-      return [];
-    }
-  },
-};
+//   /** Get all events (admin / influencer feed) */
+//   getAllEvents: async (): Promise<Event[]> => {
+//     try {
+//       const response = await api.get<ApiResponse<any[]>>("/event/all_events");
+//       const data = Array.isArray(response.data) ? response.data : response.data?.data;
+//       return Array.isArray(data) ? normalizeEvents(data) : [];
+//     } catch (error) {
+//       console.error("Failed to fetch all events:", error);
+//       return [];
+//     }
+//   },
+// };

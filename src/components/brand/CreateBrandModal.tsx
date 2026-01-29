@@ -1,6 +1,8 @@
 "use client";
+
 import { useState } from "react";
-import { createBrand } from "@/api/services/brandService";
+import { notify } from "@/utils/notify";
+import { brandService } from "@/api/services/brandService";
 
 export default function CreateBrandModal({
   onClose,
@@ -8,7 +10,6 @@ export default function CreateBrandModal({
 }: {
   onClose: () => void;
   onCreated: () => void;
-  onCancel?: () => void;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -17,14 +18,33 @@ export default function CreateBrandModal({
     websiteUrl: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async () => {
+    if (!form.name.trim() || !form.location.trim()) {
+      notify.error("Brand name and location are required");
+      return;
+    }
+
     try {
-      await createBrand(form);
-      onCreated();
-    } catch (err) {
+      setLoading(true);
+
+      const brand = await brandService.createBrand(form);
+
+      notify.success(`Brand "${brand.name}" created successfully`);
+
+      onCreated(); // refresh list
+      onClose();   // close modal ONLY on success
+    } catch (err: any) {
       console.error("Failed to create brand:", err);
+
+      notify.error(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create brand"
+      );
     } finally {
-      onClose();
+      setLoading(false);
     }
   };
 
@@ -37,9 +57,10 @@ export default function CreateBrandModal({
         className="bg-white rounded-lg w-full max-w-[420px] p-6 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-5 text-gray-500 hover:text-gray-800 text-2xl font-bold leading-none"
+          className="absolute top-4 right-5 text-gray-500 hover:text-gray-800 text-2xl font-bold"
           aria-label="Close modal"
         >
           ×
@@ -50,30 +71,29 @@ export default function CreateBrandModal({
         </h3>
 
         <input
-          type="text"
           placeholder="Brand Name *"
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-md text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600"
+          className="w-full px-4 py-2.5 border rounded-md focus:ring-2 focus:ring-red-600"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         <textarea
-          className="w-full px-4 py-2.5 mt-4 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600"
+          className="w-full px-4 py-2.5 mt-4 border rounded-md resize-y min-h-[100px] focus:ring-2 focus:ring-red-600"
           placeholder="Description"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
 
         <input
-          className="w-full px-4 py-2.5 mt-4 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600"
-          placeholder="Location"
+          className="w-full px-4 py-2.5 mt-4 border rounded-md focus:ring-2 focus:ring-red-600"
+          placeholder="Location *"
           value={form.location}
           onChange={(e) => setForm({ ...form, location: e.target.value })}
         />
 
         <input
-          className="w-full px-4 py-2.5 mt-4 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600"
-          placeholder="Website URL[](https://...)"
+          className="w-full px-4 py-2.5 mt-4 border rounded-md focus:ring-2 focus:ring-red-600"
+          placeholder="Website URL (https://...)"
           value={form.websiteUrl}
           onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
         />
@@ -81,16 +101,18 @@ export default function CreateBrandModal({
         <div className="flex justify-end gap-4 mt-8">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            disabled={loading}
+            className="px-6 py-2.5 border rounded-md hover:bg-gray-50"
           >
             Cancel
           </button>
+
           <button
             onClick={handleSubmit}
-            disabled={!form.name.trim()}
-            className="px-6 py-2.5 bg-red-700 text-white rounded-md hover:bg-red-800 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+            disabled={loading}
+            className="px-6 py-2.5 bg-red-700 text-white rounded-md hover:bg-red-800 disabled:bg-red-400"
           >
-            Create
+            {loading ? "Creating..." : "Create"}
           </button>
         </div>
       </div>

@@ -1,163 +1,203 @@
 "use client";
-import { useState } from "react";
-import { useAuthProtection } from "@/api/hooks/useAuth";
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { useAuthProtection } from "@/api/hooks/useAuth";
+
+import {
+  LayoutDashboard,
+  Users,
+  Megaphone,
+  BarChart3,
+  Settings,
+  LogOut,
+  Calendar,
+  Link as LinkIcon,
+  Shield,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+
+const navConfig = {
+  brand: [
+    {
+      href: "/dashboard/brand",
+      label: "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      href: "/dashboard/brand/events",
+      label: "Manage Events",
+      icon: Calendar,
+    },
+    {
+      href: "/dashboard/brand/influencers",
+      label: "Find Influencers",
+      icon: Users,
+    },
+    {
+      href: "/dashboard/brand/collaborations",
+      label: "Collaborations",
+      icon: Megaphone,
+    },
+    {
+      href: "/dashboard/brand/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+    },
+    {
+      href: "/dashboard/brand/settings",
+      label: "Settings",
+      icon: Settings,
+    },
+  ],
+
+  influencer: [
+    {
+      href: "/dashboard/influencer",
+      label: "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      href: "/dashboard/influencer/events",
+      label: "My Events",
+      icon: Calendar,
+    },
+    {
+      href: "/dashboard/influencer/collaborations",
+      label: "Collaborations",
+      icon: Megaphone,
+    },
+    {
+      href: "/dashboard/influencer/social-links",
+      label: "Social Links",
+      icon: LinkIcon,
+    },
+    {
+      href: "/dashboard/influencer/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+    },
+    {
+      href: "/dashboard/influencer/settings",
+      label: "Settings",
+      icon: Settings,
+    },
+  ],
+
+  admin: [
+    {
+      href: "/dashboard/admin",
+      label: "Admin Panel",
+      icon: Shield,
+    },
+    {
+      href: "/dashboard/admin/users",
+      label: "Users",
+      icon: Users,
+    },
+  ],
+};
 
 export default function SideBar() {
   const { role } = useAuthProtection();
+  const pathname = usePathname();
   const router = useRouter();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
-
     try {
-      const response = await fetch("/user/logout", {
+      await fetch("/user/logout", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      if (!response.ok) {
-        console.warn(`Logout endpoint returned ${response.status}`);
-      }
     } catch (err) {
-      console.error("Logout request failed:", err);
+      console.error("Logout failed:", err);
     } finally {
       setIsLoggingOut(false);
       router.push("/login");
     }
   };
 
+  const navItems = role ? navConfig[role] ?? [] : [];
+
   return (
-    <aside className="w-64 h-full bg-background-light p-6 border-r border-gray-800 flex flex-col">
-      <h2 className="text-text-primary text-xl font-semibold mb-8">
-        Collab Vertex
-      </h2>
+    <aside className="fixed left-0 top-0 z-40 flex h-screen text-text-primary w-64 flex-col border-r border-sidebar-border bg-sidebar">
+      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 ">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+            <span className="text-sm font-bold text-sidebar-primary-foreground">
+              C
+            </span>
+          </div>
+          <span className="text-xl font-bold text-sidebar-foreground">
+            Collab Vertex
+          </span>
+        </Link>
+      </div>
 
-      <nav className="flex flex-col gap-1 flex-grow">
+      <nav className="flex-1 space-y-1 px-3 py-4">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
 
-        {role === "brand" && (
-          <>
+          return (
             <Link
-              href="/dashboard/brand"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent"
+              )}
             >
-              Dashboard Overview
+              <item.icon className="h-5 w-5" />
+              {item.label}
             </Link>
-            <Link
-              href="/dashboard/brand/events"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Manage Events
-            </Link>
-            <Link
-              href="/dashboard/brand/influencers"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Find Influencers
-            </Link>
-            <Link
-              href="/dashboard/brand/collaborations"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Collaborations
-            </Link>
-            <Link
-              href="/dashboard/brand/analytics"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Analytics
-            </Link>
-            <Link
-              href="/dashboard/brand/settings"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Settings
-            </Link>
-          </>
-        )}
-
-        {role === "influencer" && (
-          <>
-            <Link
-              href="/dashboard/influencer"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Dashboard Overview
-            </Link>
-            <Link
-              href="/dashboard/influencer/events"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              My Events
-            </Link>
-            <Link
-              href="/dashboard/influencer/collaborations"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Collaborations
-            </Link>
-            <Link
-              href="/dashboard/influencer/social-links"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Social Links
-            </Link>
-            <Link
-              href="/dashboard/influencer/analytics"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Analytics
-            </Link>
-            <Link
-              href="/dashboard/influencer/settings"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Settings
-            </Link>
-          </>
-        )}
-
-        {role === "admin" && (
-          <>
-            <Link
-              href="/dashboard/admin"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Admin Panel
-            </Link>
-            <Link
-              href="/dashboard/admin/users"
-              className="px-4 py-3 hover:bg-gray-800/50 text-text-primary rounded-lg transition-colors"
-            >
-              Users
-            </Link>
-          </>
-        )}
+          );
+        })}
       </nav>
 
       {role && (
-        <div className="mt-auto pt-6 border-t border-gray-800">
-          <button
+        <div className="border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src="/placeholder-user.jpg" />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                CV
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1">
+              <p className="text-sm font-medium text-sidebar-foreground">
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </p>
+              <p className="text-xs text-muted-foreground">Account</p>
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className={`
-              w-full px-4 py-3 text-left rounded-lg transition-colors font-medium
-              ${
-                isLoggingOut
-                  ? "text-gray-500 cursor-not-allowed bg-gray-900/30"
-                  : "text-red-400 hover:bg-red-950/30 hover:text-red-300"
-              }
-            `}
+            className={cn(
+              "w-full justify-start gap-2",
+              isLoggingOut
+                ? "text-muted-foreground"
+                : "text-red-400 hover:text-red-300"
+            )}
           >
+            <LogOut className="h-4 w-4" />
             {isLoggingOut ? "Logging out..." : "Log Out"}
-          </button>
+          </Button>
         </div>
       )}
     </aside>
