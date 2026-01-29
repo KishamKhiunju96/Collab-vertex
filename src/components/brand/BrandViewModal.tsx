@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Brand } from "@/api/services/brandService"; // ← adjust path if needed
+import { Brand } from "@/api/services/brandService";
 import UpdateBrandForm from "./UpdateBrandForm";
 
 interface BrandViewModalProps {
   open: boolean;
   brand: Brand | null;
+  loading?: boolean;
+  error?: string | null;
   onClose: () => void;
   onUpdated: (updatedBrand: Brand) => void;
 }
@@ -15,19 +17,50 @@ interface BrandViewModalProps {
 const BrandViewModal: React.FC<BrandViewModalProps> = ({
   open,
   brand,
+  loading = false,
+  error = null,
   onClose,
   onUpdated,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
-  if (!open || !brand) return null;
+  if (!open) return null;
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    // Only close when clicking outside the modal card
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 border border-gray-200 text-center">
+          <span className="text-lg text-gray-700">
+            Loading brand details...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 border border-gray-200 text-center">
+          <span className="text-lg text-red-600">{error}</span>
+          <button
+            onClick={onClose}
+            className="block mt-6 px-5 py-2.5 border border-gray-300 rounded-lg"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!brand) return null;
 
   return (
     <div
@@ -36,12 +69,12 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
     >
       <div
         className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 border border-gray-200 dark:border-gray-700"
-        onClick={(e) => e.stopPropagation()} // ← prevents closing when clicking inside
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button - always visible */}
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           aria-label="Close modal"
         >
           <X size={20} />
@@ -81,7 +114,7 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
                     href={brand.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 block text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300"
+                    className="mt-1 block text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     {brand.website_url}
                   </a>
@@ -91,20 +124,21 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
               </div>
 
               <div className="text-xs text-gray-500 dark:text-gray-400 pt-2">
-                Created: {new Date(brand.created_at).toLocaleDateString()}
+                Created:{" "}
+                {new Date(brand.created_at).toLocaleDateString()}
               </div>
             </div>
 
             <div className="mt-8 flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 Close
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
               >
                 Edit Brand
               </button>
@@ -119,14 +153,11 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
             <UpdateBrandForm
               brand={brand}
               onUpdate={(updatedBrand) => {
-                onUpdated(updatedBrand); // notify parent
+                onUpdated(updatedBrand);
                 setIsEditing(false);
-                onClose(); // close modal after save
+                onClose();
               }}
-              onClose={() => {
-                setIsEditing(false);
-                // optionally: ask for confirmation before discard?
-              }}
+              onClose={() => setIsEditing(false)}
             />
           </>
         )}

@@ -34,8 +34,12 @@ export const authService = {
         throw new Error("Access token not found in login response");
       }
 
+      // Save token in cookie for axios instance
       saveToken(access_token);
       notify.success("Login successful");
+
+      // Force reload to ensure axios picks up the new token for subsequent requests
+      window.location.replace("/dashboard");
       return true;
     } catch (error: unknown) {
       notify.error(getErrorMessage(error, "Login failed. Please try again."));
@@ -102,8 +106,10 @@ export const authService = {
 
   logout: async () => {
     try {
+      clearToken();
       notify.success("Logged out successfully");
-    } finally {
+      window.location.replace("/login");
+    } catch {
       clearToken();
       window.location.replace("/login");
     }

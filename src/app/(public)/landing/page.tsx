@@ -10,17 +10,18 @@ import Navbar from "@/components/shared/Navbar";
 
 
 
+
 export default function LandingPage() {
-return (
-<main className="flex flex-col">
-  <Navbar/>
-<HeroSection />
-<FeaturesGrid />
-<HowItWorks />
-<RolePreviewCards />
-<TestimonialsCarousel />
-<CTASection />
-<Footer/>
-</main>
-);
+  return (
+    <main className="flex flex-col min-h-screen bg-background-hero">
+      <Navbar />
+      <HeroSection />
+      <FeaturesGrid />
+      <HowItWorks />
+      <RolePreviewCards />
+      <TestimonialsCarousel />
+      <CTASection />
+      <Footer />
+    </main>
+  );
 }

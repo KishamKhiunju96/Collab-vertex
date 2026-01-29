@@ -1,100 +1,105 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Brand, getBrands, deleteBrand } from "@/api/services/brandService";
 import { Trash2, Edit, Eye } from "lucide-react";
-import BrandViewModal from "./BrandViewModal";
+
+import { brandService } from "@/api/services/brandService";
+import type { Brand } from "@/types/brand";
 
 interface BrandTableProps {
   refreshKey: number;
   onRefresh?: () => void;
 }
 
-const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
-    const [showCreateModal, setShowCreateModal] = useState(false);
+const BrandTable: React.FC<BrandTableProps> = ({
+  refreshKey,
+  onRefresh,
+}) => {
   const router = useRouter();
-
-  const [viewBrand, setViewBrand] = useState<Brand | null>(null);
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Edit modal
   const [editBrand, setEditBrand] = useState<Brand | null>(null);
 
-  const fetchBrands = async () => {
+
+  const fetchBrands = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getBrands();
+      const data = await brandService.getBrands();
       setBrands(data);
-    } catch (err: unknown) {
-      console.error("Failed to fetch brands", err);
+    } catch (err) {
+      console.error("Failed to fetch brands:", err);
       setError("Failed to load brands. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBrands();
-  }, [refreshKey]);
+  }, [fetchBrands, refreshKey]);
 
-  const handleNavigate = (brandId: string) => {
+
+  const handleViewBrand = (brandId: string) => {
     router.push(`/dashboard/brand/${brandId}`);
   };
 
-  const handleDelete = async (brandId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this brand? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
+  const handleDeleteBrand = async (brandId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this brand? This action cannot be undone.",
+    );
+
+    if (!confirmed) return;
 
     try {
       setDeletingId(brandId);
-      await deleteBrand(brandId);
+      await brandService.deleteBrand(brandId);
+
       setBrands((prev) => prev.filter((b) => b.id !== brandId));
       onRefresh?.();
-      alert("Brand deleted successfully");
-    } catch (err: unknown) {
-      console.error("Delete failed:", err);
+    } catch (err) {
+      console.error("Delete brand failed:", err);
       alert("Failed to delete brand. Please try again.");
     } finally {
       setDeletingId(null);
     }
   };
 
-  if (loading)
-    return <p className="text-sm text-text-primary">Loading brands...</p>;
-
-  if (error) return <p className="text-sm text-red-600">{error}</p>;
-
-  if (brands.length === 0)
+  if (loading) {
     return (
-      <div className="flex flex-col items-center gap-4">
-        <p className="text-sm text-text-primary">No brands created yet.</p>
-        <button
-          className="px-6 py-2.5 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors"
-          onClick={() => setShowCreateModal(true)}
-        >
-          + Create Brand
-        </button>
+      <p className="text-sm text-text-primary">
+        Loading brands…
+      </p>
+    );
+  }
 
+  if (error) {
+    return (
+      <p className="text-sm text-red-600">
+        {error}
+      </p>
+    );
+  }
+
+  if (brands.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-10">
+        <p className="text-sm text-text-primary">
+          No brands created yet.
+        </p>
       </div>
     );
+  }
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-      </div>
       <div className="border rounded-lg bg-white overflow-x-auto">
-        <table className="w-full text-sm min-w-[700px]">
+        <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-background-light text-text-primary">
             <tr>
               <th className="p-3 text-left">Name</th>
@@ -107,40 +112,48 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
 
           <tbody>
             {brands.map((brand) => (
-              <tr key={brand.id} className="border-t hover:bg-gray-50">
+              <tr
+                key={brand.id}
+                className="border-t hover:bg-gray-50"
+              >
+                {/* Name */}
                 <td
-                  className="p-3 font-medium cursor-pointer hover:underline text-black"
-                  onClick={() => handleNavigate(brand.id)}
+                  className="p-3 font-medium cursor-pointer text-black hover:underline"
+                  onClick={() => handleViewBrand(brand.id)}
                 >
                   {brand.name}
                 </td>
 
+                {/* Description */}
                 <td className="p-3 text-text-primary">
                   {brand.description || "—"}
                 </td>
 
+                {/* Location */}
                 <td className="p-3 text-text-primary">
                   {brand.location || "—"}
                 </td>
 
+                {/* Website */}
                 <td className="p-3 text-text-primary">
-                  {brand.website_url ? (
+                  {brand.websiteUrl ? (
                     <a
-                      href={brand.website_url}
+                      href={brand.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline"
+                      className="hover:underline text-blue-600"
                     >
-                      {brand.website_url}
+                      {brand.websiteUrl}
                     </a>
                   ) : (
                     "—"
                   )}
                 </td>
 
+                {/* Actions */}
                 <td className="p-3 flex gap-2">
                   <button
-                    onClick={() => setViewBrand(brand)}
+                    onClick={() => handleViewBrand(brand.id)}
                     title="View brand"
                     className="p-2 rounded-md text-blue-600 hover:bg-blue-50"
                   >
@@ -156,7 +169,7 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(brand.id)}
+                    onClick={() => handleDeleteBrand(brand.id)}
                     disabled={deletingId === brand.id}
                     title="Delete brand"
                     className={`p-2 rounded-md ${
@@ -173,19 +186,6 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
           </tbody>
         </table>
       </div>
-
-      <BrandViewModal
-        open={!!viewBrand}
-        brand={viewBrand}
-        onClose={() => setViewBrand(null)}
-        onUpdated={(updatedBrand) => {
-          setBrands((prev) =>
-            prev.map((b) => (b.id === updatedBrand.id ? updatedBrand : b)),
-          );
-          setViewBrand(updatedBrand);
-        }}
-      />
-
       {editBrand && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded-lg w-96">
@@ -194,7 +194,8 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey, onRefresh }) => {
             </h2>
 
             <p className="text-sm text-gray-600">
-              Hook this modal to <code>updateBrand()</code>.
+              Connect this modal to{" "}
+              <code>brandService.updateBrand()</code>.
             </p>
 
             <button

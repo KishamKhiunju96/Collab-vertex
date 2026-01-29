@@ -1,63 +1,77 @@
 "use client";
 
-import { useState } from "react";
-import { createEvent } from "@/api/services/eventService";
-import { CreateEventPayload } from "@/api/types/event";
+import { useEffect, useState } from "react";
+import { eventService } from "@/api/services/eventService";
+import type { CreateEventPayload, EventStatus } from "@/api/types/event";
 
 interface CreateEventModalProps {
   open: boolean;
   brandId: string;
   onClose: () => void;
-  onCreated: () => void;
+  onCreate: (event: any) => void;
 }
 
 export default function CreateEventModal({
   open,
   brandId,
   onClose,
-  onCreated,
+  onCreate,
 }: CreateEventModalProps) {
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* =======================
+     Reset on Close
+  ======================= */
+  useEffect(() => {
+    if (!open) {
+      setTitle("");
+      setStartDate("");
+      setError(null);
+      setLoading(false);
+    }
+  }, [open]);
+
   if (!open) return null;
 
+  /* =======================
+     Submit
+  ======================= */
   const handleSubmit = async () => {
-    if (!title || !date) {
-      setError("Title and date are required.");
+    if (!title.trim() || !startDate) {
+      setError("Event title and start date are required.");
       return;
     }
 
     const payload: CreateEventPayload = {
-      title,
-      start_date: date,
+      title: title.trim(),
       description: "",
       objectives: "",
       budget: 0,
-      end_date: "",
+      startDate,
+      endDate: undefined,
       deliverables: "",
-      target_audience: "",
+      targetAudience: "",
       category: "",
       location: "",
-      event_active: true,
+      status: "active" as EventStatus,
     };
 
     try {
       setLoading(true);
       setError(null);
 
-      await createEvent(brandId, payload);
+      const createdEvent = await eventService.createEvent(
+        brandId,
+        payload,
+      );
 
-      // reset form
-      setTitle("");
-      setDate("");
-
-      onCreated();
+      onCreate(createdEvent);
       onClose();
-    } catch (err: unknown) {
-      console.error("Failed to create event", err);
+    } catch (err) {
+      console.error("Failed to create event:", err);
       setError(
         err instanceof Error
           ? err.message
@@ -68,14 +82,25 @@ export default function CreateEventModal({
     }
   };
 
+  /* =======================
+     UI
+  ======================= */
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96 space-y-4">
-        <h2 className="text-lg font-semibold">Create Event</h2>
+      <div className="bg-white p-6 rounded-lg w-full max-w-md space-y-4">
+        <h2 className="text-lg font-semibold">
+          Create Event
+        </h2>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
 
+        {/* Title */}
         <input
+          type="text"
           placeholder="Event title"
           className="border p-2 w-full rounded"
           value={title}
@@ -83,14 +108,16 @@ export default function CreateEventModal({
           disabled={loading}
         />
 
+        {/* Start Date */}
         <input
           type="date"
           className="border p-2 w-full rounded"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
           disabled={loading}
         />
 
+        {/* Actions */}
         <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onClose}
@@ -109,7 +136,7 @@ export default function CreateEventModal({
                 : "bg-black hover:bg-gray-800"
             }`}
           >
-            {loading ? "Creating..." : "Create"}
+            {loading ? "Creating…" : "Create"}
           </button>
         </div>
       </div>

@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { createBrand } from "@/api/services/brandService";
+import { brandService } from "@/api/services/brandService";
 
 interface BrandForm {
   name: string;
   description: string;
   location: string;
-  website_url: string;
+  websiteUrl: string;
 }
 
 interface CreateBrandFormProps {
@@ -22,7 +22,7 @@ const CreateBrandForm: React.FC<CreateBrandFormProps> = ({
     name: "",
     description: "",
     location: "",
-    website_url: "",
+    websiteUrl: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -41,18 +41,19 @@ const CreateBrandForm: React.FC<CreateBrandFormProps> = ({
     setError(null);
 
     try {
-      await createBrand({
+
+      await brandService.createBrand({
         name: form.name.trim(),
         description: form.description.trim() || undefined,
         location: form.location.trim(),
-        website_url: form.website_url.trim() || undefined,
+        websiteUrl: form.websiteUrl.trim() || undefined,
       });
 
       setForm({
         name: "",
         description: "",
         location: "",
-        website_url: "",
+        websiteUrl: "",
       });
 
       onSuccess?.();
@@ -133,9 +134,9 @@ const CreateBrandForm: React.FC<CreateBrandFormProps> = ({
 
         <input
           type="url"
-          name="website_url"
+          name="websiteUrl"
           placeholder="https://brand.com"
-          value={form.website_url}
+          value={form.websiteUrl}
           onChange={handleChange}
           className="w-full border text-text-primary p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
         />

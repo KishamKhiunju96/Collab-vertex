@@ -1,21 +1,17 @@
 // tailwind.config.js
 
-// ESM Imports
-import typography from '@tailwindcss/typography';
-import forms from '@tailwindcss/forms';
-import aspectRatio from '@tailwindcss/aspect-ratio';
+import typography from "@tailwindcss/typography";
+import forms from "@tailwindcss/forms";
+import aspectRatio from "@tailwindcss/aspect-ratio";
 
 /** @type {import('tailwindcss').Config} */
-// FIX: Assign the config object to a variable before using 'export default'
 const config = {
-  // --- CORE CONFIG ---
   content: [
-    './src/app/**/*.{js,ts,jsx,tsx}',
-    './src/components/**/*.{js,ts,jsx,tsx}',
+    "./src/app/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
   ],
 
-  darkMode: 'class',
-
+  darkMode: "class",
 
   theme: {
     container: {
@@ -27,123 +23,163 @@ const config = {
     },
 
     extend: {
+      /* ==============================
+         BRAND COLORS (LOUD)
+      =============================== */
       colors: {
-        /* ==============================
-           Brand Colors
-        =============================== */
         brand: {
-          primary: "#6366F1", // Indigo (main brand)
-          secondary: "#22C55E", // Emerald (accent / success)
-          accent: "#A855F7", // Violet highlight
+          primary: "#6C5CE7",     // Electric Violet
+          accent: "#FF7675",      // Coral Pink
+          secondary: "#2ED8B6",   // Mint Teal
+          highlight: "#FDCB6E",   // Soft Gold
         },
 
         /* ==============================
-           Background Colors
-        ============================== */
+           BACKGROUNDS (LIGHT & JOYFUL)
+        =============================== */
         background: {
-          /* App Surfaces */
-          base: "#FFFFFF",        // Root background (pure white)
-          // light: "#E0FFFF",
-          light: "#DBD7D2",// Main app background (light cyan)
-          subtle: "#F1F5F9",      // Light section separation
-          muted: "#E2E8F0",       // Borders / dividers / soft blocks
+          hero: "#F9F8FF",
+          alternate: "#FFF5F5",
+          highlight: "#F1FFFA",
 
-          /* Cards & Containers */
-          card: "#FFFFFF",        // Card background (light)
-          cardMuted: "#F8FAFC",   // Card variation
-          elevated: "#F9FAFB",    // Elevated surfaces
+          app: "#FAFAFC",
+          card: "#FFFFFF",
+          surface: "#F3F4F8",
 
-          /* Dark Mode / Dark Sections */
-          dark: "#020617",        // App background (dark)
-          darkSoft: "#020617CC",  // Dark with transparency
-          darkCard: "#0F172A",    // Dark cards / modals
-          darkMuted: "#1E293B",   // Dark section separation
+          muted: "#F1F5F9",
+          disabled: "#EEF0F4",
 
-          /* Image & Overlay Backgrounds */
-          overlayLight: "rgba(255, 255, 255, 0.6)", // Light overlay
-          overlayDark: "rgba(2, 6, 23, 0.6)",       // Dark overlay
-
-          /* Special Use */
-          glass: "rgba(255, 255, 255, 0.4)", // Glassmorphism
+          overlayLight: "rgba(255,255,255,0.6)",
+          overlayDark: "rgba(31,41,55,0.6)",
         },
+
         /* ==============================
-           Text Colors
+           TEXT (WCAG AA+)
         =============================== */
         text: {
-          primary: "#0F172A",   // Main text (light bg)
-          secondary: "#FFFFFF", // Headings / strong text on dark
+          primary: "#1F2937",
+          secondary: "#4B5563",
+          muted: "#9CA3AF",
+          disabled: "#CBD5E1",
+          inverse: "#FFFFFF",
 
-          tertiary: "#CBD5E1",  // 🔥 Soft text for image overlays
-          // tertiary: "#94A3B8", // Slate-400
-
-
-          inverse: "#E5E7EB",   // Body text on dark
-          muted: "#475569",     // Low-emphasis text
-          link: "#6366F1",
+          brand: "#6C5CE7",
+          success: "#16A34A",
+          warning: "#D97706",
+          error: "#DC2626",
         },
 
-
         /* ==============================
-           Button Colors
+           BUTTON SYSTEM
         =============================== */
         button: {
-          primary: "#43B3AE",
-          primaryHover: "#20B2AA",
-          secondary: "#22C55E",
-          secondaryHover: "#16A34A",
-          danger: "#EF4444",
-          dangerHover: "#DC2626",
-          disabled: "#CBD5E1",
+          primary: {
+            DEFAULT: "#6C5CE7",
+            hover: "#5A4BD8",
+            active: "#4B3FC4",
+            disabled: "#C7C3F4",
+            text: "#FFFFFF",
+          },
+
+          secondary: {
+            DEFAULT: "#FF7675",
+            hover: "#FF5C5B",
+            active: "#E84C4B",
+            text: "#FFFFFF",
+          },
+
+          tertiary: {
+            border: "#6C5CE7",
+            hover: "#F1EEFF",
+            active: "#E6E1FF",
+            text: "#6C5CE7",
+          },
         },
 
         /* ==============================
-           Border & Divider
+           BORDERS & DIVIDERS
         =============================== */
         border: {
-          light: "#E2E8F0",
-          dark: "#1E293B",
+          subtle: "#E5E7EB",
+          accent: "#DAD7FE",
+        },
+
+        /* ==============================
+           ICON COLORS
+        =============================== */
+        icon: {
+          default: "#6B7280",
+          active: "#6C5CE7",
+          muted: "#9CA3AF",
+          success: "#22C55E",
+          error: "#EF4444",
+        },
+
+        /* ==============================
+           STATUS / BADGES
+        =============================== */
+        status: {
+          successBg: "#DCFCE7",
+          successText: "#166534",
+
+          warningBg: "#FEF3C7",
+          warningText: "#92400E",
+
+          errorBg: "#FEE2E2",
+          errorText: "#991B1B",
+
+          infoBg: "#E0E7FF",
+          infoText: "#3730A3",
         },
       },
 
       /* ==============================
-         Typography
+         TYPOGRAPHY
       =============================== */
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
 
       /* ==============================
-         Radius
+         RADIUS
       =============================== */
       borderRadius: {
-        xl: "0.75rem",
-        "2xl": "1rem",
+        lg: "0.75rem",
+        xl: "1rem",
+        "2xl": "1.25rem",
       },
 
       /* ==============================
-         Shadows
+         SHADOWS (SOFT, PLAYFUL)
       =============================== */
       boxShadow: {
-        soft: "0 10px 30px rgba(0,0,0,0.08)",
-        card: "0 4px 20px rgba(0,0,0,0.12)",
+        xs: "0 1px 2px rgba(0,0,0,0.04)",
+        sm: "0 2px 6px rgba(0,0,0,0.06)",
+        md: "0 4px 16px rgba(108,92,231,0.12)",
+        lg: "0 12px 30px rgba(108,92,231,0.18)",
+        card: "0 4px 20px rgba(0,0,0,0.08)",
       },
 
       /* ==============================
-         Animations
+         INTERACTION STATES
       =============================== */
+      ringColor: {
+        focus: "#FDCB6E",
+      },
+
       transitionTimingFunction: {
         smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
+
+      backgroundColor: {
+        hoverFade: "rgba(108,92,231,0.08)",
+        tableHover: "#F8FAFF",
+        selected: "#F1EEFF",
       },
     },
   },
 
-  // --- PLUGINS ---
-  plugins: [
-    typography,
-    forms,
-    aspectRatio,
-  ],
+  plugins: [typography, forms, aspectRatio],
 };
 
-// Export the assigned variable
 export default config;
