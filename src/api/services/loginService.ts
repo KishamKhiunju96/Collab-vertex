@@ -18,15 +18,11 @@ export interface HandleLoginResult {
   message?: string;
 }
 
-/**
- * Token-based login function
- */
 export async function handleLogin(
   username: string,
   password: string,
 ): Promise<HandleLoginResult> {
   try {
-    // 1️⃣ Call login → backend returns JSON with access_token
     const loginRes = await api.post<{ access_token: string }>("/auth/login", {
       username,
       password,
@@ -34,14 +30,11 @@ export async function handleLogin(
 
     const token = loginRes.data.access_token;
 
-    // 2️⃣ Save token in cookie
     saveToken(token);
 
-    // 3️⃣ Fetch current user using token (axios instance will attach Authorization header)
     const userResponse = await api.get<User>("/user/me");
     const user = userResponse.data;
 
-    // 4️⃣ Determine redirect path based on role
     let redirectTo: string;
     switch (user.role) {
       case "brand":
@@ -79,11 +72,6 @@ export async function handleLogin(
   }
 }
 
-/**
- * Logout function
- */
 export function logout() {
   clearToken();
-  // optional: redirect to login
-  // window.location.href = "/login";
 }

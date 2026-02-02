@@ -7,7 +7,7 @@ interface UpdateBrandModalProps {
   initial: UpdateBrandPayload;
   open: boolean;
   onClose: () => void;
-  onUpdate: (payload: UpdateBrandPayload) => void;
+  onUpdate: (payload: UpdateBrandPayload) => Promise<void> | void;
 }
 
 export default function UpdateBrandModal({
@@ -17,36 +17,62 @@ export default function UpdateBrandModal({
   onUpdate,
 }: UpdateBrandModalProps) {
   const [form, setForm] = useState<UpdateBrandPayload>(initial);
+  const [loading, setLoading] = useState(false);
 
-  // Update form state if `initial` changes
   useEffect(() => {
     setForm(initial);
   }, [initial]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
-  const handleChange = (field: keyof UpdateBrandPayload, value: string) => {
+  const handleChange = (
+    field: keyof UpdateBrandPayload,
+    value: string
+  ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(form);
-    onClose();
+    if (loading) return;
+
+    try {
+      setLoading(true);
+      await onUpdate(form);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
-        onClick={(e) => e.stopPropagation()} // prevent closing if clicked inside modal
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white w-full max-w-md rounded-lg shadow-lg p-6"
       >
-        <h2 className="text-xl font-bold mb-4">Update Brand Profile</h2>
+        <h2 className="text-xl font-bold mb-4">
+          Update Brand Profile
+        </h2>
 
         <input
           type="text"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Name"
           value={form.name ?? ""}
           onChange={(e) => handleChange("name", e.target.value)}
@@ -54,41 +80,49 @@ export default function UpdateBrandModal({
         />
 
         <textarea
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Description"
+          rows={3}
           value={form.description ?? ""}
-          onChange={(e) => handleChange("description", e.target.value)}
+          onChange={(e) =>
+            handleChange("description", e.target.value)
+          }
         />
 
         <input
           type="text"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Location"
           value={form.location ?? ""}
           onChange={(e) => handleChange("location", e.target.value)}
         />
 
         <input
-          type="text"
-          className="w-full mb-3 p-2 border rounded"
+          type="url"
+          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Website URL"
           value={form.websiteUrl ?? ""}
-          onChange={(e) => handleChange("websiteUrl", e.target.value)}
+          onChange={(e) =>
+            handleChange("websiteUrl", e.target.value)
+          }
         />
 
-        <div className="flex justify-end gap-2 mt-4">
+        <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border rounded hover:bg-gray-100 transition"
+            disabled={loading}
+            className="px-4 py-2 border rounded hover:bg-gray-100 disabled:opacity-50"
           >
             Cancel
           </button>
+
           <button
             type="submit"
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 transition"
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            Update
+            {loading ? "Updating..." : "Update"}
           </button>
         </div>
       </form>

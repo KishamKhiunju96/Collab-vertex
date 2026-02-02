@@ -1,145 +1,134 @@
-// "use client";
+"use client";
 
-// import { useEffect, useState } from "react";
-// import { eventService } from "@/api/services/eventService";
-// import type { CreateEventPayload, EventStatus } from "@/api/types/event";
+import { useEffect, useState } from "react";
+import Modal from "@/components/ui/Modal";
+import { eventService } from "@/api/services/eventService";
+import { notify } from "@/utils/notify";
+import { CreateEventPayload } from "@/api/types/event";
 
-// interface CreateEventModalProps {
-//   open: boolean;
-//   brandId: string;
-//   onClose: () => void;
-//   onCreate: (event: any) => void;
-// }
+interface CreateEventModalProps {
+  open: boolean;
+  brandId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}
 
-// export default function CreateEventModal({
-//   open,
-//   brandId,
-//   onClose,
-//   onCreate,
-// }: CreateEventModalProps) {
-//   const [title, setTitle] = useState("");
-//   const [startDate, setStartDate] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
+const initialForm: CreateEventPayload = {
+  title: "",
+  description: "",
+  objectives: "",
+  budget: 0,
+  start_date: "",
+  end_date: "",
+  deliverables: "",
+  target_audience: "",
+  category: "",
+  location: "",
+  status: "active",
+};
 
-//   /* =======================
-//      Reset on Close
-//   ======================= */
-//   useEffect(() => {
-//     if (!open) {
-//       setTitle("");
-//       setStartDate("");
-//       setError(null);
-//       setLoading(false);
-//     }
-//   }, [open]);
+export default function CreateEventModal({
+  open,
+  brandId,
+  onClose,
+  onCreated,
+}: CreateEventModalProps) {
+  const [form, setForm] = useState<CreateEventPayload>(initialForm);
+  const [submitting, setSubmitting] = useState(false);
 
-//   if (!open) return null;
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      setForm(initialForm);
+      setSubmitting(false);
+    }
+  }, [open]);
 
-//   /* =======================
-//      Submit
-//   ======================= */
-//   const handleSubmit = async () => {
-//     if (!title.trim() || !startDate) {
-//       setError("Event title and start date are required.");
-//       return;
-//     }
+  const handleSubmit = async () => {
+    if (!form.title.trim()) {
+      notify.error("Event title is required");
+      return;
+    }
 
-//     const payload: CreateEventPayload = {
-//       title: title.trim(),
-//       description: "",
-//       objectives: "",
-//       budget: 0,
-//       startDate,
-//       endDate: undefined,
-//       deliverables: "",
-//       targetAudience: "",
-//       category: "",
-//       location: "",
-//       status: "active" as EventStatus,
-//     };
+    if (!form.start_date || !form.end_date) {
+      notify.error("Start and end dates are required");
+      return;
+    }
 
-//     try {
-//       setLoading(true);
-//       setError(null);
+    try {
+      setSubmitting(true);
+      await eventService.createEvent(brandId, form);
+      notify.success("Event created successfully 🎉");
+      onCreated();
+      onClose();
+    } catch (err: any) {
+      notify.error(
+        err?.response?.data?.message || "Failed to create event"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-//       const createdEvent = await eventService.createEvent(
-//         brandId,
-//         payload,
-//       );
+  return (
+    <Modal open={open} title="Create Event" onClose={onClose}>
+      <div className="space-y-4">
+        <input
+          placeholder="Event Title *"
+          className="input"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+        />
 
-//       onCreate(createdEvent);
-//       onClose();
-//     } catch (err) {
-//       console.error("Failed to create event:", err);
-//       setError(
-//         err instanceof Error
-//           ? err.message
-//           : "Failed to create event. Please try again.",
-//       );
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+        <input
+          placeholder="Category"
+          className="input"
+          value={form.category}
+          onChange={(e) =>
+            setForm({ ...form, category: e.target.value })
+          }
+        />
 
-//   /* =======================
-//      UI
-//   ======================= */
-//   return (
-//     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-//       <div className="bg-white p-6 rounded-lg w-full max-w-md space-y-4">
-//         <h2 className="text-lg font-semibold">
-//           Create Event
-//         </h2>
+        <input
+          type="number"
+          placeholder="Budget"
+          className="input"
+          value={form.budget}
+          onChange={(e) =>
+            setForm({ ...form, budget: Number(e.target.value) })
+          }
+        />
 
-//         {error && (
-//           <p className="text-sm text-red-600">
-//             {error}
-//           </p>
-//         )}
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="date"
+            className="input"
+            value={form.start_date}
+            onChange={(e) =>
+              setForm({ ...form, start_date: e.target.value })
+            }
+          />
 
-//         {/* Title */}
-//         <input
-//           type="text"
-//           placeholder="Event title"
-//           className="border p-2 w-full rounded"
-//           value={title}
-//           onChange={(e) => setTitle(e.target.value)}
-//           disabled={loading}
-//         />
+          <input
+            type="date"
+            className="input"
+            value={form.end_date}
+            onChange={(e) =>
+              setForm({ ...form, end_date: e.target.value })
+            }
+          />
+        </div>
 
-//         {/* Start Date */}
-//         <input
-//           type="date"
-//           className="border p-2 w-full rounded"
-//           value={startDate}
-//           onChange={(e) => setStartDate(e.target.value)}
-//           disabled={loading}
-//         />
-
-//         {/* Actions */}
-//         <div className="flex justify-end gap-2 pt-2">
-//           <button
-//             onClick={onClose}
-//             disabled={loading}
-//             className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-//           >
-//             Cancel
-//           </button>
-
-//           <button
-//             onClick={handleSubmit}
-//             disabled={loading}
-//             className={`px-4 py-2 rounded text-white ${
-//               loading
-//                 ? "bg-gray-400 cursor-not-allowed"
-//                 : "bg-black hover:bg-gray-800"
-//             }`}
-//           >
-//             {loading ? "Creating…" : "Create"}
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+        <button
+          className="btn-primary w-full disabled:opacity-60"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? "Creating..." : "Create Event"}
+        </button>
+      </div>
+    </Modal>
+  );
+}

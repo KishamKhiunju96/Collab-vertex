@@ -28,7 +28,6 @@ export default function BrandDetail({
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
 
-      {/* ---------------- Brand Info ---------------- */}
       <div className="flex-1 space-y-3 max-w-md">
         <h1 className="text-2xl font-bold text-gray-900">{brand.name}</h1>
 
@@ -50,7 +49,6 @@ export default function BrandDetail({
           )}
         </div>
 
-        {/* ---------------- Metrics / Stats ---------------- */}
         <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-500">
           <span className="bg-gray-100 px-2 py-1 rounded-full">
             🗓️ Events: {totalEvents}
@@ -85,7 +83,6 @@ export default function BrandDetail({
         </button>
       </div>
 
-      {/* ---------------- Update Brand Modal ---------------- */}
       {showUpdate && (
         <UpdateBrandModal
           open={showUpdate}

@@ -35,7 +35,6 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey = 0, onBrandClick })
     fetchBrands();
   }, [fetchBrands, refreshKey]);
 
-  // ✅ SINGLE navigation logic (reused everywhere)
   const handleViewBrand = (brandId: string) => {
     if (onBrandClick) {
       onBrandClick(brandId);
@@ -63,9 +62,8 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey = 0, onBrandClick })
         <tbody>
           {brands.map((brand) => (
             <tr key={brand.id} className="border-t hover:bg-gray-50">
-              {/* ✅ Brand name click */}
               <td
-                className="p-3 font-medium text-blue-600 hover:underline cursor-pointer"
+                className="p-3 font-medium text-text-primary hover:underline cursor-pointer"
                 onClick={() => handleViewBrand(brand.id)}
               >
                 {brand.name}
@@ -90,7 +88,6 @@ const BrandTable: React.FC<BrandTableProps> = ({ refreshKey = 0, onBrandClick })
                 )}
               </td>
 
-              {/* ✅ View icon (same logic) */}
               <td className="p-3 text-center">
                 <Eye
                   className="h-4 w-4 inline-block cursor-pointer text-gray-600 hover:text-blue-600"

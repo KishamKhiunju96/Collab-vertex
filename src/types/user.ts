@@ -6,7 +6,6 @@ export interface User {
   email?: string;
   role: UserRole;
 
-  //  (safe for future use)
   createdAt?: string;
   updatedAt?: string;
 }

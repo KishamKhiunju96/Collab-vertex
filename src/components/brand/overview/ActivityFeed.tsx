@@ -6,8 +6,8 @@ import {
 } from "@/components/ui/card";
 
 
-import { ActivityItem } from "./ActivityItem";
 import { BrandActivity } from "@/types/brandActivity";
+import { ActivityItem } from "./ActivityItem";
 
 interface Props {
   activities: BrandActivity[];

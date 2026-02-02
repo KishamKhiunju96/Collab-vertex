@@ -16,10 +16,10 @@ export function ActivityItem({ activity }: Props) {
       </div>
 
       <div className="flex-1">
-        <p className="text-sm font-medium text-foreground">
+        <p className="text-sm font-bold text-primary">
           {activity.title}
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-gray-500 mt-1">
           {activity.description}
         </p>
         <p className="text-xs text-muted-foreground mt-1">

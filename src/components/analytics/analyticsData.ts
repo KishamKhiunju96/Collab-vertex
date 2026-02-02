@@ -5,11 +5,11 @@ export interface AnalyticsData {
 }
 
 export const analyticsData: AnalyticsData[] = [
-  { month: "Jan", reach: 120000, engagement: 45000 },
-  { month: "Feb", reach: 180000, engagement: 62000 },
-  { month: "Mar", reach: 250000, engagement: 89000 },
-  { month: "Apr", reach: 320000, engagement: 110000 },
-  { month: "May", reach: 410000, engagement: 145000 },
-  { month: "Jun", reach: 520000, engagement: 180000 },
-  { month: "Jul", reach: 680000, engagement: 230000 },
+  { month: "Jan", reach: 10, engagement: 15 },
+  { month: "Feb", reach: 20, engagement: 30 },
+  { month: "Mar", reach: 30, engagement: 45 },
+  { month: "Apr", reach: 40, engagement: 60 },
+  { month: "May", reach: 50, engagement: 75 },
+  { month: "Jun", reach: 60, engagement: 90 },
+  { month: "Jul", reach: 70, engagement: 105 },
 ];
