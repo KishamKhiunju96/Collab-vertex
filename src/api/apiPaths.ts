@@ -21,7 +21,6 @@ export const API_PATHS = {
   },
 
   EVENT: {
-    // Events
     CREATE: (brandId: string) => `/event/create_event/${brandId}`,
     GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
     GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,

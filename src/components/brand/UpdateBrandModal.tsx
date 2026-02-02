@@ -25,11 +25,9 @@ export default function UpdateBrandModal({
 
   useEffect(() => {
     if (!open) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
@@ -66,9 +64,7 @@ export default function UpdateBrandModal({
         onClick={(e) => e.stopPropagation()}
         className="bg-white w-full max-w-md rounded-lg shadow-lg p-6"
       >
-        <h2 className="text-xl font-bold mb-4">
-          Update Brand Profile
-        </h2>
+        <h2 className="text-xl font-bold mb-4">Update Brand Profile</h2>
 
         <input
           type="text"
@@ -84,9 +80,7 @@ export default function UpdateBrandModal({
           placeholder="Description"
           rows={3}
           value={form.description ?? ""}
-          onChange={(e) =>
-            handleChange("description", e.target.value)
-          }
+          onChange={(e) => handleChange("description", e.target.value)}
         />
 
         <input
@@ -102,9 +96,7 @@ export default function UpdateBrandModal({
           className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Website URL"
           value={form.websiteUrl ?? ""}
-          onChange={(e) =>
-            handleChange("websiteUrl", e.target.value)
-          }
+          onChange={(e) => handleChange("websiteUrl", e.target.value)}
         />
 
         <div className="flex justify-end gap-2">

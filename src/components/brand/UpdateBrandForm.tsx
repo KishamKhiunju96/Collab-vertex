@@ -5,40 +5,35 @@ import { AxiosError } from "axios";
 import { Brand, UpdateBrandPayload, brandService } from "@/api/services/brandService";
 
 interface UpdateBrandFormProps {
-  brand: Brand; // snake_case brand from API
+  brand: Brand; 
   onUpdate: (updatedBrand: Brand) => void;
   onClose?: () => void;
 }
 
 export default function UpdateBrandForm({ brand, onUpdate, onClose }: UpdateBrandFormProps) {
-  // Initialize form state mapping snake_case Brand to camelCase payload
   const [form, setForm] = useState<UpdateBrandPayload>({
     name: brand.name,
     description: brand.description ?? "",
     location: brand.location,
-    websiteUrl: brand.websiteUrl ?? "", // map snake_case to camelCase
+    websiteUrl: brand.websiteUrl ?? "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit updated brand
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // Send camelCase payload to backend
       const updatedBrand = await brandService.updateBrand(brand.id, form);
 
-      // If API returns snake_case, map it back to snake_case Brand type
       onUpdate({
         ...brand,
         name: updatedBrand.name,
@@ -94,7 +89,7 @@ export default function UpdateBrandForm({ brand, onUpdate, onClose }: UpdateBran
       />
 
       <input
-        name="websiteUrl" // camelCase for payload
+        name="websiteUrl"
         type="text"
         placeholder="Website URL"
         value={form.websiteUrl}

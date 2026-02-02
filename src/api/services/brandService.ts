@@ -76,7 +76,7 @@ export const brandService = {
 
   updateBrand: async (id: string, payload: UpdateBrandPayload): Promise<Brand> => {
     if (!id) throw new Error("Brand ID is required");
-    const response = await api.put<BrandApiResponse>(`/brand/update/${id}`, {
+    const response = await api.put<BrandApiResponse>(`/brand/update_brandprofile/${id}`, {
       name: payload.name,
       description: payload.description,
       location: payload.location,
@@ -85,7 +85,6 @@ export const brandService = {
     return normalizeBrand(response.data);
   },
 
-  // Delete brand
   deleteBrand: async (id: string): Promise<void> => {
     if (!id) throw new Error("Brand ID is required");
     await api.delete(`/brand/delete/${id}`);
