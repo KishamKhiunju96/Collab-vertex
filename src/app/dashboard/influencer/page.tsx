@@ -1,44 +1,62 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { influencerService, CreateInfluencerPayload } from "@/api/services/influencerService";
+import { notify } from "@/utils/notify";
 import { useAuthProtection } from "@/api/hooks/useAuth";
 import { useUserData } from "@/api/hooks/useUserData";
-import { authService } from "@/api/services/authService";
 import Link from "next/link";
-import { useState } from "react";
-import SocialLinks from "@/components/influencer/SocialLinks";
-import AllEventsList from "@/components/influencer/AllEventsList";
+import { authService } from "@/api/services/authService";
+import InfluencerProfileModal from "@/components/influencer/InfluencerProfileModal";
 
 export default function InfluencerDashboardPage() {
   const { loading, authenticated, role } = useAuthProtection();
-  const { user } = useUserData();
-  const [open, setOpen] = useState(false);
+  const { user, setUser } = useUserData(); // to update username after profile creation
+  const [open, setOpen] = useState(false); // profile dropdown
+  const [modalOpen, setModalOpen] = useState(false); // modal popup
+  const [profile, setProfile] = useState<CreateInfluencerPayload | null>(null); // influencer profile
 
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <span className="text-lg">Loading Influencer Dashboard...</span>
-      </div>
-    );
-  }
+  // Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await influencerService.getProfileByUser(); // GET /influencer/get_influencer_by_user
+        if (data && data.id) setProfile(data);
+      } catch (err) {
+        console.log("No profile found", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-  if (!authenticated || role !== "influencer") {
-    return null;
-  }
+  // Called after creating profile
+  const handleProfileCreated = (newProfile: CreateInfluencerPayload) => {
+    setProfile(newProfile);
+    if (setUser) setUser({ ...user, username: newProfile.name }); // update username in header
+    setModalOpen(false);
+    notify.success("Profile created successfully!");
+  };
+
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center">Loading Influencer Dashboard...</div>;
+  if (!authenticated || role !== "influencer") return null;
 
   return (
-    <div className="space-y-6">
-      <header className="flex justify-between items-center py-4 px-6 bg-white shadow-md rounded-2xl">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="flex justify-between items-center py-4 px-6 bg-white shadow-md rounded-b-2xl">
         <h1 className="text-2xl font-bold text-gray-900">
-          Hi! {user?.username}, Welcome to Collab Vertex 👋
+          Hi! {user?.username || "Influencer"}, Welcome to Collab Vertex 👋
         </h1>
 
         <div className="flex items-center gap-4">
+          {/* Search Bar */}
           <input
             type="text"
             placeholder="Search brands"
             className="px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
+          {/* Profile Dropdown */}
           <div className="relative">
             <button
               onClick={() => setOpen((prev) => !prev)}
@@ -69,30 +87,34 @@ export default function InfluencerDashboardPage() {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <DashboardCard title="Active Events" value="5" />
-        <DashboardCard title="Collaborations" value="12" />
-        <DashboardCard title="Total Earnings" value="$1,250" />
-      </section>
+      {/* Dashboard Body */}
+      <main className="flex flex-col items-center justify-center mt-20 space-y-6">
+        {!profile ? (
+          <>
+            <h2 className="text-xl font-semibold text-gray-700">
+              Continue with creating your Influencer Profile
+            </h2>
 
-      {/* All Events Section */}
-      <section>
-        <AllEventsList />
-      </section>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            >
+              Create Profile
+            </button>
+          </>
+        ) : (
+          <h2 className="text-xl font-semibold text-gray-700">
+            Your profile is ready! Welcome, {profile.name} 👏
+          </h2>
+        )}
+      </main>
 
-      {/* Social Links Section */}
-      <section>
-        <SocialLinks />
-      </section>
-    </div>
-  );
-}
-
-function DashboardCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <p className="text-sm text-gray-500">{title}</p>
-      <p className="text-2xl font-semibold mt-1">{value}</p>
+      {/* Profile Creation Modal */}
+      <InfluencerProfileModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleProfileCreated} // returns created profile
+      />
     </div>
   );
 }

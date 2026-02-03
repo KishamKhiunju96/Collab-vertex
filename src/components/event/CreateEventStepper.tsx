@@ -58,7 +58,6 @@ export default function CreateEventStepper({
 
   return (
     <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-auto">
-      {/* Step indicator */}
       <div className="flex gap-2 mb-6">
         {[1, 2, 3].map((s) => (
           <div
@@ -70,15 +69,17 @@ export default function CreateEventStepper({
         ))}
       </div>
 
-      {/* STEP 1 */}
       {step === 1 && (
-        <div className="space-y-3">
+        <div className="space-y-3 text-text-primary">
+          <label className="block font-medium mb-1">Title</label>
           <input
             className="input"
             placeholder="Title"
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
           />
+        
+          <label className="block font-medium mb-1">Description</label>
           <textarea
             className="input"
             placeholder="Description"
@@ -88,15 +89,18 @@ export default function CreateEventStepper({
         </div>
       )}
 
-      {/* STEP 2 */}
       {step === 2 && (
-        <div className="space-y-3">
+        <div className="space-y-3 text-text-primary">
+          
+          <label className="block font-medium mb-1">Objectives</label>
           <textarea
             className="input"
             placeholder="Objectives"
             value={form.objectives}
             onChange={(e) => update("objectives", e.target.value)}
           />
+
+          <label className="block font-medium mb-1">Budget</label>
           <input
             type="number"
             className="input"
@@ -107,27 +111,33 @@ export default function CreateEventStepper({
         </div>
       )}
 
-      {/* STEP 3 */}
       {step === 3 && (
-        <div className="space-y-3">
+        <div className="space-y-3 text-text-primary">
+          <label className="block font-medium mb-1">Start date</label>
           <input
             type="date"
             className="input"
             value={form.start_date}
             onChange={(e) => update("start_date", e.target.value)}
           />
+
+          <label className="block font-medium mb-1">End date</label>
           <input
             type="date"
             className="input"
             value={form.end_date}
             onChange={(e) => update("end_date", e.target.value)}
           />
+
+          <label className="block font-medium mb-1">Category</label>
           <input
             className="input"
             placeholder="Category"
             value={form.category}
             onChange={(e) => update("category", e.target.value)}
           />
+
+          <label className="block font-medium mb-1">Location</label>
           <input
             className="input"
             placeholder="Location"
@@ -137,11 +147,10 @@ export default function CreateEventStepper({
         </div>
       )}
 
-      {/* Controls */}
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-6 text-text-primary">
         <button
           onClick={step === 1 ? onCancel : () => setStep(step - 1)}
-          className="btn-outline"
+          className="btn-outline "
         >
           Back
         </button>

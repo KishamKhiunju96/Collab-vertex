@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "https://api.dixam.me";
 
 export const API_PATHS = {
   USER: {
@@ -23,6 +23,7 @@ export const API_PATHS = {
   EVENT: {
     CREATE: (brandId: string) => `/event/create_event/${brandId}`,
     GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
+    GET_ALL_EVENTS: "/event/allevents",
     GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
     UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
     DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
@@ -39,6 +40,7 @@ export const API_PATHS = {
   },
 
   INFLUENCER: {
+    CREATE_PROFILE: "/influencer/create_influencerprofile",
     CREATE_SOCIAL_LINK: "/influencer/create_sociallink",
     GET_SOCIAL_LINKS: "/influencer/get_sociallinks",
     UPDATE_SOCIAL_LINK: (sociallinkId: string) =>

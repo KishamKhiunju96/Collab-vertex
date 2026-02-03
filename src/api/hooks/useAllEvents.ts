@@ -1,5 +1,4 @@
 // import { useEffect, useState } from "react";
-// import { getAllEvents } from "../services/eventService";
 // import type { Event } from "../services/eventService";
 
 // export function useAllEvents() {

@@ -87,6 +87,6 @@ export const brandService = {
 
   deleteBrand: async (id: string): Promise<void> => {
     if (!id) throw new Error("Brand ID is required");
-    await api.delete(`/brand/delete/${id}`);
+    await api.delete(`/brand/delete_brandprofile/${id}`);
   },
 };

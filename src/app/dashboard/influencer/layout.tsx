@@ -10,10 +10,8 @@ export default function InfluencerDashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      <div className="flex flex-col flex-1">
-        <DashboardHeader />
+
         <main className="p-6">{children}</main>
-      </div>
     </div>
   );
 }

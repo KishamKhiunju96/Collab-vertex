@@ -82,89 +82,120 @@ export default function CreateEventForm({ brandId, onSuccess }: CreateEventFormP
   };
 
   return (
-    <div className="space-y-3">
-      <input
-        className="input"
-        placeholder="Title"
-        value={form.title}
-        onChange={(e) => updateField("title", e.target.value)}
-      />
+    <div className="space-y-4 text-text-primary">
+      <div>
+        <input
+          className="input w-full"
+          placeholder="Enter title"
+          value={form.title}
+          onChange={(e) => updateField("title", e.target.value)}
+        />
+      </div>
 
-      <textarea
-        className="input"
-        placeholder="Description"
-        value={form.description}
-        onChange={(e) => updateField("description", e.target.value)}
-      />
+      <div>
+        <textarea
+          className="input w-full"
+          placeholder="Enter description"
+          value={form.description}
+          onChange={(e) => updateField("description", e.target.value)}
+        />
+      </div>
 
-      <textarea
-        className="input"
-        placeholder="Objectives"
-        value={form.objectives}
-        onChange={(e) => updateField("objectives", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Objectives</label>
+        <textarea
+          className="input w-full"
+          placeholder="Enter objectives"
+          value={form.objectives}
+          onChange={(e) => updateField("objectives", e.target.value)}
+        />
+      </div>
 
-      <input
-        type="number"
-        min={1}
-        className="input"
-        placeholder="Budget"
-        value={form.budget}
-        onChange={(e) => updateField("budget", Number(e.target.value))}
-      />
+      <div>
+        <label className="block font-medium mb-1">Budget</label>
+        <input
+          type="number"
+          min={1}
+          className="input w-full"
+          placeholder="Enter budget"
+          value={form.budget}
+          onChange={(e) => updateField("budget", Number(e.target.value))}
+        />
+      </div>
 
-      <input
-        type="date"
-        className="input"
-        value={form.start_date}
-        onChange={(e) => updateField("start_date", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Start Date</label>
+        <input
+          type="date"
+          className="input w-full"
+          value={form.start_date}
+          onChange={(e) => updateField("start_date", e.target.value)}
+        />
+      </div>
 
-      <input
-        type="date"
-        className="input"
-        value={form.end_date}
-        onChange={(e) => updateField("end_date", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">End Date</label>
+        <input
+          type="date"
+          className="input w-full"
+          value={form.end_date}
+          onChange={(e) => updateField("end_date", e.target.value)}
+        />
+      </div>
 
-      <input
-        className="input"
-        placeholder="Deliverables"
-        value={form.deliverables}
-        onChange={(e) => updateField("deliverables", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Deliverables</label>
+        <input
+          className="input w-full"
+          placeholder="Enter deliverables"
+          value={form.deliverables}
+          onChange={(e) => updateField("deliverables", e.target.value)}
+        />
+      </div>
 
-      <input
-        className="input"
-        placeholder="Target Audience"
-        value={form.target_audience}
-        onChange={(e) => updateField("target_audience", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Target Audience</label>
+        <input
+          className="input w-full"
+          placeholder="Enter target audience"
+          value={form.target_audience}
+          onChange={(e) => updateField("target_audience", e.target.value)}
+        />
+      </div>
 
-      <input
-        className="input"
-        placeholder="Category"
-        value={form.category}
-        onChange={(e) => updateField("category", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Category</label>
+        <input
+          className="input w-full"
+          placeholder="Enter category"
+          value={form.category}
+          onChange={(e) => updateField("category", e.target.value)}
+        />
+      </div>
 
-      <input
-        className="input"
-        placeholder="Location"
-        value={form.location}
-        onChange={(e) => updateField("location", e.target.value)}
-      />
+      <div>
+        <label className="block font-medium mb-1">Location</label>
+        <input
+          className="input w-full"
+          placeholder="Enter location"
+          value={form.location}
+          onChange={(e) => updateField("location", e.target.value)}
+        />
+      </div>
 
-      <select
-        className="input"
-        value={form.status}
-        onChange={(e) =>
-          updateField("status", e.target.value as "active" | "inactive")
-        }
-      >
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
+      <div>
+        <label className="block font-medium mb-1">Status</label>
+        <select
+          className="input w-full"
+          value={form.status}
+          onChange={(e) =>
+            updateField("status", e.target.value as "active" | "inactive")
+          }
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
 
       <button
         onClick={handleSubmit}

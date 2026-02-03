@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { authService } from "@/api/services/authService";
-import { saveToken } from "@/utils/authToken";
+import { saveToken } from "@/utils/auth";
 
 export default function VerifyOtpPage() {
   const [otp, setOtp] = useState("");

@@ -16,9 +16,10 @@ import { AnalyticsChart } from "@/components/analytics/AnalyticsChart";
 
 export default function BrandDashboardPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { user, loading: userLoading } = useUserData();
 
   const fetchBrands = useCallback(async () => {
@@ -26,8 +27,8 @@ export default function BrandDashboardPage() {
     setError(null);
 
     try {
-      const fetchedBrands = await brandService.getBrands();
-      
+      // ✅ Fetch brands created by this user
+      const fetchedBrands = await brandService.getBrands(); // GET /brand/brandsbyuser
       setBrands(fetchedBrands);
     } catch (err) {
       console.error(err);
@@ -37,15 +38,27 @@ export default function BrandDashboardPage() {
     }
   }, []);
 
-  console.log("Brands:", brands);
-
+  // ✅ Fetch brands automatically when user is loaded and authorized
   useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+    if (userLoading) return;
 
-  const handleCreateSuccess = () => {
-    setIsCreateOpen(false);
+    if (!user) {
+      notify.error("Unauthorized");
+      return;
+    }
+
+    if (user.role !== "brand") {
+      notify.error("Access denied");
+      return;
+    }
+
     fetchBrands();
+  }, [userLoading, user, fetchBrands]);
+
+  const handleCreateSuccess = async () => {
+    setIsCreateOpen(false);
+    await fetchBrands(); // ✅ Refresh brand list after creating a new brand
+    notify.success("Brand profile created successfully!");
   };
 
   const handleDelete = async (brandId: string) => {
@@ -78,16 +91,6 @@ export default function BrandDashboardPage() {
     );
   }
 
-  if (loading) return <p>Loading brands...</p>;
-  if (error) return <p>{error}</p>;
-  if (brands.length === 0) return <p>No brands found.</p>;
-
-
-  const brandIds = brands.map((brand) => brand.id);
-
-  console.log(brandIds);
-
-
   return (
     <div className="p-6 space-y-8 text-black">
       {/* Header */}
@@ -97,124 +100,103 @@ export default function BrandDashboardPage() {
             Hi {user.username}, Welcome to Collab Vertex
           </h1>
           <p className="text-gray-500 mt-1">
-            Manage your brands, collaborate with influencers, and track
-            performance.
+            Manage your brands, collaborate with influencers, and track performance.
           </p>
-        </div>
-
-        <div className="w-full md:w-1/3">
-          <input
-            type="text"
-            placeholder="Search brands..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
         </div>
 
         <button
           onClick={() => setIsCreateOpen(true)}
           className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition z-50"
-          title="Create Brand"
         >
           + Create Brand
         </button>
       </div>
 
+      {/* Empty state */}
+      {!loading && brands.length === 0 && (
+        <div className="text-gray-500 text-center py-10">
+          No brand profile found. Click <b>+ Create Brand</b> to get started.
+        </div>
+      )}
+
       {/* Brand Table */}
-      <div className="bg-white rounded border border-gray-300 overflow-hidden">
-        <table className="min-w-full">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="px-4 py-2 border-b">Name</th>
-              <th className="px-4 py-2 border-b">Location</th>
-              <th className="px-4 py-2 border-b">Website</th>
-              <th className="px-4 py-2 border-b text-center">Actions</th>
-            </tr>
-          </thead>
+      {brands.length > 0 && (
+        <div className="bg-white rounded border border-gray-300 overflow-hidden">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="px-4 py-2 border-b">Name</th>
+                <th className="px-4 py-2 border-b">Location</th>
+                <th className="px-4 py-2 border-b">Website</th>
+                <th className="px-4 py-2 border-b text-center">Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {brands.map((brand) => (
-              <tr key={brand.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b">
-                  <Link
-                    href={`/dashboard/brand/${brand.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {brand.name}
-                  </Link>
-                </td>
-
-                <td className="px-4 py-2 border-b">{brand.location}</td>
-
-                <td className="px-4 py-2 border-b">
-                  {brand.websiteUrl ? (
-                    <a
-                      href={brand.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {brand.websiteUrl}
-                    </a>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-
-                <td className="px-4 py-2 border-b">
-                  <div className="flex justify-center gap-3">
+            <tbody>
+              {brands.map((brand) => (
+                <tr key={brand.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 border-b">
                     <Link
                       href={`/dashboard/brand/${brand.id}`}
-                      title="View"
-                      className="text-blue-600"
+                      className="text-blue-600 hover:underline"
                     >
-                      <Eye size={18} />
+                      {brand.name}
                     </Link>
+                  </td>
 
-                    <Link
-                      href={`/dashboard/brand/${brand.id}/edit`}
-                      title="Edit"
-                      className="text-green-600"
-                    >
-                      <Pencil size={18} />
-                    </Link>
+                  <td className="px-4 py-2 border-b">{brand.location}</td>
 
-                    <button
-                      onClick={() => handleDelete(brand.id)}
-                      title="Delete"
-                      className="text-red-600"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  <td className="px-4 py-2 border-b">{brand.websiteUrl ?? "-"}</td>
 
-      {/* Analytics & Activity */}
+                  <td className="px-4 py-2 border-b">
+                    <div className="flex justify-center gap-3">
+                      <Link href={`/dashboard/brand/${brand.id}`} title="View">
+                        <Eye size={18} />
+                      </Link>
+
+                      <Link
+                        href={`/dashboard/brand/${brand.id}/edit`}
+                        title="Edit"
+                      >
+                        <Pencil size={18} />
+                      </Link>
+
+                      <button
+                        onClick={() => handleDelete(brand.id)}
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Analytics & Activity - ALWAYS VISIBLE */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white border border-gray-300 rounded p-4">
           <AnalyticsChart />
         </div>
 
-        <div>
-          <ActivityFeed activities={brandActivities} />
-        </div>
+        <ActivityFeed activities={brandActivities} />
       </div>
 
-    <Modal
+      {/* Create Brand Modal */}
+      <Modal
         open={isCreateOpen}
         title="Create New Brand"
         size="lg"
         onClose={() => setIsCreateOpen(false)}
-        >
+      >
         <CreateBrandForm
-            onSuccess={handleCreateSuccess}
-            onCancel={() => setIsCreateOpen(false)}
+          onSuccess={handleCreateSuccess}
+          onCancel={() => setIsCreateOpen(false)}
         />
-    </Modal>
+      </Modal>
     </div>
   );
 }

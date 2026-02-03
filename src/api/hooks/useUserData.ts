@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { AxiosError } from "axios";
 
 import { userService } from "@/api/services/userService";
@@ -13,6 +13,7 @@ export function useUserData() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch user from API
   const fetchUser = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
@@ -22,10 +23,10 @@ export function useUserData() {
 
       setUser(response.data as User);
     } catch (err) {
-      const error = err as AxiosError<ApiErrorResponse>;
+      const axiosError = err as AxiosError<ApiErrorResponse>;
 
       setUser(null);
-      setError(error.response?.data?.detail ?? "Failed to fetch user");
+      setError(axiosError.response?.data?.detail ?? "Failed to fetch user");
     } finally {
       setLoading(false);
     }
@@ -35,8 +36,14 @@ export function useUserData() {
     fetchUser();
   }, [fetchUser]);
 
+  // Expose setUser safely for updating user state
+  const updateUser = (updatedUser: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedUser } : null));
+  };
+
   return {
     user,
+    setUser: updateUser, // <-- now available
     loading,
     error,
     refetch: fetchUser,

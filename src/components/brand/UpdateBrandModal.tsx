@@ -56,7 +56,7 @@ export default function UpdateBrandModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 text-text-primary"
       onClick={onClose}
     >
       <form
@@ -66,6 +66,7 @@ export default function UpdateBrandModal({
       >
         <h2 className="text-xl font-bold mb-4">Update Brand Profile</h2>
 
+        <label className="block font-medium mb-1">Name</label>
         <input
           type="text"
           className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -75,6 +76,7 @@ export default function UpdateBrandModal({
           required
         />
 
+        <label className="block font-medium mb-1">Description</label>
         <textarea
           className="w-full mb-3 p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Description"
@@ -83,6 +85,7 @@ export default function UpdateBrandModal({
           onChange={(e) => handleChange("description", e.target.value)}
         />
 
+        <label className="block font-medium mb-1">Location</label>
         <input
           type="text"
           className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -91,6 +94,7 @@ export default function UpdateBrandModal({
           onChange={(e) => handleChange("location", e.target.value)}
         />
 
+        <label className="block font-medium mb-1">Website URL</label>
         <input
           type="url"
           className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"

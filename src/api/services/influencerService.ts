@@ -1,30 +1,32 @@
-import { API_PATHS } from "@/api/apiPaths";
 import api from "@/api/axiosInstance";
 
-export interface SocialLink {
-  id?: string;
-  platform: string;
-  url: string;
-  followers: number;
-  linked_at: string;
+export interface CreateInfluencerPayload {
+  id?: string; // optional for responses
+  name: string;
+  niche: string;
+  audience_size: number;
+  engagement_rate: number;
+  bio: string;
+  location: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export const createSocialLink = async (data: Omit<SocialLink, "id">) => {
-  const response = await api.post(API_PATHS.INFLUENCER.CREATE_SOCIAL_LINK, data);
-  return response.data;
-};
+export const influencerService = {
+  // Create influencer profile
+  createProfile: async (payload: CreateInfluencerPayload) => {
+    const response = await api.post("/influencer/create_influencerprofile", payload);
+    return response.data;
+  },
 
-export const getSocialLinks = async () => {
-  const response = await api.get(API_PATHS.INFLUENCER.GET_SOCIAL_LINKS);
-  return response.data;
-};
-
-export const updateSocialLink = async (sociallinkId: string, data: Omit<SocialLink, "id">) => {
-  const response = await api.patch(API_PATHS.INFLUENCER.UPDATE_SOCIAL_LINK(sociallinkId), data);
-  return response.data;
-};
-
-export const deleteSocialLink = async (sociallinkId: string) => {
-  const response = await api.delete(API_PATHS.INFLUENCER.DELETE_SOCIAL_LINK(sociallinkId));
-  return response.data;
+  // Get influencer profile of the logged-in user
+  getProfileByUser: async (): Promise<CreateInfluencerPayload | null> => {
+    try {
+      const response = await api.get<CreateInfluencerPayload>("/influencer/get_influencer_by_user");
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch influencer profile", err);
+      return null; // return null if no profile exists
+    }
+  },
 };
