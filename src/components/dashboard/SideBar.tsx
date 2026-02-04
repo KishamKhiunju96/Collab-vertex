@@ -20,7 +20,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import axios from "axios";
+import axios from "@/lib/axios";
 
 const navConfig = {
   brand: [
@@ -116,8 +116,6 @@ export default function SideBar() {
     setIsLoggingOut(true);
     try {
       await axios.post("/user/logout", {
-        method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
     } catch (err) {

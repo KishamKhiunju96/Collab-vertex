@@ -12,6 +12,20 @@ export interface CreateInfluencerPayload {
   updated_at?: string;
 }
 
+
+export interface InfluencerProfile {
+  id: string;
+  name: string;
+  niche: string;
+  audience_size: number;
+  engagement_rate: number;
+  bio: string;
+  location: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
 export const influencerService = {
   // Create influencer profile
   createProfile: async (payload: CreateInfluencerPayload) => {
@@ -28,5 +42,9 @@ export const influencerService = {
       console.error("Failed to fetch influencer profile", err);
       return null; // return null if no profile exists
     }
+  },
+  getProfile: async (): Promise<InfluencerProfile> => {
+    const response = await api.get<InfluencerProfile>("/influencer/get_influencer_by_user");
+    return response.data;
   },
 };
