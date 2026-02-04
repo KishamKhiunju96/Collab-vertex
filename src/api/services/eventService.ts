@@ -1,9 +1,5 @@
 import axios from "@/lib/axios";
 
-/* ============================
-   Types
-============================ */
-
 export type EventStatus = "active" | "inactive";
 
 export interface Brand {
@@ -17,7 +13,7 @@ export interface Event {
   // existing
   brand_id: string;
 
-  // ✅ optional (future-proof)
+  // optional (future-proof)
   brand?: Brand;
   brand_name?: string;
 
@@ -50,6 +46,14 @@ export interface EventPayload {
   status: EventStatus;
 }
 
+export interface EventHybridFilterPayload {
+  location: string;
+  categories: string[];
+  budget_range: number[]; // [min, max]
+  target_audience: string;
+  start_date: string; // ISO string
+}
+
 /* ============================
    API Paths
 ============================ */
@@ -60,6 +64,9 @@ const EVENT_API = {
   GET_ALL: "/event/all_events",
   UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
   DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
+
+  // 🔍 Hybrid filter
+  HYBRID_FILTER: "/event/events_using_hybrid",
 };
 
 /* ============================
@@ -88,10 +95,22 @@ export const eventService = {
     return data;
   },
 
-  // ✅ Influencer dashboard
+  // ✅ Influencer dashboard (no filters)
   async getAllEvents(): Promise<Event[]> {
     const { data } = await axios.get<Event[]>(
       EVENT_API.GET_ALL
+    );
+    return data;
+  },
+
+  // 🔍 Influencer dashboard (with filters)
+  async getEventsUsingHybrid(
+    payload: EventHybridFilterPayload
+  ): Promise<Event[]> {
+    const { data } = await axios.post<Event[]>(
+      EVENT_API.HYBRID_FILTER,
+      payload,
+      { headers: { "Content-Type": "application/json" } }
     );
     return data;
   },

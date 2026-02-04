@@ -44,7 +44,6 @@ export default function SettingsPage() {
   };
 
   const handleLogout = () => {
-    document.cookie = `collab_vertex_token=; path=/; max-age=0; SameSite=Lax`;
     router.replace("/login");
   };
 

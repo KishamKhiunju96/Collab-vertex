@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { eventService, Event, EventFilterPayload } from "@/api/services/eventService";
 import EventCards from "./EventCards";
 import EventFilter from "./EventFilter";
+import { eventService } from "@/api/services/eventService";
 
 const PAGE_SIZE = 6;
 

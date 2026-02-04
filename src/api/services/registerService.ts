@@ -1,30 +1,21 @@
-import { saveToken } from "@/utils/auth";
+import { RegisterResponse } from "@/types/aauth";
 
-interface RegisterResponse {
-  auth_token?: string;
-}
-
+/**
+ * Handle registration response from the backend.
+ * Since the backend sets HttpOnly cookies, no need to manually save auth token.
+ */
 const handleRegister = (data: RegisterResponse | null | undefined) => {
-  try {
-    if (!data) {
-      console.warn("No registration data received");
-      return;
-    }
+  if (!data) {
+    console.warn("No registration data received");
+    return;
+  }
 
-    console.log("REGISTER RESPONSE:", data);
+  console.log("REGISTER RESPONSE:", data);
 
-    const token = data.auth_token;
-
-    if (token) {
-      saveToken(token);
-      console.log("Auth token saved");
-    } else {
-      console.warn(
-        "No auth_token found (most likely OTP verification required)",
-      );
-    }
-  } catch (error) {
-    console.error("Error while handling registration response:", error);
+  if (data.success) {
+    console.log("Registration successful. Proceed to OTP verification if required.");
+  } else {
+    console.warn("Registration response indicates failure:", data.message);
   }
 };
 

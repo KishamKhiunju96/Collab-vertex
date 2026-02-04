@@ -1,26 +1,19 @@
 import { jwtDecode } from "jwt-decode";
-import { setCookie, getCookie, deleteCookie } from "./cookie";
-
-const TOKEN_KEY = "collab_vertex_token";
 
 export type UserRole = "brand" | "influencer" | "admin";
 
 interface DecodedToken {
   role: UserRole;
-  exp: number;
+  exp: number; // in seconds
   sub?: string;
 }
 
-
-export const saveToken = (token: string) => {
-  if (typeof window === "undefined") return;
-  setCookie(TOKEN_KEY, token);
-};
-
-
+/**
+ * Decode the access token stored in localStorage
+ */
 export const getToken = (): string | null => {
   if (typeof window === "undefined") return null;
-  return getCookie(TOKEN_KEY);
+  return localStorage.getItem("accessToken");
 };
 
 export const getUserFromToken = (): DecodedToken | null => {
@@ -28,9 +21,9 @@ export const getUserFromToken = (): DecodedToken | null => {
   if (!token) return null;
 
   try {
-    const decoded = jwtDecode<DecodedToken>(token);
-    return decoded;
-  } catch {
+    return jwtDecode<DecodedToken>(token);
+  } catch (err) {
+    console.error("Failed to decode token:", err);
     return null;
   }
 };
@@ -38,12 +31,6 @@ export const getUserFromToken = (): DecodedToken | null => {
 export const getUserRole = (): UserRole | null => {
   const user = getUserFromToken();
   return user?.role ?? null;
-};
-
-
-export const clearToken = () => {
-  if (typeof window === "undefined") return;
-  deleteCookie(TOKEN_KEY);
 };
 
 export const isLoggedIn = (): boolean => {
@@ -56,4 +43,14 @@ export const isLoggedIn = (): boolean => {
   } catch {
     return false;
   }
+};
+
+/**
+ * Logout helper: clears localStorage and waits for optional delay
+ */
+export const logoutUser = (delay: number = 2500): Promise<void> => {
+  return new Promise((resolve) => {
+    localStorage.removeItem("accessToken"); // remove client-side access token
+    setTimeout(() => resolve(), delay); // wait before redirect
+  });
 };

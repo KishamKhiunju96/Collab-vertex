@@ -7,6 +7,7 @@ import axios from "axios";
 import { z } from "zod";
 import { authService } from "@/api/services/authService";
 import { handleRegister } from "@/api/services/registerService";
+import { RegisterResponse } from "@/types/aauth";
 
 interface FormData {
   username: string;
@@ -24,7 +25,7 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "brand", // default, will be overridden
+    role: "brand",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -32,29 +33,10 @@ export default function RegisterForm() {
   const [apiError, setApiError] = useState("");
 
   useEffect(() => {
-    const getCookie = (name: string): string | null => {
-      return (
-        document.cookie
-          .split('; ')
-          .find((row) => row.startsWith(name + '='))
-          ?.split('=')[1] || null
-      );
-    };
-    const storedRole = getCookie("pendingUserRole");
-
-    if (
-      !storedRole ||
-      (storedRole !== "brand" && storedRole !== "influencer")
-    ) {
+    if (form.role !== "brand" && form.role !== "influencer") {
       router.replace("/select-role");
-      return;
     }
-
-    setForm((prev) => ({
-      ...prev,
-      role: storedRole as "brand" | "influencer",
-    }));
-  }, [router]);
+  }, [form.role, router]);
 
   const formSchema = z
     .object({
@@ -65,7 +47,7 @@ export default function RegisterForm() {
         .min(8, "Password must be at least 8 characters")
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          "Password must contain uppercase, lowercase & number",
+          "Password must contain uppercase, lowercase & number"
         ),
       confirmPassword: z.string(),
       role: z.enum(["brand", "influencer"]),
@@ -77,6 +59,7 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError("");
 
     const result = formSchema.safeParse(form);
     if (!result.success) {
@@ -100,17 +83,17 @@ export default function RegisterForm() {
         role: form.role,
       };
 
-      const data = await authService.register(payload);
+      const data: RegisterResponse = await authService.register(payload);
       handleRegister(data);
-
-      document.cookie = `pendingUserRole=; path=/; max-age=0; SameSite=Lax`;
 
       router.push(`/verify_otp?email=${encodeURIComponent(form.email)}`);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
-          err.response?.data?.message || err.message || "Registration failed",
+          err.response?.data?.message || err.message || "Registration failed"
         );
+      } else {
+        setApiError("Registration failed");
       }
     } finally {
       setIsLoading(false);
@@ -120,6 +103,7 @@ export default function RegisterForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-light px-4 py-8">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        {/* Image side */}
         <div className="relative hidden md:block min-h-[700px]">
           <Image
             src="/images/collabR.jpg"
@@ -131,6 +115,7 @@ export default function RegisterForm() {
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
+        {/* Form side */}
         <div className="flex items-center justify-center px-6 md:px-12 py-8">
           <div className="w-full max-w-md text-text-primary">
             <h2 className="mb-2 text-3xl font-bold">Create Account</h2>
@@ -155,7 +140,7 @@ export default function RegisterForm() {
                     onChange={(e) =>
                       setForm({ ...form, [key]: e.target.value })
                     }
-                    className="mt-1 w-full text-text-primary rounded-md border px-4 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border px-4 py-2 text-sm"
                   />
                   {errors[key] && (
                     <p className="text-xs text-red-600">{errors[key]}</p>

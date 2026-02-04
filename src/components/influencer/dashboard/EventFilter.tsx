@@ -1,63 +1,65 @@
 "use client";
 
-interface Props {
-  filters: any;
-  onChange: (filters: any) => void;
-  onApply: () => void;
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+type FilterPayload = {
+  location: string;
+  categories: string[];
+};
+
+interface EventFilterBarProps {
+  onApply: (filters: FilterPayload) => void;
 }
 
-export default function EventFilter({ filters, onChange, onApply }: Props) {
-  return (
-    <div className="bg-white border rounded-xl p-5 h-fit sticky top-6">
-      <h3 className="text-lg font-semibold mb-4">Filters</h3>
+const LOCATIONS = ["Kathmandu", "Lalitpur", "Bhaktapur"];
+const CATEGORIES = ["Music", "Tech", "Business", "Sports"];
 
+export default function EventFilterBar({ onApply }: EventFilterBarProps) {
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
+
+  const handleApply = () => {
+    onApply({
+      location,
+      categories: category ? [category] : [],
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 mb-6">
       {/* Location */}
-      <input
-        className="w-full border rounded-md px-3 py-2 mb-3"
-        placeholder="Location"
-        value={filters.location}
-        onChange={(e) =>
-          onChange({ ...filters, location: e.target.value })
-        }
-      />
+      <select
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        className="border rounded-md px-3 py-2 text-sm"
+      >
+        <option value="">All Locations</option>
+        {LOCATIONS.map((loc) => (
+          <option key={loc} value={loc}>
+            {loc}
+          </option>
+        ))}
+      </select>
 
       {/* Category */}
-      <input
-        className="w-full border rounded-md px-3 py-2 mb-3"
-        placeholder="Category"
-        onChange={(e) =>
-          onChange({
-            ...filters,
-            categories: [e.target.value],
-          })
-        }
-      />
-
-      {/* Target Audience */}
-      <input
-        className="w-full border rounded-md px-3 py-2 mb-3"
-        placeholder="Target Audience"
-        value={filters.target_audience}
-        onChange={(e) =>
-          onChange({ ...filters, target_audience: e.target.value })
-        }
-      />
-
-      {/* Start Date */}
-      <input
-        type="date"
-        className="w-full border rounded-md px-3 py-2 mb-4"
-        onChange={(e) =>
-          onChange({ ...filters, start_date: e.target.value })
-        }
-      />
-
-      <button
-        onClick={onApply}
-        className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        className="border rounded-md px-3 py-2 text-sm"
       >
+        <option value="">All Categories</option>
+        {CATEGORIES.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
+
+      {/* Apply Button */}
+      <Button onClick={handleApply}>
         Apply Filters
-      </button>
+      </Button>
     </div>
   );
 }

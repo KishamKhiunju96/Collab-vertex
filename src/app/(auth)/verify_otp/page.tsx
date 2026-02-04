@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { authService } from "@/api/services/authService";
-import { saveToken } from "@/utils/auth";
 
 export default function VerifyOtpPage() {
   const [otp, setOtp] = useState("");
@@ -15,7 +14,7 @@ export default function VerifyOtpPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  // Effect to handle missing email
+  // Redirect if email is missing
   useEffect(() => {
     if (!email) {
       setError("Invalid verification link. Redirecting to registration...");
@@ -41,32 +40,29 @@ export default function VerifyOtpPage() {
     try {
       setLoading(true);
 
-      const response = await authService.verifyOtp({
-        email,
-        otp,
-      }) as { access_token?: string; token?: string; message?: string };
+      const response = await authService.verifyOtp({ email, otp });
 
       console.log("OTP verification response:", response);
 
-      const token = response?.access_token || response?.token;
-
-      if (token) {
-        saveToken(token);
-        alert("Account verified and logged in successfully!");
-        router.push("/dashboard");
-      } else {
+      if (response.success) {
         alert("Account verified successfully! You can now log in.");
         router.push("/login");
+      } else {
+        setError(response.message || "OTP verification failed");
       }
     } catch (error: any) {
       console.error("OTP verification error:", error);
-      setError(error?.response?.data?.message || error?.message || "Invalid or expired OTP");
+      setError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Invalid or expired OTP"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Handler for resending OTP (defined BEFORE it's used in JSX)
+  // Handler for resending OTP
   const handleResendOtp = async () => {
     if (!email) {
       setError("Email is missing");
@@ -87,15 +83,13 @@ export default function VerifyOtpPage() {
     }
   };
 
-  // Utility to mask email
+  // Mask email for display
   const maskEmail = (email: string) => {
     if (!email) return "";
     const [username, domain] = email.split("@");
     if (!username || username.length <= 2) return email;
     const masked =
-      username[0] +
-      "*".repeat(username.length - 2) +
-      username[username.length - 1];
+      username[0] + "*".repeat(username.length - 2) + username[username.length - 1];
     return `${masked}@${domain}`;
   };
 
@@ -106,7 +100,7 @@ export default function VerifyOtpPage() {
         className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl font-bold mb-2 text-center">Verify OTP</h2>
-        
+
         <p className="text-sm text-gray-600 mb-6 text-center">
           An OTP has been sent to your email
           {email && (
@@ -142,7 +136,6 @@ export default function VerifyOtpPage() {
           {loading ? "Verifying..." : "Verify OTP"}
         </button>
 
-        {/* This is likely line ~20 in your file — handleResendOtp is now defined above */}
         <button
           type="button"
           onClick={handleResendOtp}

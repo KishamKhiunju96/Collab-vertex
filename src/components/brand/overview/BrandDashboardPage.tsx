@@ -58,7 +58,6 @@ export default function BrandDashboardPage() {
   const handleCreateSuccess = async () => {
     setIsCreateOpen(false);
     await fetchBrands(); // ✅ Refresh brand list after creating a new brand
-    notify.success("Brand profile created successfully!");
   };
 
   const handleDelete = async (brandId: string) => {

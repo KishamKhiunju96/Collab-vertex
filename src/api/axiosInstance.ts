@@ -36,7 +36,6 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       console.warn("Unauthorized! Token missing or expired.");
-      // Token is now managed via cookies
     }
     return Promise.reject(error);
   },

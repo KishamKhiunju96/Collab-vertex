@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthContainer from "@/components/auth/AuthContainer";
 import RoleCard from "./components/RoleCard";
-import { setCookie } from "@/utils/cookie";
 
 export default function SelectRolePage() {
   const [selectedRole, setSelectedRole] = useState<
@@ -18,7 +17,6 @@ export default function SelectRolePage() {
       const normalizedRole = selectedRole === "Brand" ? "brand" : "influencer";
 
 
-      setCookie("pendingUserRole", normalizedRole, 1);
 
       router.push("/register");
     }

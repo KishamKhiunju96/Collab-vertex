@@ -3,16 +3,10 @@ import api from "../axiosInstance";
 import { notify } from "@/utils/notify";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { clearToken, saveToken } from "@/utils/auth";
+import { RegisterResponse, UserProfile, VerifyOtpResponse } from "@/types/aauth";
 
-export interface UserProfile {
-  id?: string;
-  username?: string;
-  email?: string;
-  role: "brand" | "influencer" | "admin";
-}
-
-const getErrorMessage = (error: unknown, fallback: string) => {
+// ------------------ Helper ------------------
+const getErrorMessage = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message || fallback;
   }
@@ -22,21 +16,15 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
+// ------------------ Auth Service ------------------
 export const authService = {
-  login: async (data: { username: string; password: string }) => {
+  login: async (data: { username: string; password: string }): Promise<boolean> => {
     const toastId = notify.loading("Logging in...");
 
     try {
-      const res = await api.post(API_PATHS.USER.LOGIN, data);
-      const { access_token } = res.data;
-
-      if (!access_token) {
-        throw new Error("Access token not found in login response");
-      }
-
-      saveToken(access_token);
+      await api.post(API_PATHS.USER.LOGIN, data);
+      // Backend sets HttpOnly cookie
       notify.success("Login successful");
-
       window.location.replace("/dashboard");
       return true;
     } catch (error: unknown) {
@@ -49,7 +37,7 @@ export const authService = {
 
   getMe: async (): Promise<UserProfile> => {
     try {
-      const res = await api.get(API_PATHS.USER.ME);
+      const res = await api.get<UserProfile>(API_PATHS.USER.ME);
       return res.data;
     } catch (error: unknown) {
       notify.error(getErrorMessage(error, "Failed to fetch user profile"));
@@ -59,16 +47,16 @@ export const authService = {
 
   register: async (data: {
     username: string;
-    password: string;
     email: string;
-    role: string;
-  }) => {
+    password: string;
+    role: "brand" | "influencer";
+  }): Promise<RegisterResponse> => {
     const toastId = notify.loading("Creating account...");
 
     try {
-      const res = await api.post(API_PATHS.USER.REGISTER, data);
+      const res = await api.post<RegisterResponse>(API_PATHS.USER.REGISTER, data);
       notify.success("Registration successful. Please verify OTP.");
-      return res;
+      return res.data;
     } catch (error: unknown) {
       notify.error(getErrorMessage(error, "Registration failed"));
       throw error;
@@ -77,13 +65,13 @@ export const authService = {
     }
   },
 
-  verifyOtp: async (data: { email: string; otp: string }) => {
+  verifyOtp: async (data: { email: string; otp: string }): Promise<VerifyOtpResponse> => {
     const toastId = notify.loading("Verifying OTP...");
 
     try {
-      const res = await api.post(API_PATHS.USER.VERIFY_OTP, data);
+      const res = await api.post<VerifyOtpResponse>(API_PATHS.USER.VERIFY_OTP, data);
       notify.success("OTP verified successfully");
-      return res;
+      return res.data;
     } catch (error: unknown) {
       notify.error(getErrorMessage(error, "Invalid OTP"));
       throw error;
@@ -92,7 +80,7 @@ export const authService = {
     }
   },
 
-  resendOtp: async (data: { email: string }) => {
+  resendOtp: async (data: { email: string }): Promise<void> => {
     try {
       await api.post("/otp/resend_otp", data);
       notify.success("OTP resent successfully");
@@ -102,13 +90,13 @@ export const authService = {
     }
   },
 
-  logout: async () => {
+  logout: async (): Promise<void> => {
     try {
-      clearToken();
+      await api.post(API_PATHS.USER.LOGOUT); // optional backend logout
       notify.success("Logged out successfully");
-      window.location.replace("/login");
     } catch {
-      clearToken();
+      // ignore errors
+    } finally {
       window.location.replace("/login");
     }
   },
