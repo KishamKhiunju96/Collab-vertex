@@ -1,9 +1,5 @@
 import { RegisterResponse } from "@/types/aauth";
 
-/**
- * Handle registration response from the backend.
- * Since the backend sets HttpOnly cookies, no need to manually save auth token.
- */
 const handleRegister = (data: RegisterResponse | null | undefined) => {
   if (!data) {
     console.warn("No registration data received");

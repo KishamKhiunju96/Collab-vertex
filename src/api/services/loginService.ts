@@ -1,6 +1,5 @@
 import api from "../axiosInstance";
 import axios from "axios";
-import { saveToken, clearToken } from "@/utils/auth";
 
 export interface User {
   id: string;
@@ -23,18 +22,15 @@ export async function handleLogin(
   password: string,
 ): Promise<HandleLoginResult> {
   try {
-    const loginRes = await api.post<{ access_token: string }>("/auth/login", {
+    await api.post("/auth/login", {
       username,
       password,
     });
 
-    const token = loginRes.data.access_token;
-
-    saveToken(token);
-
     const userResponse = await api.get<User>("/user/me");
     const user = userResponse.data;
 
+    // 3️⃣ Decide redirect based on role
     let redirectTo: string;
     switch (user.role) {
       case "brand":
@@ -50,7 +46,11 @@ export async function handleLogin(
         redirectTo = "/select-role";
     }
 
-    return { success: true, redirectTo, user };
+    return {
+      success: true,
+      redirectTo,
+      user,
+    };
   } catch (err: unknown) {
     let message = "Login failed";
 
@@ -72,6 +72,12 @@ export async function handleLogin(
   }
 }
 
-export function logout() {
-  clearToken();
+export async function logout() {
+  try {
+    await api.post("/auth/logout"); // if backend supports it
+  } catch {
+    // ignore errors
+  } finally {
+    window.location.replace("/login");
+  }
 }

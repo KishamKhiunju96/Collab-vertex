@@ -1,56 +1,56 @@
-import { jwtDecode } from "jwt-decode";
+import api from "@/api/axiosInstance";
 
 export type UserRole = "brand" | "influencer" | "admin";
 
-interface DecodedToken {
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
   role: UserRole;
-  exp: number; // in seconds
-  sub?: string;
+  is_active: boolean;
+  is_verified: boolean;
 }
 
 /**
- * Decode the access token stored in localStorage
+ * Get currently authenticated user from backend
+ * Uses HttpOnly cookie automatically
  */
-export const getToken = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("accessToken");
-};
-
-export const getUserFromToken = (): DecodedToken | null => {
-  const token = getToken();
-  if (!token) return null;
-
+export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
-    return jwtDecode<DecodedToken>(token);
-  } catch (err) {
-    console.error("Failed to decode token:", err);
-    return null;
-  }
-};
-
-export const getUserRole = (): UserRole | null => {
-  const user = getUserFromToken();
-  return user?.role ?? null;
-};
-
-export const isLoggedIn = (): boolean => {
-  const token = getToken();
-  if (!token) return false;
-
-  try {
-    const decoded = jwtDecode<DecodedToken>(token);
-    return decoded.exp * 1000 > Date.now();
+    const res = await api.get<AuthUser>("/user/me");
+    return res.data;
   } catch {
-    return false;
+    return null; // not logged in
   }
 };
 
 /**
- * Logout helper: clears localStorage and waits for optional delay
+ * Check login status
  */
-export const logoutUser = (delay: number = 2500): Promise<void> => {
+export const isLoggedIn = async (): Promise<boolean> => {
+  const user = await getCurrentUser();
+  return !!user;
+};
+
+/**
+ * Get role of logged-in user
+ */
+export const getUserRole = async (): Promise<UserRole | null> => {
+  const user = await getCurrentUser();
+  return user?.role ?? null;
+};
+
+/**
+ * Logout helper with optional delay
+ */
+export const logoutUser = async (delay: number = 2500): Promise<void> => {
+  try {
+    await api.post("/auth/logout"); // if backend supports it
+  } catch {
+    // ignore
+  }
+
   return new Promise((resolve) => {
-    localStorage.removeItem("accessToken"); // remove client-side access token
-    setTimeout(() => resolve(), delay); // wait before redirect
+    setTimeout(() => resolve(), delay);
   });
 };

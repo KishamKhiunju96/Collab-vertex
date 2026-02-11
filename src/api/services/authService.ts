@@ -23,7 +23,6 @@ export const authService = {
 
     try {
       await api.post(API_PATHS.USER.LOGIN, data);
-      // Backend sets HttpOnly cookie
       notify.success("Login successful");
       window.location.replace("/dashboard");
       return true;
