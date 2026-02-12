@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthProtection } from "@/api/hooks/useAuth";
-import SideBar from "@/components/dashboard/SideBar";
+import Sidebar from "@/components/dashboard/sidebar/Sidebar";
 import { ReactNode } from "react";
 
 interface DashboardLayoutProps {
@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64">
-        <SideBar />
+        <Sidebar />
       </aside>
 
       <main className="flex-1 p-6 overflow-auto">{children}</main>

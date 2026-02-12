@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Pencil, Trash2, Check } from "lucide-react";
 
-import { eventService, Event, EventPayload, EventStatus } from "@/api/services/eventService";
+import {
+  eventService,
+  Event,
+  EventPayload,
+  EventStatus,
+} from "@/api/services/eventService";
 import { notify } from "@/utils/notify";
 import Modal from "@/components/ui/Modal";
 
 interface EventTableProps {
   brandId: string;
-  refreshKey?: any;
+  refreshKey?: number;
 }
 
 export default function EventTable({ brandId, refreshKey }: EventTableProps) {
@@ -20,7 +25,7 @@ export default function EventTable({ brandId, refreshKey }: EventTableProps) {
   const [updatePayload, setUpdatePayload] = useState<Partial<EventPayload>>({});
 
   // Fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const data = await eventService.getEventsByBrand(brandId);
@@ -31,11 +36,11 @@ export default function EventTable({ brandId, refreshKey }: EventTableProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [brandId]);
 
   useEffect(() => {
     if (brandId) fetchEvents();
-  }, [brandId, refreshKey]);
+  }, [brandId, refreshKey, fetchEvents]);
 
   const handleDelete = async (eventId: string) => {
     const confirmed = confirm("Are you sure you want to delete this event?");
@@ -110,7 +115,9 @@ export default function EventTable({ brandId, refreshKey }: EventTableProps) {
             {events.map((event) => (
               <tr key={event.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-2">{event.title}</td>
-                <td className="px-4 py-2 text-center">{event.category || "—"}</td>
+                <td className="px-4 py-2 text-center">
+                  {event.category || "—"}
+                </td>
                 <td className="px-4 py-2 text-center">{event.budget}</td>
                 <td className="px-4 py-2 text-center">
                   <span

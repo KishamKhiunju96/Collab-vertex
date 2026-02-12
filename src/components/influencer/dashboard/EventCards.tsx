@@ -1,20 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { eventService, Event, EventHybridFilterPayload } from "@/api/services/eventService";
+import {
+  eventService,
+  Event,
+  EventHybridFilterPayload,
+} from "@/api/services/eventService";
+import { useUserData } from "@/api/hooks/useUserData";
+import { useInfluencerProfile } from "@/api/hooks/useInfluencerProfile";
+import { notify } from "@/utils/notify";
 
 const EVENT_LIMIT = 6;
 
 export default function EventCards() {
+  const { user } = useUserData();
+  const { profile, loading: profileLoading } = useInfluencerProfile();
+
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [applyingEventId, setApplyingEventId] = useState<string | null>(null);
 
   // 🔍 Filter UI state
   const [openFilter, setOpenFilter] = useState(false);
 
   // Only one active filter at a time
-  const [activeFilter, setActiveFilter] = useState<{ type: string; value: string }>({
+  const [activeFilter, setActiveFilter] = useState<{
+    type: string;
+    value: string;
+  }>({
     type: "",
     value: "",
   });
@@ -41,51 +55,108 @@ export default function EventCards() {
 
   // Apply filters
   const applyFilters = async () => {
-  if (!activeFilter.type || !activeFilter.value) return;
+    if (!activeFilter.type || !activeFilter.value) return;
 
-  setLoading(true);
-  try {
-    // Build payload dynamically, only include active filter
-    const payload: Partial<EventHybridFilterPayload> = {};
+    setLoading(true);
+    try {
+      // Build payload dynamically, only include active filter
+      const payload: Partial<EventHybridFilterPayload> = {};
 
-    switch (activeFilter.type) {
-      case "location":
-        payload.location = activeFilter.value;
-        break;
-      case "category":
-        payload.categories = [activeFilter.value]; // array with value
-        break;
-      case "target_audience":
-        payload.target_audience = activeFilter.value;
-        break;
-      case "start_date":
-        payload.start_date = activeFilter.value;
-        break;
-      case "budget_range":
-        payload.budget_range = [Number(activeFilter.value)]; // if filtering by budget
-        break;
+      switch (activeFilter.type) {
+        case "location":
+          payload.location = activeFilter.value;
+          break;
+        case "category":
+          payload.categories = [activeFilter.value]; // array with value
+          break;
+        case "target_audience":
+          payload.target_audience = activeFilter.value;
+          break;
+        case "start_date":
+          payload.start_date = activeFilter.value;
+          break;
+        case "budget_range":
+          payload.budget_range = [Number(activeFilter.value)]; // if filtering by budget
+          break;
+      }
+
+      // Cast payload to EventHybridFilterPayload
+      const data = await eventService.getEventsUsingHybrid(
+        payload as EventHybridFilterPayload,
+      );
+      setEvents(data);
+      setShowAll(false);
+      setOpenFilter(false);
+    } catch (err) {
+      console.error("Failed to apply filters", err);
+    } finally {
+      setLoading(false);
     }
-
-    // Cast payload to EventHybridFilterPayload
-    const data = await eventService.getEventsUsingHybrid(payload as EventHybridFilterPayload);
-    setEvents(data);
-    setShowAll(false);
-    setOpenFilter(false);
-  } catch (err) {
-    console.error("Failed to apply filters", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   // Clear filter
   const clearFilter = () => setActiveFilter({ type: "", value: "" });
 
+  // Apply to event handler
+  const handleApplyToEvent = async (eventId: string) => {
+    // Debug logging to identify the issue
+    console.log("=== Apply Event Debug ===");
+    console.log("User:", user);
+    console.log("Profile:", profile);
+    console.log("Profile Loading:", profileLoading);
+    console.log("Event ID:", eventId);
+    console.log("========================");
+
+    // Wait for profile to finish loading
+    if (profileLoading) {
+      notify.info("Loading your profile, please wait...");
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!user) {
+      console.error("Validation failed: User not found");
+      notify.error("Please log in to apply to events");
+      return;
+    }
+
+    // Check if influencer profile exists
+    if (!profile || !profile.id) {
+      console.error("Validation failed: Profile not found or missing ID");
+      notify.error("Please complete your influencer profile first");
+      return;
+    }
+
+    console.log(
+      "Validation passed! Applying to event with influencer_id:",
+      profile.id,
+    );
+    setApplyingEventId(eventId);
+
+    try {
+      const response = await eventService.applyEvent({
+        event_id: eventId,
+        influencer_id: profile.id,
+      });
+
+      notify.success(response.message || "Successfully applied to event!");
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail || "Failed to apply to event";
+      notify.error(errorMessage);
+      console.error("Apply to event error:", err);
+    } finally {
+      setApplyingEventId(null);
+    }
+  };
+
   if (loading) return <p className="text-center py-10">Loading events...</p>;
-  if (events.length === 0) return <p className="text-center py-10">No events available.</p>;
+  if (events.length === 0)
+    return <p className="text-center py-10">No events available.</p>;
 
   const visibleEvents = showAll ? events : events.slice(0, EVENT_LIMIT);
+  console.log("visible Events", visibleEvents);
   const showLoadMore = events.length > EVENT_LIMIT && !showAll;
 
   return (
@@ -108,29 +179,47 @@ export default function EventCards() {
               <div className="space-y-3">
                 <input
                   placeholder="Location"
-                  value={activeFilter.type === "location" ? activeFilter.value : ""}
-                  onChange={(e) => handleFilterChange("location", e.target.value)}
+                  value={
+                    activeFilter.type === "location" ? activeFilter.value : ""
+                  }
+                  onChange={(e) =>
+                    handleFilterChange("location", e.target.value)
+                  }
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                 />
 
                 <input
                   placeholder="Category"
-                  value={activeFilter.type === "category" ? activeFilter.value : ""}
-                  onChange={(e) => handleFilterChange("category", e.target.value)}
+                  value={
+                    activeFilter.type === "category" ? activeFilter.value : ""
+                  }
+                  onChange={(e) =>
+                    handleFilterChange("category", e.target.value)
+                  }
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                 />
 
                 <input
                   placeholder="Target audience"
-                  value={activeFilter.type === "target_audience" ? activeFilter.value : ""}
-                  onChange={(e) => handleFilterChange("target_audience", e.target.value)}
+                  value={
+                    activeFilter.type === "target_audience"
+                      ? activeFilter.value
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleFilterChange("target_audience", e.target.value)
+                  }
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                 />
 
                 <input
                   type="date"
-                  value={activeFilter.type === "start_date" ? activeFilter.value : ""}
-                  onChange={(e) => handleFilterChange("start_date", e.target.value)}
+                  value={
+                    activeFilter.type === "start_date" ? activeFilter.value : ""
+                  }
+                  onChange={(e) =>
+                    handleFilterChange("start_date", e.target.value)
+                  }
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                 />
 
@@ -173,7 +262,9 @@ export default function EventCards() {
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="text-lg font-semibold">{event.title}</h3>
-                <p className="text-sm text-gray-500">{event.brand_name ?? "Brand"}</p>
+                <p className="text-sm text-gray-500">
+                  {event.brand_name ?? "Brand"}
+                </p>
               </div>
 
               <span
@@ -188,7 +279,9 @@ export default function EventCards() {
             </div>
 
             {/* BODY */}
-            <p className="text-sm text-gray-600 line-clamp-3 mb-4">{event.description}</p>
+            <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+              {event.description}
+            </p>
 
             <div className="text-sm space-y-1 mb-4">
               <p>
@@ -209,10 +302,15 @@ export default function EventCards() {
 
             {/* ACTION */}
             <button
-              className="w-full rounded-lg bg-black text-white py-2 text-sm hover:bg-gray-800 transition"
-              onClick={() => console.log("Apply to event", event.id)}
+              className="w-full rounded-lg bg-black text-white py-2 text-sm hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => handleApplyToEvent(event.id)}
+              disabled={applyingEventId === event.id || profileLoading}
             >
-              Apply to Event
+              {profileLoading
+                ? "Loading..."
+                : applyingEventId === event.id
+                  ? "Applying..."
+                  : "Apply to Event"}
             </button>
           </div>
         ))}

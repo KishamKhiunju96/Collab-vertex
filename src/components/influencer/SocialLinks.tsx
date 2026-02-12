@@ -1,19 +1,30 @@
 import React, { useState } from "react";
 import { useSocialLinks } from "../../api/hooks/useSocialLinks";
+import { SocialLink } from "../../api/services/influencerService";
 
-const platforms = ["instagram", "twitter", "facebook", "youtube", "tiktok", "linkedin"];
+const platforms = [
+  "instagram",
+  "twitter",
+  "facebook",
+  "youtube",
+  "tiktok",
+  "linkedin",
+];
 
 export default function SocialLinks() {
-  const { socialLinks, loading, error, addLink, editLink, removeLink } = useSocialLinks();
+  const { socialLinks, loading, error, addLink, editLink, removeLink } =
+    useSocialLinks();
   const [form, setForm] = useState({
     platform: "instagram",
     url: "",
     followers: 0,
-    linked_at: "",
+    created_at: "",
   });
   const [editId, setEditId] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -25,23 +36,26 @@ export default function SocialLinks() {
     } else {
       await addLink({ ...form, followers: Number(form.followers) });
     }
-    setForm({ platform: "instagram", url: "", followers: 0, linked_at: "" });
+    setForm({ platform: "instagram", url: "", followers: 0, created_at: "" });
   };
 
-  const handleEdit = (link: any) => {
+  const handleEdit = (link: SocialLink) => {
     setEditId(link.id);
     setForm({
       platform: link.platform,
       url: link.url,
-      followers: link.followers,
-      linked_at: link.linked_at,
+      followers: link.followers || 0,
+      created_at: link.created_at || "",
     });
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Social Links</h2>
-      <form onSubmit={handleSubmit} className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form
+        onSubmit={handleSubmit}
+        className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         <select
           name="platform"
           value={form.platform}
@@ -49,7 +63,9 @@ export default function SocialLinks() {
           className="border rounded px-3 py-2"
         >
           {platforms.map((p) => (
-            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+            <option key={p} value={p}>
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </option>
           ))}
         </select>
         <input
@@ -71,9 +87,9 @@ export default function SocialLinks() {
           required
         />
         <input
-          name="linked_at"
+          name="created_at"
           type="date"
-          value={form.linked_at}
+          value={form.created_at}
           onChange={handleChange}
           className="border rounded px-3 py-2"
         />
@@ -93,12 +109,20 @@ export default function SocialLinks() {
           <div>No social links found.</div>
         ) : (
           socialLinks.map((link) => (
-            <div key={link.id} className="flex flex-col md:flex-row md:items-center justify-between bg-gray-50 p-4 rounded border">
+            <div
+              key={link.id}
+              className="flex flex-col md:flex-row md:items-center justify-between bg-gray-50 p-4 rounded border"
+            >
               <div>
-                <div className="font-semibold">{link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}</div>
+                <div className="font-semibold">
+                  {link.platform.charAt(0).toUpperCase() +
+                    link.platform.slice(1)}
+                </div>
                 <div className="text-sm text-gray-600">{link.url}</div>
                 <div className="text-sm">Followers: {link.followers}</div>
-                <div className="text-xs text-gray-400">Linked at: {link.linked_at}</div>
+                <div className="text-xs text-gray-400">
+                  Linked at: {link.created_at}
+                </div>
               </div>
               <div className="flex gap-2 mt-2 md:mt-0">
                 <button

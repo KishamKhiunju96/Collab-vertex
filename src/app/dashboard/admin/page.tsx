@@ -1,27 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useUserData } from "@/api/hooks/useUserData";
+import { useUser } from "@/context/UserContext";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { user, loading: userLoading, error } = useUserData();
+  const { user, loading, error } = useUser();
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    if (userLoading) return;
+    if (loading) return;
+
+    // Prevent multiple redirects
+    if (hasRedirectedRef.current) return;
 
     if (error || !user) {
+      hasRedirectedRef.current = true;
       router.replace("/login");
       return;
     }
 
     if (user.role !== "admin") {
+      hasRedirectedRef.current = true;
       router.replace("/401");
     }
-  }, [user, userLoading, error, router]);
+  }, [user, loading, error, router]);
 
-  if (userLoading) {
+  if (loading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <span className="text-lg text-gray-600">

@@ -3,7 +3,14 @@ import api from "../axiosInstance";
 import { notify } from "@/utils/notify";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { RegisterResponse, UserProfile, VerifyOtpResponse } from "@/types/aauth";
+import {
+  RegisterResponse,
+  UserProfile,
+  VerifyOtpResponse,
+} from "@/types/aauth";
+
+// Re-export types for external use
+export type { UserProfile, RegisterResponse, VerifyOtpResponse };
 
 // ------------------ Helper ------------------
 const getErrorMessage = (error: unknown, fallback: string): string => {
@@ -18,7 +25,10 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
 
 // ------------------ Auth Service ------------------
 export const authService = {
-  login: async (data: { username: string; password: string }): Promise<boolean> => {
+  login: async (data: {
+    username: string;
+    password: string;
+  }): Promise<boolean> => {
     const toastId = notify.loading("Logging in...");
 
     try {
@@ -53,7 +63,10 @@ export const authService = {
     const toastId = notify.loading("Creating account...");
 
     try {
-      const res = await api.post<RegisterResponse>(API_PATHS.USER.REGISTER, data);
+      const res = await api.post<RegisterResponse>(
+        API_PATHS.USER.REGISTER,
+        data,
+      );
       notify.success("Registration successful. Please verify OTP.");
       return res.data;
     } catch (error: unknown) {
@@ -64,11 +77,17 @@ export const authService = {
     }
   },
 
-  verifyOtp: async (data: { email: string; otp: string }): Promise<VerifyOtpResponse> => {
+  verifyOtp: async (data: {
+    email: string;
+    otp: string;
+  }): Promise<VerifyOtpResponse> => {
     const toastId = notify.loading("Verifying OTP...");
 
     try {
-      const res = await api.post<VerifyOtpResponse>(API_PATHS.USER.VERIFY_OTP, data);
+      const res = await api.post<VerifyOtpResponse>(
+        API_PATHS.USER.VERIFY_OTP,
+        data,
+      );
       notify.success("OTP verified successfully");
       return res.data;
     } catch (error: unknown) {

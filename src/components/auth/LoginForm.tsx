@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { authService, UserProfile } from "@/api/services/authService";
+import { useUser } from "@/context/UserContext";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { refetch } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -27,6 +29,9 @@ export default function LoginForm() {
 
     try {
       await authService.login({ username, password });
+
+      // Refetch user data in context to update global state
+      await refetch();
 
       const user: UserProfile = await authService.getMe();
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/api/axiosInstance";
+import { useUser } from "@/context/UserContext";
 
 export type UserRole = "brand" | "influencer" | "admin";
 
@@ -15,29 +15,36 @@ export interface User {
   is_verified: boolean;
 }
 
+/**
+ * Hook to protect routes and ensure user is authenticated
+ * Now uses UserContext to prevent duplicate API calls
+ */
 export function useAuthProtection() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [role, setRole] = useState<UserRole | null>(null);
+  const { user, loading, error } = useUser();
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.get<User>("/user/me", { withCredentials: true });
-        setAuthenticated(true);
-        setRole(res.data.role);
-      } catch (err) {
-        setAuthenticated(false);
-        setRole(null);
-        router.replace("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Wait for user data to load
+    if (loading) return;
 
-    fetchUser();
-  }, [router]);
+    // If there's no user (regardless of error), redirect to login (only once)
+    // This is expected behavior on dashboard pages when user is not authenticated
+    if (!user && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      router.replace("/login");
+    }
 
-  return { loading, authenticated, role };
+    // Reset redirect flag if user becomes authenticated
+    if (user) {
+      hasRedirectedRef.current = false;
+    }
+  }, [user, loading, router]);
+
+  return {
+    loading,
+    authenticated: Boolean(user),
+    role: user?.role ?? null,
+    user,
+  };
 }

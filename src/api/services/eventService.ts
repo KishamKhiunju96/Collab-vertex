@@ -54,6 +54,16 @@ export interface EventHybridFilterPayload {
   start_date: string; // ISO string
 }
 
+export interface ApplyEventPayload {
+  event_id: string;
+  influencer_id: string;
+}
+
+export interface ApplyEventResponse {
+  message: string;
+  application_id?: string;
+}
+
 /* ============================
    API Paths
 ============================ */
@@ -67,6 +77,9 @@ const EVENT_API = {
 
   // 🔍 Hybrid filter
   HYBRID_FILTER: "/event/events_using_hybrid",
+
+  // 📝 Apply to event
+  APPLY_EVENT: "/event/apply_event",
 };
 
 /* ============================
@@ -75,42 +88,35 @@ const EVENT_API = {
 
 export const eventService = {
   // ✅ Create event
-  async createEvent(
-    brandId: string,
-    payload: EventPayload
-  ): Promise<Event> {
+  async createEvent(brandId: string, payload: EventPayload): Promise<Event> {
     const { data } = await axios.post<Event>(
       EVENT_API.CREATE(brandId),
       payload,
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" } },
     );
     return data;
   },
 
   // ✅ Brand dashboard
   async getEventsByBrand(brandId: string): Promise<Event[]> {
-    const { data } = await axios.get<Event[]>(
-      EVENT_API.GET_BY_BRAND(brandId)
-    );
+    const { data } = await axios.get<Event[]>(EVENT_API.GET_BY_BRAND(brandId));
     return data;
   },
 
   // ✅ Influencer dashboard (no filters)
   async getAllEvents(): Promise<Event[]> {
-    const { data } = await axios.get<Event[]>(
-      EVENT_API.GET_ALL
-    );
+    const { data } = await axios.get<Event[]>(EVENT_API.GET_ALL);
     return data;
   },
 
   // 🔍 Influencer dashboard (with filters)
   async getEventsUsingHybrid(
-    payload: EventHybridFilterPayload
+    payload: EventHybridFilterPayload,
   ): Promise<Event[]> {
     const { data } = await axios.post<Event[]>(
       EVENT_API.HYBRID_FILTER,
       payload,
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" } },
     );
     return data;
   },
@@ -118,12 +124,12 @@ export const eventService = {
   // ✅ Update event
   async updateEvent(
     eventId: string,
-    payload: Partial<EventPayload>
+    payload: Partial<EventPayload>,
   ): Promise<Event> {
     const { data } = await axios.patch<Event>(
       EVENT_API.UPDATE(eventId),
       payload,
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" } },
     );
     return data;
   },
@@ -131,5 +137,15 @@ export const eventService = {
   // ✅ Delete event
   async deleteEvent(eventId: string): Promise<void> {
     await axios.delete(EVENT_API.DELETE(eventId));
+  },
+
+  // ✅ Apply to event
+  async applyEvent(payload: ApplyEventPayload): Promise<ApplyEventResponse> {
+    const { data } = await axios.post<ApplyEventResponse>(
+      EVENT_API.APPLY_EVENT,
+      payload,
+      { headers: { "Content-Type": "application/json" } },
+    );
+    return data;
   },
 };

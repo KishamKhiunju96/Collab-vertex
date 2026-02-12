@@ -1,7 +1,9 @@
 // src/app/layout.tsx
-
-import ToastProvider from "@/components/ui/ToastProvider";
-import "./globals.css"; // relative path from src/app/ to src/styles/
+import React from "react";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { UserProvider } from "@/context/UserContext";
+import "./globals.css";
+import InnerApp from "@/components/InnerApp"; // import the client component
 
 export const metadata = {
   title: "Brand Dashboard App",
@@ -16,8 +18,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ToastProvider />
-        {children}
+        {/* Wrap with UserProvider for global user state management */}
+        <UserProvider>
+          {/* Wrap with NotificationProvider to make notifications available globally */}
+          <NotificationProvider>
+            {/* InnerApp is a client component that handles SSE notifications */}
+            <InnerApp>{children}</InnerApp>
+          </NotificationProvider>
+        </UserProvider>
       </body>
     </html>
   );

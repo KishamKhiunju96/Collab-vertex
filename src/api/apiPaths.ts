@@ -48,4 +48,13 @@ export const API_PATHS = {
     DELETE_SOCIAL_LINK: (sociallinkId: string) =>
       `/influencer/delete_sociallink/${sociallinkId}`,
   },
+
+  NOTIFICATION: {
+    STREAM: "/notification/stream", // SSE notifications
+    GET_ALL: "/notification", // Get all notifications
+    GET_UNREAD_COUNT: "/notification/unread-count", // Get unread count
+    MARK_AS_READ: (notificationId: string) =>
+      `/notification/${notificationId}/read`, // PATCH to mark as read
+    MARK_ALL_AS_READ: "/notification/mark-all-read", // POST to mark all as read
+  },
 } as const;

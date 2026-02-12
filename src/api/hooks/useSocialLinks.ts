@@ -18,8 +18,10 @@ export function useSocialLinks() {
     try {
       const data = await getSocialLinks();
       setSocialLinks(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch social links");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch social links",
+      );
     } finally {
       setLoading(false);
     }
@@ -35,8 +37,10 @@ export function useSocialLinks() {
     try {
       await createSocialLink(link);
       await fetchLinks();
-    } catch (err: any) {
-      setError(err.message || "Failed to add social link");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to add social link",
+      );
     } finally {
       setLoading(false);
     }
@@ -48,8 +52,10 @@ export function useSocialLinks() {
     try {
       await updateSocialLink(id, link);
       await fetchLinks();
-    } catch (err: any) {
-      setError(err.message || "Failed to update social link");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to update social link",
+      );
     } finally {
       setLoading(false);
     }
@@ -61,8 +67,10 @@ export function useSocialLinks() {
     try {
       await deleteSocialLink(id);
       await fetchLinks();
-    } catch (err: any) {
-      setError(err.message || "Failed to delete social link");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete social link",
+      );
     } finally {
       setLoading(false);
     }
