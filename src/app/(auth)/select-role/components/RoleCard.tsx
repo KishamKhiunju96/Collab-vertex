@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from "@/features/lib/utils";
 
 interface RoleCardProps {
   role: "Brand" | "Influencer";

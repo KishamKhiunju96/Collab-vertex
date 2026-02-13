@@ -2,14 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, Trash2 } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
 import { useNotificationContext } from "@/context/NotificationContext";
 
 export default function DashboardHeader() {
   const { user } = useUserData();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, loading } =
-    useNotificationContext();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    loading,
+  } = useNotificationContext();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,6 +43,10 @@ export default function DashboardHeader() {
 
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
+  };
+
+  const handleDeleteNotification = async (notifId: string) => {
+    await deleteNotification(notifId);
   };
 
   // -----------------------------
@@ -105,36 +115,56 @@ export default function DashboardHeader() {
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`px-4 py-3 border-b cursor-pointer hover:bg-gray-50 transition ${
+                      className={`px-4 py-3 border-b hover:bg-gray-50 transition ${
                         !notif.is_read
                           ? "bg-blue-50 border-l-4 border-l-blue-500"
                           : ""
                       }`}
-                      onClick={() => handleMarkNotification(notif.id)}
-                      title="Click to mark as read"
                     >
-                      {/* Notification Title */}
-                      {notif.title && (
-                        <p className="font-semibold text-gray-900 mb-1">
-                          {notif.title}
-                        </p>
-                      )}
+                      <div className="flex items-start justify-between gap-2">
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => handleMarkNotification(notif.id)}
+                          title="Click to mark as read"
+                        >
+                          {/* Notification Title */}
+                          {notif.title && (
+                            <p className="font-semibold text-gray-900 mb-1">
+                              {notif.title}
+                            </p>
+                          )}
 
-                      {/* Notification Message */}
-                      <p className="text-gray-700 text-sm">{notif.message}</p>
+                          {/* Notification Message */}
+                          <p className="text-gray-700 text-sm">
+                            {notif.message}
+                          </p>
 
-                      {/* Notification Timestamp */}
-                      <small className="text-gray-400 text-xs mt-1 block">
-                        {new Date(notif.created_at).toLocaleString()}
-                      </small>
+                          {/* Notification Timestamp */}
+                          <small className="text-gray-400 text-xs mt-1 block">
+                            {new Date(notif.created_at).toLocaleString()}
+                          </small>
 
-                      {/* Unread Indicator */}
-                      {!notif.is_read && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span className="text-xs text-blue-600">New</span>
+                          {/* Unread Indicator */}
+                          {!notif.is_read && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-xs text-blue-600">New</span>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteNotification(notif.id);
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition flex-shrink-0"
+                          title="Delete notification"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
               </div>

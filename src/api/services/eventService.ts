@@ -1,4 +1,4 @@
-import axios from "@/lib/axios";
+import axios from "@/features/lib/axios";
 
 export type EventStatus = "active" | "inactive";
 
@@ -72,6 +72,7 @@ const EVENT_API = {
   CREATE: (brandId: string) => `/event/create_event/${brandId}`,
   GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
   GET_ALL: "/event/all_events",
+  GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
   UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
   DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
 
@@ -106,6 +107,12 @@ export const eventService = {
   // ✅ Influencer dashboard (no filters)
   async getAllEvents(): Promise<Event[]> {
     const { data } = await axios.get<Event[]>(EVENT_API.GET_ALL);
+    return data;
+  },
+
+  // ✅ Get event by ID
+  async getEventById(eventId: string): Promise<Event> {
+    const { data } = await axios.get<Event>(EVENT_API.GET_BY_ID(eventId));
     return data;
   },
 

@@ -1,12 +1,13 @@
+// src/lib/apiClient.ts
 import axios, { AxiosError, AxiosResponse, AxiosHeaders } from "axios";
 import { BASE_URL, API_PATHS } from "./apiPaths";
 
-// --------------------
-// Axios Instance
-// --------------------
+/* ======================================================
+   Axios Instance
+====================================================== */
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // send HttpOnly cookies automatically
+  withCredentials: true, // HttpOnly cookies
   timeout: 15000,
   headers: new AxiosHeaders({
     "Content-Type": "application/json",
@@ -14,27 +15,26 @@ const api = axios.create({
   }),
 });
 
-// --------------------
-// Request Interceptor
-// --------------------
+/* ======================================================
+   Request Interceptor
+====================================================== */
 api.interceptors.request.use(
   (config) => {
-    // Cookies are handled by browser automatically
+    // Cookies handled automatically
     return config;
   },
   (error: AxiosError) => Promise.reject(error),
 );
 
-// --------------------
-// Response Interceptor
-// --------------------
+/* ======================================================
+   Response Interceptor (Global Auth Handling)
+====================================================== */
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      console.warn("Unauthorized – session expired or not logged in");
+      console.warn("Unauthorized – session expired");
 
-      // Only redirect to login if we're NOT already on auth pages
       if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
         const isAuthPage =
@@ -43,43 +43,41 @@ api.interceptors.response.use(
           currentPath.startsWith("/verify_otp") ||
           currentPath.startsWith("/select-role");
 
-        // Only redirect if not already on an auth page
         if (!isAuthPage) {
           window.location.replace("/login");
         }
       }
     }
+
     return Promise.reject(error);
   },
 );
 
-// --------------------
-// Notification Types
-// --------------------
+/* ======================================================
+   Notification Types
+====================================================== */
 export interface Notification {
   id: string;
   message: string;
   read: boolean;
-  type: "event_apply" | string; // extendable
+  type: "event_apply" | string;
   created_at: string;
 }
 
-// --------------------
-// Notification API
-// --------------------
-
-// Fetch all offline notifications
+/* ======================================================
+   Notification APIs
+====================================================== */
 export const getNotifications = async (): Promise<Notification[]> => {
   const res = await api.get(API_PATHS.NOTIFICATION.GET_ALL);
   return res.data;
 };
 
-// Stream online notifications using SSE
 export const streamNotifications = (
   onMessage: (notif: Notification) => void,
 ) => {
   const eventSource = new EventSource(
     `${BASE_URL}${API_PATHS.NOTIFICATION.STREAM}`,
+    { withCredentials: true },
   );
 
   eventSource.onmessage = (event) => {
@@ -96,10 +94,9 @@ export const streamNotifications = (
     eventSource.close();
   };
 
-  return eventSource; // caller should close when unmounting
+  return eventSource;
 };
 
-// Mark a single notification as read
 export const markNotificationAsRead = async (notificationId: string) => {
   const res = await api.post(
     API_PATHS.NOTIFICATION.MARK_AS_READ(notificationId),
@@ -107,13 +104,58 @@ export const markNotificationAsRead = async (notificationId: string) => {
   return res.data;
 };
 
-// Mark all notifications as read
 export const markAllNotificationsAsRead = async () => {
   const res = await api.post(API_PATHS.NOTIFICATION.MARK_ALL_AS_READ);
   return res.data;
 };
 
-// --------------------
-// Export default api
-// --------------------
+/* ======================================================
+   Event & Application Types
+====================================================== */
+export type ApplicationStatus = "pending" | "approved" | "rejected";
+
+export interface EventApplication {
+  id: string;
+  event_id: string;
+  applicant_id: string;
+  applicant_name: string;
+  status: ApplicationStatus;
+  created_at: string;
+
+  // Extended influencer details
+  niche?: string;
+  audience_size?: number;
+  engagement_rate?: number;
+  bio?: string;
+  location?: string;
+  email?: string;
+}
+
+/* ======================================================
+   Event APIs
+====================================================== */
+export const getEventApplications = async (
+  eventId: string,
+): Promise<EventApplication[]> => {
+  const res = await api.get(API_PATHS.EVENT.GET_APPLICATIONS(eventId));
+  return res.data;
+};
+
+/* ======================================================
+   Application APIs
+====================================================== */
+export const updateApplicationStatus = async (
+  applicationId: string,
+  status: ApplicationStatus,
+) => {
+  const res = await api.patch(
+    API_PATHS.EVENT.UPDATE_APPLICATION_STATUS(applicationId),
+    { status },
+  );
+  return res.data;
+};
+
+/* ======================================================
+   Export Axios Instance
+====================================================== */
 export default api;

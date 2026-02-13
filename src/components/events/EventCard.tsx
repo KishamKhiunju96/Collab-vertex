@@ -9,13 +9,12 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
-  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -29,17 +28,22 @@ export default function EventCard({ event }: EventCardProps) {
   };
 
   return (
-    <Link href={`/dashboard/events/${event.id}`}>
+    <Link
+      href={`/dashboard/events/${event.id}`}
+      className="block focus:outline-none focus:ring-2 focus:ring-red-400 rounded-lg"
+    >
       <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200 overflow-hidden group">
-        {/* Header with Status Badge */}
+        {/* Content */}
         <div className="p-4 sm:p-6 space-y-4">
+          {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 group-hover:text-red-500 transition-colors line-clamp-2">
               {event.title}
             </h3>
+
             <span
               className={`px-3 py-1 rounded-full text-xs font-medium border shrink-0 ${getStatusColor(
-                event.status
+                event.status,
               )}`}
             >
               {event.status}
@@ -51,38 +55,38 @@ export default function EventCard({ event }: EventCardProps) {
             {event.description || "No description provided"}
           </p>
 
-          {/* Event Details Grid */}
+          {/* Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {/* Category */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Tag className="h-4 w-4 text-gray-400 shrink-0" />
-              <span className="truncate">{event.category || "Uncategorized"}</span>
+              <span className="truncate">
+                {event.category || "Uncategorized"}
+              </span>
             </div>
 
-            {/* Location */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-              <span className="truncate">{event.location}</span>
+              <span className="truncate">{event.location || "Remote"}</span>
             </div>
 
-            {/* Start Date */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
               <span>{formatDate(event.start_date)}</span>
             </div>
 
-            {/* Budget */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <DollarSign className="h-4 w-4 text-gray-400 shrink-0" />
-              <span className="font-medium">${event.budget.toLocaleString()}</span>
+              <span className="font-medium">
+                ${event.budget.toLocaleString()}
+              </span>
             </div>
           </div>
 
-          {/* Date Range Footer */}
+          {/* Footer */}
           <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
             <Clock className="h-4 w-4 text-gray-400" />
             <span className="text-xs text-gray-500">
-              {formatDate(event.start_date)} - {formatDate(event.end_date)}
+              {formatDate(event.start_date)} – {formatDate(event.end_date)}
             </span>
           </div>
         </div>

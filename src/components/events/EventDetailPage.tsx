@@ -18,6 +18,7 @@ import {
 
 import { eventService, Event } from "@/api/services/eventService";
 import { notify } from "@/utils/notify";
+import ApplicationsList from "@/components/applications/ApplicationsList";
 
 interface EventDetailPageProps {
   eventId: string;
@@ -34,22 +35,8 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
     setLoading(true);
     setError(null);
     try {
-      // Fetch event by ID using the API
-      const response = await fetch(
-        `https://api.dixam.me/event/eventbyid/${eventId}`,
-        {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch event");
-      }
-
-      const data = await response.json();
+      // Fetch event by ID using the eventService
+      const data = await eventService.getEventById(eventId);
       setEvent(data);
     } catch (err) {
       console.error(err);
@@ -100,7 +87,7 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
     if (!event) return;
 
     const confirmed = confirm(
-      `Are you sure you want to delete "${event.title}"?`
+      `Are you sure you want to delete "${event.title}"?`,
     );
     if (!confirmed) return;
 
@@ -172,7 +159,7 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
               <div className="flex items-center gap-3">
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                    event.status
+                    event.status,
                   )}`}
                 >
                   {event.status}
@@ -240,6 +227,15 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                 {event.deliverables || "No deliverables specified"}
               </p>
+            </div>
+
+            {/* Influencer Applications */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="h-5 w-5 text-gray-400" />
+                Influencer Applications
+              </h2>
+              <ApplicationsList eventId={eventId} />
             </div>
           </div>
 
@@ -338,7 +334,7 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
                   {Math.ceil(
                     (new Date(event.end_date).getTime() -
                       new Date(event.start_date).getTime()) /
-                      (1000 * 60 * 60 * 24)
+                      (1000 * 60 * 60 * 24),
                   )}{" "}
                   days
                 </p>

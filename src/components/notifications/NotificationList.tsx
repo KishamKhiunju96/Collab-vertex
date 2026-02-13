@@ -2,8 +2,9 @@ import { useNotificationContext } from "@/context/NotificationContext";
 import NotificationItem from "./NotificationItem";
 
 export default function NotificationList() {
-  const { notifications, markAsRead } = useNotificationContext();
-
+  const { notifications, markAsRead, deleteNotification } =
+    useNotificationContext();
+  console.log(notifications);
   return (
     <div className="w-96 max-h-[500px] overflow-y-auto shadow-lg border rounded-md">
       {notifications.length === 0 ? (
@@ -14,6 +15,7 @@ export default function NotificationList() {
             key={n.id}
             notification={n}
             onMarkAsRead={markAsRead}
+            onDelete={deleteNotification}
           />
         ))
       )}

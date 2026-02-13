@@ -13,8 +13,9 @@ import {
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  fetchUnreadCount,
+  deleteNotification,
 } from "@/api/services/notificationService";
+import { useNotifications } from "@/api/hooks/useNotifications";
 
 interface NotificationContextProps {
   notifications: NotificationRead[];
@@ -22,7 +23,9 @@ interface NotificationContextProps {
   addNotification: (notification: NotificationRead) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
   refetchNotifications: () => Promise<void>;
+  reconnectStream: () => void;
   loading: boolean;
 }
 
@@ -34,6 +37,26 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationRead[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  // Add new notification (from SSE stream) - defined before useNotifications
+  const addNotification = useCallback((notification: NotificationRead) => {
+    setNotifications((prev) => {
+      // Check if notification already exists
+      const exists = prev.some((n) => n.id === notification.id);
+      if (exists) return prev;
+
+      // Add new notification at the beginning
+      return [notification, ...prev];
+    });
+
+    // Increment unread count if notification is unread
+    if (!notification.is_read) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, []);
+
+  // Initialize SSE connection and get controls - pass addNotification callback
+  const sseControls = useNotifications(addNotification);
 
   // Fetch initial notifications from API
   const loadNotifications = useCallback(async () => {
@@ -58,23 +81,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     loadNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
-
-  // Add new notification (from SSE stream)
-  const addNotification = useCallback((notification: NotificationRead) => {
-    setNotifications((prev) => {
-      // Check if notification already exists
-      const exists = prev.some((n) => n.id === notification.id);
-      if (exists) return prev;
-
-      // Add new notification at the beginning
-      return [notification, ...prev];
-    });
-
-    // Increment unread count if notification is unread
-    if (!notification.is_read) {
-      setUnreadCount((prev) => prev + 1);
-    }
-  }, []);
 
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {
@@ -111,18 +117,59 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
       // Call API to mark all as read (POST)
       await markAllNotificationsAsRead();
+
+      // Refetch notifications from REST API to ensure sync
+      await loadNotifications();
+
+      // Reconnect SSE stream to get fresh stream
+      console.log("🔄 Reconnecting notification stream after mark all as read");
+      sseControls.reconnect();
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
 
       // Reload notifications to get correct state
       await loadNotifications();
     }
-  }, [loadNotifications]);
+  }, [loadNotifications, sseControls]);
 
   // Refetch notifications manually
   const refetchNotifications = useCallback(async () => {
     await loadNotifications();
   }, [loadNotifications]);
+
+  // Delete notification
+  const deleteNotificationHandler = useCallback(
+    async (id: string) => {
+      try {
+        // Find the notification to check if it was unread
+        const notificationToDelete = notifications.find((n) => n.id === id);
+        const wasUnread = notificationToDelete && !notificationToDelete.is_read;
+
+        // Optimistically remove from UI
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+
+        // Decrement unread count if it was unread
+        if (wasUnread) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+
+        // Call API to delete
+        await deleteNotification(id);
+      } catch (error) {
+        console.error("Failed to delete notification:", error);
+
+        // Reload notifications to restore correct state
+        await loadNotifications();
+      }
+    },
+    [notifications, loadNotifications],
+  );
+
+  // Expose reconnect stream function
+  const reconnectStream = useCallback(() => {
+    console.log("🔄 Manual stream reconnection triggered");
+    sseControls.reconnect();
+  }, [sseControls]);
 
   return (
     <NotificationContext.Provider
@@ -132,7 +179,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         addNotification,
         markAsRead,
         markAllAsRead,
+        deleteNotification: deleteNotificationHandler,
         refetchNotifications,
+        reconnectStream,
         loading,
       }}
     >
@@ -144,7 +193,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
   if (!context)
-    throw new Error(
+    throw Error(
       "useNotificationContext must be used within NotificationProvider",
     );
   return context;

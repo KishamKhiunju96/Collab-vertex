@@ -27,3 +27,11 @@ export const markAllNotificationsAsRead = async () => {
   const { data } = await api.post(API_PATHS.NOTIFICATION.MARK_ALL_AS_READ);
   return data;
 };
+
+// Delete a notification (DELETE)
+export const deleteNotification = async (notificationId: string) => {
+  const { data } = await api.delete(
+    API_PATHS.NOTIFICATION.DELETE(notificationId),
+  );
+  return data;
+};

@@ -56,5 +56,6 @@ export const API_PATHS = {
     MARK_AS_READ: (notificationId: string) =>
       `/notification/${notificationId}/read`, // PATCH to mark as read
     MARK_ALL_AS_READ: "/notification/mark-all-read", // POST to mark all as read
+    DELETE: (notificationId: string) => `/notification/${notificationId}`, // DELETE notification
   },
 } as const;

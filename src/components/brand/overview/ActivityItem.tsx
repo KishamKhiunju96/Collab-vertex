@@ -1,3 +1,5 @@
+"use client";
+
 import { BrandActivity } from "@/types/brandActivity";
 
 interface Props {
@@ -8,23 +10,15 @@ export function ActivityItem({ activity }: Props) {
   const Icon = activity.icon;
 
   return (
-    <div className="flex gap-3">
-      <div
-        className={`flex h-9 w-9 items-center justify-center rounded-full ${activity.color}`}
-      >
-        <Icon className="h-4 w-4" />
+    <div className="activity-item">
+      <div className={`activity-icon ${activity.color}`}>
+        <Icon className="h-5 w-5 text-white" />
       </div>
 
-      <div className="flex-1">
-        <p className="text-sm font-bold text-primary">
-          {activity.title}
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          {activity.description}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {activity.time}
-        </p>
+      <div className="activity-content">
+        <p className="activity-item-title">{activity.title}</p>
+        <p className="activity-item-description">{activity.description}</p>
+        <p className="activity-item-time">{activity.time}</p>
       </div>
     </div>
   );

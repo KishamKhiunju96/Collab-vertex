@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useNotificationContext } from "@/context/NotificationContext";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { NotificationRead } from "@/types/notification";
 import { BASE_URL, API_PATHS } from "@/api/apiPaths";
 
@@ -12,13 +11,65 @@ const DISABLE_SSE_NOTIFICATIONS = false;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 3000; // 3 seconds
 
-export const useNotifications = () => {
-  const { addNotification } = useNotificationContext();
+export interface SSEControls {
+  reconnect: () => void;
+  disconnect: () => void;
+  isConnected: boolean;
+}
+
+export const useNotifications = (
+  addNotification: (notification: NotificationRead) => void,
+): SSEControls => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
   const hasLoggedErrorRef = useRef(false);
   const isUnmountedRef = useRef(false);
+  const connectFnRef = useRef<(() => void) | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Reconnect function to be exposed
+  const reconnect = useCallback(() => {
+    console.log("🔄 Manual reconnect requested");
+
+    // Close existing connection
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+
+    // Clear any pending reconnection timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    // Reset reconnection attempts
+    reconnectAttemptsRef.current = 0;
+    hasLoggedErrorRef.current = false;
+
+    // Trigger reconnection
+    if (connectFnRef.current && !isUnmountedRef.current) {
+      connectFnRef.current();
+    }
+  }, []);
+
+  // Disconnect function to be exposed
+  const disconnect = useCallback(() => {
+    console.log("🔌 Manual disconnect requested");
+
+    // Close existing connection
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+
+    // Clear any pending reconnection timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     isUnmountedRef.current = false;
@@ -34,6 +85,8 @@ export const useNotifications = () => {
     let isConnecting = false;
 
     const connect = () => {
+      // Store connect function reference for manual reconnection
+      connectFnRef.current = connect;
       // Don't connect if component is unmounted or already connecting
       if (
         isUnmountedRef.current ||
@@ -68,6 +121,7 @@ export const useNotifications = () => {
           isConnecting = false;
           reconnectAttemptsRef.current = 0; // Reset reconnection attempts on success
           hasLoggedErrorRef.current = false;
+          setIsConnected(true);
 
           // Clear any pending reconnection attempts
           if (reconnectTimeoutRef.current) {
@@ -88,7 +142,7 @@ export const useNotifications = () => {
           }
         };
 
-        eventSource.onerror = (error) => {
+        eventSource.onerror = () => {
           isConnecting = false;
 
           // Only log detailed error once to avoid console spam
@@ -104,6 +158,7 @@ export const useNotifications = () => {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
           }
+          setIsConnected(false);
 
           // Don't attempt reconnection if component is unmounted
           if (isUnmountedRef.current) {
@@ -181,4 +236,11 @@ export const useNotifications = () => {
       }
     };
   }, [addNotification]);
+
+  // Return SSE controls
+  return {
+    reconnect,
+    disconnect,
+    isConnected,
+  };
 };
