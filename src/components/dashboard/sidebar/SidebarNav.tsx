@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavItem } from "./navConfig";
+import { useSidebar } from "./SidebarProvider";
 
 interface SidebarNavProps {
   items: NavItem[];
@@ -10,6 +11,13 @@ interface SidebarNavProps {
 
 export function SidebarNav({ items }: SidebarNavProps) {
   const pathname = usePathname();
+  const { close, isMobile } = useSidebar();
+
+  const handleClick = () => {
+    if (isMobile) {
+      close();
+    }
+  };
 
   // Group items by category if they have one
   const groupedItems = items.reduce(
@@ -41,6 +49,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
                 key={item.href}
                 href={item.href}
                 className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+                onClick={handleClick}
               >
                 <item.icon className="sidebar-nav-icon" />
                 <span>{item.label}</span>

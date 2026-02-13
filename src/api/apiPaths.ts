@@ -1,4 +1,5 @@
-export const BASE_URL = "https://api.dixam.me";
+export const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.dixam.me";
 
 export const API_PATHS = {
   USER: {
@@ -41,8 +42,10 @@ export const API_PATHS = {
 
   INFLUENCER: {
     CREATE_PROFILE: "/influencer/create_influencerprofile",
+    GET_BY_USER: "/influencer/get_influencer_by_user",
     CREATE_SOCIAL_LINK: "/influencer/create_sociallink",
     GET_SOCIAL_LINKS: "/influencer/get_sociallinks",
+    GET_BY_NAME: (name: string) => `/influencer/get_influencer_by_name/${name}`,
     UPDATE_SOCIAL_LINK: (sociallinkId: string) =>
       `/influencer/update_sociallink/${sociallinkId}`,
     DELETE_SOCIAL_LINK: (sociallinkId: string) =>

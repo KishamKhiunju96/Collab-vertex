@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AuthContainer from "@/components/auth/AuthContainer";
 import RoleCard from "./components/RoleCard";
 
@@ -16,7 +17,8 @@ export default function SelectRolePage() {
     if (selectedRole) {
       const normalizedRole = selectedRole === "Brand" ? "brand" : "influencer";
 
-
+      // Save role to localStorage so RegisterForm can read it
+      localStorage.setItem("pendingUserRole", normalizedRole);
 
       router.push("/register");
     }
@@ -65,16 +67,31 @@ export default function SelectRolePage() {
           <button
             onClick={handleContinue}
             disabled={!selectedRole}
-            className="px-10 py-4 rounded-full text-white bg-gray-700 font-semibold text-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50"
+            className="px-10 py-4 rounded-full text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold text-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
           >
-            Continue as {selectedRole || "Selected Role"} →
+            {selectedRole
+              ? `Continue as ${selectedRole} →`
+              : "Select a Role to Continue"}
           </button>
 
-          {!selectedRole && (
+          {!selectedRole ? (
             <p className="mt-4 text-gray-600">
-              Please select a role to continue
+              👆 Please select a role above to continue
+            </p>
+          ) : (
+            <p className="mt-4 text-green-600 font-medium">
+              ✓ {selectedRole} role selected! Click Continue to proceed.
             </p>
           )}
+
+          <div className="mt-6">
+            <Link
+              href="/login"
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              Already have an account? Login here
+            </Link>
+          </div>
         </div>
       </div>
     </AuthContainer>

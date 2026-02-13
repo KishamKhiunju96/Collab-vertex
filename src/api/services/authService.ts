@@ -34,7 +34,6 @@ export const authService = {
     try {
       await api.post(API_PATHS.USER.LOGIN, data);
       notify.success("Login successful");
-      window.location.replace("/dashboard");
       return true;
     } catch (error: unknown) {
       notify.error(getErrorMessage(error, "Login failed. Please try again."));

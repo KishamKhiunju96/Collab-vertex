@@ -38,7 +38,7 @@ export const influencerService = {
   // Create influencer profile
   createProfile: async (payload: CreateInfluencerPayload) => {
     const response = await api.post(
-      "/influencer/create_influencerprofile",
+      API_PATHS.INFLUENCER.CREATE_PROFILE,
       payload,
     );
     return response.data;
@@ -48,7 +48,7 @@ export const influencerService = {
   getProfileByUser: async (): Promise<CreateInfluencerPayload | null> => {
     try {
       const response = await api.get<CreateInfluencerPayload>(
-        "/influencer/get_influencer_by_user",
+        API_PATHS.INFLUENCER.GET_BY_USER,
       );
       return response.data;
     } catch (err) {
@@ -58,7 +58,15 @@ export const influencerService = {
   },
   getProfile: async (): Promise<InfluencerProfile> => {
     const response = await api.get<InfluencerProfile>(
-      "/influencer/get_influencer_by_user",
+      API_PATHS.INFLUENCER.GET_BY_USER,
+    );
+    return response.data;
+  },
+
+  // Search influencer by name
+  searchByName: async (name: string): Promise<InfluencerProfile> => {
+    const response = await api.get<InfluencerProfile>(
+      API_PATHS.INFLUENCER.GET_BY_NAME(name),
     );
     return response.data;
   },

@@ -32,6 +32,17 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
+  // Read role from localStorage on mount
+  useEffect(() => {
+    const savedRole = localStorage.getItem("pendingUserRole");
+    if (savedRole === "brand" || savedRole === "influencer") {
+      setForm((prev) => ({ ...prev, role: savedRole }));
+    } else {
+      // If no valid role in localStorage, redirect to select-role
+      router.replace("/select-role");
+    }
+  }, [router]);
+
   useEffect(() => {
     if (form.role !== "brand" && form.role !== "influencer") {
       router.replace("/select-role");
@@ -47,7 +58,7 @@ export default function RegisterForm() {
         .min(8, "Password must be at least 8 characters")
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          "Password must contain uppercase, lowercase & number"
+          "Password must contain uppercase, lowercase & number",
         ),
       confirmPassword: z.string(),
       role: z.enum(["brand", "influencer"]),
@@ -90,7 +101,7 @@ export default function RegisterForm() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
-          err.response?.data?.message || err.message || "Registration failed"
+          err.response?.data?.message || err.message || "Registration failed",
         );
       } else {
         setApiError("Registration failed");

@@ -16,6 +16,7 @@ import {
   deleteNotification,
 } from "@/api/services/notificationService";
 import { useNotifications } from "@/api/hooks/useNotifications";
+import { useUser } from "./UserContext";
 
 interface NotificationContextProps {
   notifications: NotificationRead[];
@@ -34,6 +35,7 @@ const NotificationContext = createContext<NotificationContextProps | undefined>(
 );
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
+  const { user, loading: userLoading } = useUser();
   const [notifications, setNotifications] = useState<NotificationRead[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -56,10 +58,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Initialize SSE connection and get controls - pass addNotification callback
-  const sseControls = useNotifications(addNotification);
+  // Only connect if user is authenticated
+  const sseControls = useNotifications(addNotification, !!user);
 
   // Fetch initial notifications from API
   const loadNotifications = useCallback(async () => {
+    // Don't fetch if user is not authenticated
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const data = await fetchNotifications();
@@ -74,13 +83,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  // Load notifications on mount - only once
+  // Load notifications only when user is authenticated
   useEffect(() => {
-    loadNotifications();
+    if (!userLoading && user) {
+      loadNotifications();
+    } else if (!userLoading && !user) {
+      setLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, [user, userLoading]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {

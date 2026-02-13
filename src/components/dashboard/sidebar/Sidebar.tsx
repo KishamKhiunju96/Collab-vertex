@@ -12,7 +12,7 @@ export default function Sidebar() {
   if (!role) return null;
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar hidden lg:flex">
       {/* Sidebar Header */}
       <div className="sidebar-header">
         <Link href="/" className="sidebar-logo">

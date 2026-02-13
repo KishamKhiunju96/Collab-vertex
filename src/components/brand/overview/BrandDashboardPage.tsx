@@ -15,6 +15,7 @@ import { brandActivities } from "@/data/brandactivities";
 import { AnalyticsChart } from "@/components/analytics/AnalyticsChart";
 
 import { useNotificationContext } from "@/context/NotificationContext";
+import InfluencerSearchBox from "@/components/brand/InfluencerSearchBox";
 
 export default function BrandDashboardPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -116,28 +117,28 @@ export default function BrandDashboardPage() {
   }
 
   return (
-    <div className="dashboard-container p-6 space-y-8">
+    <div className="dashboard-container p-4 lg:p-6 space-y-8">
       {/* Header Section */}
       <div className="dashboard-header">
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1">
-            <h1 className="dashboard-title">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+          <div className="flex-1 w-full lg:w-auto mt-12 lg:mt-0">
+            <h1 className="dashboard-title text-xl lg:text-2xl">
               Hi {user.username}, Welcome to Collab Vertex
             </h1>
-            <p className="dashboard-subtitle">
+            <p className="dashboard-subtitle text-sm lg:text-base">
               Manage your brands, collaborate with influencers, and track
               performance.
             </p>
           </div>
 
           {/* Notifications Bell */}
-          <div className="relative">
+          <div className="relative lg:relative absolute top-4 right-4 lg:top-auto lg:right-auto">
             <button
               className="notification-bell"
               onClick={() => setIsNotifOpen((prev) => !prev)}
               aria-label="Notifications"
             >
-              <Bell size={24} className="text-gray-700" />
+              <Bell size={20} className="text-gray-700 lg:w-6 lg:h-6" />
               {unreadCount > 0 && (
                 <span className="notification-badge">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -226,10 +227,13 @@ export default function BrandDashboardPage() {
         </div>
       </div>
 
+      {/* Influencer Search Section */}
+      <InfluencerSearchBox />
+
       {/* Empty State */}
       {!loading && brands.length === 0 && (
         <div className="empty-state">
-          <div className="empty-state-icon">
+          <div className="empty-state-icon ">
             <svg
               viewBox="0 0 200 200"
               fill="none"
@@ -336,11 +340,11 @@ export default function BrandDashboardPage() {
       )}
 
       {/* Analytics & Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <div className="lg:col-span-2">
           <AnalyticsChart />
         </div>
-        <div>
+        <div className="lg:block">
           <ActivityFeed activities={brandActivities} />
         </div>
       </div>
@@ -348,11 +352,12 @@ export default function BrandDashboardPage() {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsCreateOpen(true)}
-        className="fab-button"
+        className="fab-button text-sm lg:text-base px-4 lg:px-8 py-3"
         aria-label="Create New Brand"
       >
-        <Plus size={20} />
-        <span>Create Brand</span>
+        <Plus size={18} className="lg:w-5 lg:h-5" />
+        <span className="hidden sm:inline">Create Brand</span>
+        <span className="sm:hidden">+</span>
       </button>
 
       {/* Create Brand Modal */}

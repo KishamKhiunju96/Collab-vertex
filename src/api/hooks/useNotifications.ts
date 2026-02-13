@@ -19,6 +19,7 @@ export interface SSEControls {
 
 export const useNotifications = (
   addNotification: (notification: NotificationRead) => void,
+  isAuthenticated: boolean = false,
 ): SSEControls => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -73,6 +74,12 @@ export const useNotifications = (
 
   useEffect(() => {
     isUnmountedRef.current = false;
+
+    // Skip SSE connection if not authenticated
+    if (!isAuthenticated) {
+      console.log("👤 User not authenticated, skipping notification stream");
+      return;
+    }
 
     // Skip SSE connection if disabled
     if (DISABLE_SSE_NOTIFICATIONS) {
@@ -235,7 +242,7 @@ export const useNotifications = (
         eventSourceRef.current = null;
       }
     };
-  }, [addNotification]);
+  }, [addNotification, isAuthenticated]);
 
   // Return SSE controls
   return {
