@@ -23,11 +23,17 @@ const INITIAL_FORM_STATE: EventPayload = {
   status: "active",
 };
 
-export default function CreateEventForm({ brandId, onSuccess }: CreateEventFormProps) {
+export default function CreateEventForm({
+  brandId,
+  onSuccess,
+}: CreateEventFormProps) {
   const [form, setForm] = useState<EventPayload>(INITIAL_FORM_STATE);
   const [loading, setLoading] = useState(false);
 
-  const updateField = <K extends keyof EventPayload>(field: K, value: EventPayload[K]) => {
+  const updateField = <K extends keyof EventPayload>(
+    field: K,
+    value: EventPayload[K],
+  ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -71,10 +77,23 @@ export default function CreateEventForm({ brandId, onSuccess }: CreateEventFormP
       notify.success("Event created successfully");
       onSuccess();
       setForm(INITIAL_FORM_STATE);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       const message =
-        error?.response?.data?.message || error?.message || "Failed to create event";
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data &&
+        typeof error.response.data.message === "string"
+          ? error.response.data.message
+          : error instanceof Error
+            ? error.message
+            : "Failed to create event";
       notify.error(message);
     } finally {
       setLoading(false);

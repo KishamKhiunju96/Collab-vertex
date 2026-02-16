@@ -15,4 +15,10 @@ export interface RegisterResponse {
 export interface VerifyOtpResponse {
   success: boolean;
   message: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    role: "brand" | "influencer" | "admin";
+  };
 }
