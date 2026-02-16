@@ -1,7 +1,7 @@
 import axios from "../api/axiosInstance";
 import { API_PATHS, BASE_URL } from "../api/apiPaths";
 
-export const createBrandProfile = async (data: any) => {
+export const createBrandProfile = async (data: unknown) => {
   return axios.post(API_PATHS.BRAND.CREATE_PROFILE, data);
 };
 
@@ -13,7 +13,7 @@ export const getBrandsByUser = async () => {
   return axios.get(API_PATHS.BRAND.GET_BRANDS_BY_USER);
 };
 
-export const updateBrandProfile = async (brandId: string, data: any) => {
+export const updateBrandProfile = async (brandId: string, data: unknown) => {
   return axios.put(API_PATHS.BRAND.UPDATE_PROFILE(brandId), data);
 };
 

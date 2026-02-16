@@ -101,11 +101,11 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="bg-gray-800 rounded-lg p-2">
             <p className="text-xs text-gray-400 mb-1">Active</p>
-            <p className="text-lg font-bold text-white">12</p>
+            <p className="text-lg font-bold text-white">2</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-2">
             <p className="text-xs text-gray-400 mb-1">Total</p>
-            <p className="text-lg font-bold text-white">48</p>
+            <p className="text-lg font-bold text-white">8</p>
           </div>
         </div>
       </div>
