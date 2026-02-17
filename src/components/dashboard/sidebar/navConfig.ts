@@ -79,7 +79,7 @@ export const navConfig: Record<UserRole, NavItem[]> = {
     },
     {
       href: "/dashboard/influencer/events",
-      label: "My Events",
+      label: "Applied Events",
       icon: Calendar,
       category: "Management",
     },

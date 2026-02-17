@@ -19,6 +19,7 @@ import {
 import { eventService, Event } from "@/api/services/eventService";
 import { notify } from "@/utils/notify";
 import ApplicationsList from "@/components/applications/ApplicationsList";
+import { useUserData } from "@/api/hooks/useUserData";
 
 interface EventDetailPageProps {
   eventId: string;
@@ -26,6 +27,7 @@ interface EventDetailPageProps {
 
 export default function EventDetailPage({ eventId }: EventDetailPageProps) {
   const router = useRouter();
+  const { user } = useUserData();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,25 +172,27 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() =>
-                  router.push(`/dashboard/events/${event.id}/edit`)
-                }
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                <Edit className="h-4 w-4" />
-                <span className="hidden sm:inline">Edit</span>
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Delete</span>
-              </button>
-            </div>
+            {/* Action Buttons - Only visible to brands */}
+            {user?.role === "brand" && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() =>
+                    router.push(`/dashboard/events/${event.id}/edit`)
+                  }
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span className="hidden sm:inline">Edit</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -229,14 +233,16 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
               </p>
             </div>
 
-            {/* Influencer Applications */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-400" />
-                Influencer Applications
-              </h2>
-              <ApplicationsList eventId={eventId} />
-            </div>
+            {/* Influencer Applications - Only visible to brands */}
+            {user?.role === "brand" && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-gray-400" />
+                  Influencer Applications
+                </h2>
+                <ApplicationsList eventId={eventId} />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

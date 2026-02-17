@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   eventService,
   Event,
@@ -21,11 +22,13 @@ import {
   ExternalLink,
   TrendingUp,
   Sparkles,
+  Eye,
 } from "lucide-react";
 
 const EVENT_LIMIT = 6;
 
 export default function EventCards() {
+  const router = useRouter();
   const { user } = useUserData();
   const { profile, loading: profileLoading } = useInfluencerProfile();
 
@@ -49,8 +52,18 @@ export default function EventCards() {
   // Fetch all events initially
   useEffect(() => {
     const fetchEvents = async () => {
+      // Wait for profile to load
+      if (profileLoading) return;
+
+      // Check if profile exists and has an ID
+      if (!profile || !profile.id) {
+        console.error("Influencer profile not found");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await eventService.getAllEvents();
+        const data = await eventService.getAllEvents(profile.id);
         setEvents(data);
       } catch (err) {
         console.error("Failed to load events", err);
@@ -59,7 +72,7 @@ export default function EventCards() {
       }
     };
     fetchEvents();
-  }, []);
+  }, [profile, profileLoading]);
 
   // Update the active filter
   const handleFilterChange = (type: string, value: string) => {
@@ -435,29 +448,41 @@ export default function EventCards() {
                 </div>
               </div>
 
-              {/* Apply Button */}
-              <button
-                onClick={() => handleApplyToEvent(event.id)}
-                disabled={applyingEventId === event.id || profileLoading}
-                className="w-full mt-4 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary text-white font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group/btn"
-              >
-                {profileLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Loading...</span>
-                  </>
-                ) : applyingEventId === event.id ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Applying...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Apply Now</span>
-                    <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                  </>
-                )}
-              </button>
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-4">
+                {/* View Details Button */}
+                <button
+                  onClick={() => router.push(`/dashboard/events/${event.id}`)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border-2 border-brand-primary text-brand-primary font-semibold hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-md hover:shadow-lg group/view"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>View Details</span>
+                </button>
+
+                {/* Apply Button */}
+                <button
+                  onClick={() => handleApplyToEvent(event.id)}
+                  disabled={applyingEventId === event.id || profileLoading}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary text-white font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group/btn"
+                >
+                  {profileLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Loading...</span>
+                    </>
+                  ) : applyingEventId === event.id ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Applying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Apply Now</span>
+                      <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         ))}

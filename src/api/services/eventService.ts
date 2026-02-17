@@ -71,7 +71,7 @@ export interface ApplyEventResponse {
 const EVENT_API = {
   CREATE: (brandId: string) => `/event/create_event/${brandId}`,
   GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
-  GET_ALL: "/event/all_events",
+  GET_ALL: (influencerId: string) => `/event/all_events/${influencerId}`,
   GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
   UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
   DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
@@ -105,8 +105,8 @@ export const eventService = {
   },
 
   // ✅ Influencer dashboard (no filters)
-  async getAllEvents(): Promise<Event[]> {
-    const { data } = await axios.get<Event[]>(EVENT_API.GET_ALL);
+  async getAllEvents(influencerId: string): Promise<Event[]> {
+    const { data } = await axios.get<Event[]>(EVENT_API.GET_ALL(influencerId));
     return data;
   },
 
