@@ -26,7 +26,7 @@ export default function EventListPage() {
     setError(null);
     try {
       // Fetch all events from the API
-      const response = await fetch("https://api.dixam.me/event/allevents", {
+      const response = await fetch("https://api.dixam.me/event/all_events", {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",

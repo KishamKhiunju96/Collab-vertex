@@ -132,7 +132,7 @@ export default function BrandDashboardPage() {
           </div>
 
           {/* Notifications Bell */}
-          <div className="relative lg:relative absolute top-4 right-4 lg:top-auto lg:right-auto">
+          <div className="relative lg:relative  top-4 right-4 lg:top-auto lg:right-auto">
             <button
               className="notification-bell"
               onClick={() => setIsNotifOpen((prev) => !prev)}
