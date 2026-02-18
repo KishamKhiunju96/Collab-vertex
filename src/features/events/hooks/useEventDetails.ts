@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { eventService } from "../services/event.service";
 import { Event } from "../types/event.types";
+import { notify } from "@/utils/notify";
 
 export const useEventDetails = (eventId: string) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     if (!eventId) return;
@@ -22,7 +23,7 @@ export const useEventDetails = (eventId: string) => {
         }
       } catch {
         if (!cancelled) {
-          setError("Failed to load event details");
+          notify.error("Failed to load event details");
         }
       } finally {
         if (!cancelled) {

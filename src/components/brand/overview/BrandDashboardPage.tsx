@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, Pencil, Trash2, Bell, Plus } from "lucide-react";
 
 import { brandService, Brand } from "@/api/services/brandService";
@@ -18,6 +19,7 @@ import { useNotificationContext } from "@/context/NotificationContext";
 import InfluencerSearchBox from "@/components/brand/InfluencerSearchBox";
 
 export default function BrandDashboardPage() {
+  const router = useRouter();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -66,16 +68,28 @@ export default function BrandDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoading, user]);
 
-  const handleMarkAsRead = (notifId: string) => {
-    markAsRead(notifId);
-  };
-
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
   };
 
   const handleDeleteNotification = async (notifId: string) => {
     await deleteNotification(notifId);
+  };
+
+  const handleNotificationClick = async (notif: (typeof notifications)[0]) => {
+    // Mark notification as read
+    if (!notif.is_read) {
+      await markAsRead(notif.id);
+    }
+
+    // Redirect based on notification type
+    if (notif.data?.event_id) {
+      // Close notification dropdown
+      setIsNotifOpen(false);
+
+      // Redirect to event applications page
+      router.push(`/brand/events/${notif.data.event_id}`);
+    }
   };
 
   // -----------------------------
@@ -180,8 +194,8 @@ export default function BrandDashboardPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div
-                          className="flex-1"
-                          onClick={() => handleMarkAsRead(notif.id)}
+                          className="flex-1 cursor-pointer"
+                          onClick={() => handleNotificationClick(notif)}
                         >
                           {notif.title && (
                             <p className="notification-item-title">

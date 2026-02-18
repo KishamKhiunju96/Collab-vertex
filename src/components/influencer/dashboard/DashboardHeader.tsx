@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell, Trash2, User, Check, Sparkles, ChevronDown } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
 import { useNotificationContext } from "@/context/NotificationContext";
 
 export default function DashboardHeader() {
+  const router = useRouter();
   const { user } = useUserData();
   const {
     notifications,
@@ -43,16 +45,31 @@ export default function DashboardHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleMarkNotification = (notifId: string) => {
-    markAsRead(notifId);
-  };
-
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
   };
 
   const handleDeleteNotification = async (notifId: string) => {
     await deleteNotification(notifId);
+  };
+
+  const handleNotificationClick = async (notif: (typeof notifications)[0]) => {
+    // Mark notification as read
+    if (!notif.is_read) {
+      await markAsRead(notif.id);
+    }
+
+    // Close notification dropdown
+    setIsNotifOpen(false);
+
+    // Redirect based on notification type and data
+    if (notif.data?.event_id) {
+      // If notification has event_id, redirect to event details
+      router.push(`/dashboard/events/${notif.data.event_id}`);
+    } else if (notif.data?.application_id) {
+      // If it has application_id, redirect to applied events
+      router.push("/dashboard/influencer/events");
+    }
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -156,7 +173,7 @@ export default function DashboardHeader() {
                           No notifications yet
                         </p>
                         <p className="text-xs text-text-muted mt-1">
-                          We&apos;ll notify you when something arrives
+                          We will notify you when something arrives
                         </p>
                       </div>
                     )}
@@ -176,7 +193,7 @@ export default function DashboardHeader() {
                           <div className="flex items-start gap-3">
                             <div
                               className="flex-1 cursor-pointer"
-                              onClick={() => handleMarkNotification(notif.id)}
+                              onClick={() => handleNotificationClick(notif)}
                             >
                               {/* Title */}
                               {notif.title && (

@@ -1,24 +1,61 @@
 // src/components/applications/ApplicationsList.tsx
 "use client";
 
-import ApplicationCard from "./ApplicationCard";
+import ApplicationCard, { Application } from "./ApplicationCard";
 import { useEventApplications } from "@/features/events/hooks/useEventApplications";
 import { applicationService } from "@/features/applications/services/application.service";
 import { Users } from "lucide-react";
+import { EventApplication } from "@/features/events/types/event.types";
 
 type Props = {
   eventId: string;
 };
 
 export default function ApplicationsList({ eventId }: Props) {
-  const { applications, loading, error } = useEventApplications(eventId);
+  const { applications, loading, error, refetch } =
+    useEventApplications(eventId);
+
+  // Map EventApplication to Application type
+  const mapToApplicationCard = (app: EventApplication): Application => {
+    return {
+      id: app.id,
+      status: app.status,
+      event: {
+        id: app.event_id,
+        title: app.event_title || "Event",
+      },
+      influencer: {
+        id: app.influencer_id,
+        name: app.influencer_name || "Influencer",
+        niche: app.niche,
+        location: app.location,
+        audience_size: app.audience_size,
+        engagement_rate: app.engagement_rate,
+        email: app.email,
+        bio: app.bio,
+      },
+      applied_at: app.applied_at,
+    };
+  };
 
   const handleUpdateStatus = async (
     applicationId: string,
-    status: "approved" | "rejected",
+    status: "accepted" | "rejected",
   ) => {
-    await applicationService.updateApplicationStatus(applicationId, { status });
-    window.location.reload(); // replace with optimistic update later
+    try {
+      await applicationService.updateApplicationStatus(applicationId, {
+        status,
+      });
+
+      // Refetch applications after status update
+      if (refetch) {
+        await refetch();
+      } else {
+        window.location.reload(); // fallback
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
   };
 
   if (loading) {
@@ -40,7 +77,7 @@ export default function ApplicationsList({ eventId }: Props) {
     );
   }
 
-  if (applications.length === 0) {
+  if (!applications || applications.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
         <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -58,10 +95,11 @@ export default function ApplicationsList({ eventId }: Props) {
         {applications.length}{" "}
         {applications.length === 1 ? "application" : "applications"}
       </p>
+
       {applications.map((app) => (
         <ApplicationCard
           key={app.id}
-          application={app}
+          application={mapToApplicationCard(app)}
           onUpdateStatus={handleUpdateStatus}
         />
       ))}

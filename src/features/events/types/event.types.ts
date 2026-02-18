@@ -1,5 +1,9 @@
 // src/features/events/types/event.types.ts
 
+// --------------------
+// Event Type
+// --------------------
+
 export interface Event {
   id: string;
   brand_id: string;
@@ -14,15 +18,25 @@ export interface Event {
   updated_at: string;
 }
 
+// --------------------
+// Event Application Type
+// --------------------
+
 export interface EventApplication {
   id: string;
   event_id: string;
-  applicant_id: string;
-  applicant_name: string;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
+  influencer_id: string;
 
-  // Extended influencer details
+  status: "pending" | "accepted" | "rejected";
+
+  // ✅ Correct field from backend
+  applied_at: string;
+
+  // Optional enriched fields from backend
+  influencer_name?: string;
+  event_title?: string;
+
+  // Optional extended influencer details
   niche?: string;
   audience_size?: number;
   engagement_rate?: number;

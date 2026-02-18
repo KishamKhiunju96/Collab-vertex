@@ -81,6 +81,10 @@ const EVENT_API = {
 
   // 📝 Apply to event
   APPLY_EVENT: "/event/apply_event",
+
+  // 📋 Get applied events
+  GET_APPLIED_EVENTS: (influencerId: string) =>
+    `/event/applied_events/${influencerId}`,
 };
 
 /* ============================
@@ -152,6 +156,14 @@ export const eventService = {
       EVENT_API.APPLY_EVENT,
       payload,
       { headers: { "Content-Type": "application/json" } },
+    );
+    return data;
+  },
+
+  // ✅ Get applied events for influencer
+  async getAppliedEvents(influencerId: string): Promise<Event[]> {
+    const { data } = await axios.get<Event[]>(
+      EVENT_API.GET_APPLIED_EVENTS(influencerId),
     );
     return data;
   },

@@ -24,7 +24,8 @@ export const API_PATHS = {
   EVENT: {
     CREATE: (brandId: string) => `/event/create_event/${brandId}`,
     GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
-    GET_ALL_EVENTS: "/event/allevents",
+    GET_ALL_EVENTS: (influencerId: string) =>
+      `/event/all_events/${influencerId}`,
     GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
     UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
     DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
@@ -38,6 +39,8 @@ export const API_PATHS = {
       `/event/event_applications/${eventId}`,
     UPDATE_APPLICATION_STATUS: (applicationId: string) =>
       `/event/update_application_status/${applicationId}`,
+    GET_APPLIED_EVENTS: (influencerId: string) =>
+      `/event/applied_events/${influencerId}`,
   },
 
   INFLUENCER: {

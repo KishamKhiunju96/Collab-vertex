@@ -166,6 +166,11 @@ export default function EventCards() {
       });
 
       notify.success(response.message || "Successfully applied to event!");
+
+      // Remove the applied event from the list without refreshing
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventId),
+      );
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { detail?: string } } })?.response?.data

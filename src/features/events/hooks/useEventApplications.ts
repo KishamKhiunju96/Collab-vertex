@@ -1,36 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { eventService } from "../services/event.service";
 import { EventApplication } from "../types/event.types";
+import { notify } from "@/utils/notify";
 
 export const useEventApplications = (eventId: string) => {
   const [applications, setApplications] = useState<EventApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
+
+  const fetchApplications = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await eventService.getEventApplications(eventId);
+      setApplications(data);
+    } catch {
+      notify.error("Failed to load applications");
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId]);
 
   useEffect(() => {
     if (!eventId) return;
 
-    let cancelled = false;
-
-    const fetchApplications = async () => {
-      try {
-        const data = await eventService.getEventApplications(eventId);
-        if (!cancelled) setApplications(data);
-      } catch {
-        if (!cancelled) setError("Failed to load applications");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
     fetchApplications();
+  }, [eventId, fetchApplications]);
 
-    return () => {
-      cancelled = true; // cleanup to avoid setting state on unmounted component
-    };
-  }, [eventId]);
+  const refetch = async () => {
+    await fetchApplications();
+  };
 
-  return { applications, loading, error };
+  return { applications, loading, error, refetch };
 };
