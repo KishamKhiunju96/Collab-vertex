@@ -26,6 +26,10 @@ const WS_BASE_URL =
       : "ws://api.dixam.me"
     : "wss://api.dixam.me");
 
+// Development mode flag - disable WebSocket in development if backend is not available
+const isDevelopment = process.env.NODE_ENV === "development";
+const disableWebSocket = isDevelopment && !process.env.NEXT_PUBLIC_WS_URL;
+
 /**
  * Hook for managing WebSocket connection for real-time chat
  * Handles connection, reconnection, message sending/receiving
@@ -49,6 +53,16 @@ export function useChatWebSocket({
   const connect = useCallback(() => {
     if (!otherUserId) {
       console.warn("Cannot connect: otherUserId is required");
+      return;
+    }
+
+    // Skip WebSocket connection in development if disabled
+    if (disableWebSocket) {
+      console.log(
+        "WebSocket disabled in development mode (no backend available)",
+      );
+      setIsConnected(false);
+      setError(null); // Don't show error in dev mode when disabled
       return;
     }
 
@@ -93,8 +107,11 @@ export function useChatWebSocket({
       };
 
       ws.onerror = (event) => {
-        console.error("WebSocket error:", event);
-        setError("WebSocket connection error");
+        // Only log error if not in disabled development mode
+        if (!disableWebSocket) {
+          console.error("WebSocket error:", event);
+          setError("WebSocket connection error");
+        }
       };
 
       ws.onclose = (event) => {
@@ -146,6 +163,13 @@ export function useChatWebSocket({
   const sendMessage = useCallback((content: string) => {
     if (!content.trim()) {
       console.warn("Cannot send empty message");
+      return;
+    }
+
+    // Handle disabled WebSocket in development
+    if (disableWebSocket) {
+      console.log("Demo mode: Message would be sent:", content);
+      notify.info("Chat is in demo mode. Connect to backend to send messages.");
       return;
     }
 

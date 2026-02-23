@@ -3,8 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/chat/hooks/useChat";
 import { ChatMessage } from "@/chat/types";
-import { Send, Loader2, WifiOff, RefreshCw } from "lucide-react";
+import { Send, Loader2, WifiOff, RefreshCw, Info } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
+
+// Check if we're in demo mode (development without backend)
+const isDemoMode =
+  process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_WS_URL;
 
 interface ChatRoomProps {
   otherUserId: string;
@@ -97,8 +101,7 @@ export default function ChatRoom({
     const isSentByMe = message.sender_id === user?.id;
     const showDateSeparator =
       index === 0 ||
-      formatDate(message.sent_at) !==
-        formatDate(messages[index - 1]?.sent_at);
+      formatDate(message.sent_at) !== formatDate(messages[index - 1]?.sent_at);
 
     return (
       <div key={message.id}>
@@ -157,7 +160,12 @@ export default function ChatRoom({
           <div>
             <h2 className="text-lg font-semibold">{otherUserName}</h2>
             <div className="flex items-center gap-2 text-sm">
-              {isConnected ? (
+              {isDemoMode ? (
+                <>
+                  <Info size={14} />
+                  <span className="text-yellow-200">Demo Mode</span>
+                </>
+              ) : isConnected ? (
                 <>
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-blue-100">Connected</span>
@@ -171,7 +179,7 @@ export default function ChatRoom({
             </div>
           </div>
 
-          {!isConnected && (
+          {!isConnected && !isDemoMode && (
             <button
               onClick={reconnect}
               className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm"
@@ -183,8 +191,21 @@ export default function ChatRoom({
         </div>
       </div>
 
+      {/* Demo Mode Banner */}
+      {isDemoMode && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3">
+          <p className="text-yellow-800 text-sm flex items-center gap-2">
+            <Info size={16} />
+            <span>
+              <strong>Demo Mode:</strong> Connect to the backend server to
+              enable real-time chat. Messages are simulated locally.
+            </span>
+          </p>
+        </div>
+      )}
+
       {/* Error Banner */}
-      {error && (
+      {error && !isDemoMode && (
         <div className="bg-red-50 border-b border-red-200 px-6 py-3">
           <p className="text-red-700 text-sm">{error}</p>
         </div>
@@ -239,20 +260,24 @@ export default function ChatRoom({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder={
-              isConnected
-                ? "Type a message..."
-                : "Connecting to chat..."
+              isDemoMode
+                ? "Type a demo message..."
+                : isConnected
+                  ? "Type a message..."
+                  : "Connecting to chat..."
             }
-            disabled={!isConnected}
+            disabled={!isDemoMode && !isConnected}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
-            disabled={!isConnected || !inputMessage.trim()}
+            disabled={(!isDemoMode && !isConnected) || !inputMessage.trim()}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center gap-2 font-medium"
           >
             <Send size={18} />
-            <span className="hidden sm:inline">Send</span>
+            <span className="hidden sm:inline">
+              {isDemoMode ? "Demo Send" : "Send"}
+            </span>
           </button>
         </form>
 

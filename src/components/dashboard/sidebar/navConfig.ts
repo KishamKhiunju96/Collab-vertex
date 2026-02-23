@@ -7,6 +7,7 @@ import {
   Calendar,
   Link as LinkIcon,
   Shield,
+  MessageCircle,
 } from "lucide-react";
 
 export type UserRole = "brand" | "influencer" | "admin";
@@ -51,6 +52,12 @@ export const navConfig: Record<UserRole, NavItem[]> = {
       category: "Management",
     },
     {
+      href: "/dashboard/brand/messages",
+      label: "Messages",
+      icon: MessageCircle,
+      category: "Communication",
+    },
+    {
       href: "/dashboard/brand/analytics",
       label: "Analytics",
       icon: BarChart3,
@@ -88,6 +95,12 @@ export const navConfig: Record<UserRole, NavItem[]> = {
       label: "Collaborations",
       icon: Megaphone,
       category: "Management",
+    },
+    {
+      href: "/dashboard/influencer/messages",
+      label: "Messages",
+      icon: MessageCircle,
+      category: "Communication",
     },
     {
       href: "/dashboard/influencer/social-links",
