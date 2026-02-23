@@ -2,15 +2,19 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Search, Filter, Calendar, Plus } from "lucide-react";
-import { Event } from "@/api/services/eventService";
+import { Event, eventService } from "@/api/services/eventService";
 import { notify } from "@/utils/notify";
 import EventCard from "./EventCard";
 import EventSkeleton from "./EventSkeleton";
 import EmptyState from "./EmptyState";
 import { useRouter } from "next/navigation";
+import { useInfluencerProfile } from "@/api/hooks/useInfluencerProfile";
+import { useAuthProtection } from "@/api/hooks/useAuth";
 
 export default function EventListPage() {
   const router = useRouter();
+  const { role } = useAuthProtection();
+  const { profile, loading: profileLoading } = useInfluencerProfile();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,22 +26,24 @@ export default function EventListPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const fetchEvents = useCallback(async () => {
+    // For influencers, wait for profile to load first
+    if (role === "influencer") {
+      if (profileLoading || !profile?.id) {
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     try {
-      // Fetch all events from the API
-      const response = await fetch("https://api.dixam.me/event/all_events", {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch events");
+      let data: Event[];
+      if (role === "influencer" && profile?.id) {
+        // Fetch events for specific influencer
+        data = await eventService.getAllEvents(profile.id);
+      } else {
+        // For brands and others, fetch all events globally
+        data = await eventService.getAllEventsGlobal();
       }
-
-      const data = await response.json();
       setEvents(data);
       setFilteredEvents(data);
     } catch (err) {
@@ -47,11 +53,18 @@ export default function EventListPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [profile?.id, profileLoading, role]);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    if (role === "influencer") {
+      if (!profileLoading && profile?.id) {
+        fetchEvents();
+      }
+    } else {
+      // For brands, fetch immediately
+      fetchEvents();
+    }
+  }, [fetchEvents, profile?.id, profileLoading, role]);
 
   // Apply filters whenever search query or filters change
   useEffect(() => {
@@ -94,6 +107,42 @@ export default function EventListPage() {
     router.push("/dashboard/brand");
   };
 
+  // Show loading state while profile is loading (only for influencers)
+  if (role === "influencer" && profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <EventSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no profile exists (only for influencers)
+  if (role === "influencer" && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <p className="text-yellow-800 font-medium mb-4">
+              Please create your influencer profile first to view events.
+            </p>
+            <button
+              onClick={() => router.push("/influencer/profile")}
+              className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition"
+            >
+              Create Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -109,13 +158,16 @@ export default function EventListPage() {
               </p>
             </div>
 
-            <button
-              onClick={handleCreateEvent}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-lg"
-            >
-              <Plus className="h-5 w-5" />
-              <span className="font-medium">Create Event</span>
-            </button>
+            {/* Only show Create Event button for brands */}
+            {role === "brand" && (
+              <button
+                onClick={handleCreateEvent}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-lg"
+              >
+                <Plus className="h-5 w-5" />
+                <span className="font-medium">Create Event</span>
+              </button>
+            )}
           </div>
 
           {/* Search and Filters */}
@@ -237,11 +289,19 @@ export default function EventListPage() {
           events.length === 0 && (
             <EmptyState
               title="No events available"
-              description="There are no events created yet. Be the first to create an event!"
-              action={{
-                label: "Create Event",
-                onClick: handleCreateEvent,
-              }}
+              description={
+                role === "brand"
+                  ? "There are no events created yet. Be the first to create an event!"
+                  : "There are no events available at the moment. Check back later!"
+              }
+              action={
+                role === "brand"
+                  ? {
+                      label: "Create Event",
+                      onClick: handleCreateEvent,
+                    }
+                  : undefined
+              }
             />
           )}
 

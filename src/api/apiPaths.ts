@@ -46,8 +46,12 @@ export const API_PATHS = {
   INFLUENCER: {
     CREATE_PROFILE: "/influencer/create_influencerprofile",
     GET_BY_USER: "/influencer/get_influencer_by_user",
+    GET_BY_ID: (influencerId: string) =>
+      `/influencer/get_influencer_by_id/${influencerId}`,
     CREATE_SOCIAL_LINK: "/influencer/create_sociallink",
     GET_SOCIAL_LINKS: "/influencer/get_sociallinks",
+    GET_SOCIAL_LINKS_BY_ID: (influencerId: string) =>
+      `/influencer/get_sociallinks/${influencerId}`,
     GET_BY_NAME: (name: string) => `/influencer/get_influencer_by_name/${name}`,
     UPDATE_SOCIAL_LINK: (sociallinkId: string) =>
       `/influencer/update_sociallink/${sociallinkId}`,
@@ -63,5 +67,12 @@ export const API_PATHS = {
       `/notification/${notificationId}/read`, // PATCH to mark as read
     MARK_ALL_AS_READ: "/notification/mark-all-read", // POST to mark all as read
     DELETE: (notificationId: string) => `/notification/${notificationId}`, // DELETE notification
+  },
+
+  CHAT: {
+    // WebSocket endpoint for real-time chat
+    WEBSOCKET: (otherUserId: string) => `/ws/chat/${otherUserId}`,
+    // REST endpoint to get chat history
+    GET_MESSAGES: (otherUserId: string) => `/get_messages/${otherUserId}`,
   },
 } as const;

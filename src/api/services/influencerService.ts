@@ -63,6 +63,14 @@ export const influencerService = {
     return response.data;
   },
 
+  // Get influencer profile by ID
+  getProfileById: async (influencerId: string): Promise<InfluencerProfile> => {
+    const response = await api.get<InfluencerProfile>(
+      API_PATHS.INFLUENCER.GET_BY_ID(influencerId),
+    );
+    return response.data;
+  },
+
   // Search influencer by name
   searchByName: async (name: string): Promise<InfluencerProfile> => {
     const response = await api.get<InfluencerProfile>(
@@ -76,6 +84,15 @@ export const influencerService = {
 export const getSocialLinks = async (): Promise<SocialLink[]> => {
   const response = await api.get<SocialLink[]>(
     API_PATHS.INFLUENCER.GET_SOCIAL_LINKS,
+  );
+  return response.data;
+};
+
+export const getSocialLinksById = async (
+  influencerId: string,
+): Promise<SocialLink[]> => {
+  const response = await api.get<SocialLink[]>(
+    API_PATHS.INFLUENCER.GET_SOCIAL_LINKS_BY_ID(influencerId),
   );
   return response.data;
 };

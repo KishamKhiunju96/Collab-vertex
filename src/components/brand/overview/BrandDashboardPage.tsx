@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Trash2, Bell, Plus } from "lucide-react";
+import FloatingChatButton from "@/chat/components/FloatingChatButton";
 
 import { brandService, Brand } from "@/api/services/brandService";
 import CreateBrandForm from "@/components/brand/CreateBrandForm";
@@ -24,6 +25,28 @@ export default function BrandDashboardPage() {
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+
+  // Mock chat contacts (replace with actual API call later)
+  const [chatContacts] = useState([
+    {
+      id: "influencer-1",
+      username: "Fashion Guru",
+      email: "fashion@example.com",
+      role: "influencer",
+      lastMessage: "Thanks for the collaboration opportunity!",
+      unreadCount: 2,
+      isOnline: true,
+    },
+    {
+      id: "influencer-2",
+      username: "Tech Reviewer",
+      email: "tech@example.com",
+      role: "influencer",
+      lastMessage: "I'd love to discuss the event details",
+      unreadCount: 0,
+      isOnline: false,
+    },
+  ]);
 
   const {
     notifications,
@@ -386,6 +409,17 @@ export default function BrandDashboardPage() {
           onCancel={() => setIsCreateOpen(false)}
         />
       </Modal>
+
+      {/* Floating Chat Button */}
+      <FloatingChatButton
+        contacts={chatContacts}
+        isLoading={false}
+        userRole="brand"
+        unreadTotal={chatContacts.reduce(
+          (sum, contact) => sum + (contact.unreadCount || 0),
+          0,
+        )}
+      />
     </div>
   );
 }

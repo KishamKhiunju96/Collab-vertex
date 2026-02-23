@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Pencil,
   Plus,
@@ -24,6 +25,7 @@ import {
   Calendar,
   Award,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { notify } from "@/utils/notify";
 import {
@@ -66,6 +68,7 @@ const platforms = [
 ];
 
 export default function EnhancedProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<InfluencerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -74,7 +77,13 @@ export default function EnhancedProfilePage() {
   const [showSocialForm, setShowSocialForm] = useState(false);
   const [editingSocialId, setEditingSocialId] = useState<string | null>(null);
 
-  const { socialLinks, loading: linksLoading, addLink, editLink, removeLink } = useSocialLinks();
+  const {
+    socialLinks,
+    loading: linksLoading,
+    addLink,
+    editLink,
+    removeLink,
+  } = useSocialLinks();
 
   const [formData, setFormData] = useState<CreateInfluencerPayload>({
     name: "",
@@ -208,7 +217,10 @@ export default function EnhancedProfilePage() {
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-600 animate-pulse" size={24} />
+            <Sparkles
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-600 animate-pulse"
+              size={24}
+            />
           </div>
           <p className="text-gray-600 font-medium">Loading your profile...</p>
         </div>
@@ -231,8 +243,9 @@ export default function EnhancedProfilePage() {
                   Create Your Influencer Profile
                 </h1>
                 <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-                  Join our community of influencers and start collaborating with top brands.
-                  Build your presence and unlock exciting opportunities.
+                  Join our community of influencers and start collaborating with
+                  top brands. Build your presence and unlock exciting
+                  opportunities.
                 </p>
               </div>
 
@@ -245,7 +258,8 @@ export default function EnhancedProfilePage() {
                     Showcase Your Niche
                   </h3>
                   <p className="text-sm text-gray-700">
-                    Highlight your expertise and attract brands in your industry.
+                    Highlight your expertise and attract brands in your
+                    industry.
                   </p>
                 </div>
 
@@ -257,7 +271,8 @@ export default function EnhancedProfilePage() {
                     Display Your Stats
                   </h3>
                   <p className="text-sm text-gray-700">
-                    Show your audience size and engagement rate to potential partners.
+                    Show your audience size and engagement rate to potential
+                    partners.
                   </p>
                 </div>
 
@@ -299,7 +314,9 @@ export default function EnhancedProfilePage() {
                 <h2 className="text-3xl font-bold text-gray-900 mb-3">
                   Create Your Influencer Profile
                 </h2>
-                <p className="text-gray-600">Fill in your details to get started on your journey</p>
+                <p className="text-gray-600">
+                  Fill in your details to get started on your journey
+                </p>
               </div>
 
               <form onSubmit={handleCreateProfile} className="space-y-6">
@@ -451,7 +468,10 @@ export default function EnhancedProfilePage() {
 
   if (!profile) return null;
 
-  const totalFollowers = socialLinks.reduce((sum, link) => sum + (link.followers || 0), 0);
+  const totalFollowers = socialLinks.reduce(
+    (sum, link) => sum + (link.followers || 0),
+    0,
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -484,7 +504,9 @@ export default function EnhancedProfilePage() {
               <div className="flex-1 bg-white rounded-2xl shadow-xl p-6 mb-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.name}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {profile.name}
+                    </h1>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
                       <span className="flex items-center gap-1.5 bg-blue-50 px-3 py-1 rounded-full">
                         <Target size={14} className="text-blue-600" />
@@ -497,13 +519,23 @@ export default function EnhancedProfilePage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                  >
-                    <Pencil size={16} />
-                    Edit Profile
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/influencer/${profile.id}`)}
+                      className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
+                    >
+                      <Eye size={16} />
+                      View Public Profile
+                    </button>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
+                    >
+                      <Pencil size={16} />
+                      Edit Profile
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -520,9 +552,13 @@ export default function EnhancedProfilePage() {
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Users size={24} className="text-blue-600" />
               </div>
-              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Active</span>
+              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                Active
+              </span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{formatNumber(profile.audience_size)}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {formatNumber(profile.audience_size)}
+            </p>
             <p className="text-sm text-gray-600 font-medium">Total Reach</p>
           </div>
 
@@ -531,9 +567,13 @@ export default function EnhancedProfilePage() {
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <TrendingUp size={24} className="text-green-600" />
               </div>
-              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Live</span>
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                Live
+              </span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{profile.engagement_rate}%</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {profile.engagement_rate}%
+            </p>
             <p className="text-sm text-gray-600 font-medium">Engagement Rate</p>
           </div>
 
@@ -543,8 +583,12 @@ export default function EnhancedProfilePage() {
                 <BarChart3 size={24} className="text-purple-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{formatNumber(totalFollowers)}</p>
-            <p className="text-sm text-gray-600 font-medium">Social Followers</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {formatNumber(totalFollowers)}
+            </p>
+            <p className="text-sm text-gray-600 font-medium">
+              Social Followers
+            </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow">
@@ -553,7 +597,9 @@ export default function EnhancedProfilePage() {
                 <Globe size={24} className="text-pink-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{socialLinks.length}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {socialLinks.length}
+            </p>
             <p className="text-sm text-gray-600 font-medium">Platforms</p>
           </div>
         </div>
@@ -626,7 +672,9 @@ export default function EnhancedProfilePage() {
                       <MapPin size={20} className="text-blue-600" />
                       <h4 className="font-semibold text-gray-900">Location</h4>
                     </div>
-                    <p className="text-gray-700 font-medium">{profile.location}</p>
+                    <p className="text-gray-700 font-medium">
+                      {profile.location}
+                    </p>
                   </div>
 
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
@@ -641,15 +689,20 @@ export default function EnhancedProfilePage() {
                 <div className="bg-gradient-to-br from-amber-50 to-orange-100 p-6 rounded-xl border border-amber-200">
                   <div className="flex items-center gap-3 mb-2">
                     <Calendar size={20} className="text-amber-600" />
-                    <h4 className="font-semibold text-gray-900">Member Since</h4>
+                    <h4 className="font-semibold text-gray-900">
+                      Member Since
+                    </h4>
                   </div>
                   <p className="text-gray-700 font-medium">
                     {profile.created_at
-                      ? new Date(profile.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
+                      ? new Date(profile.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )
                       : "Recently joined"}
                   </p>
                 </div>
@@ -677,7 +730,9 @@ export default function EnhancedProfilePage() {
                 {showSocialForm && (
                   <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl border-2 border-blue-200">
                     <h4 className="font-bold text-gray-900 mb-4">
-                      {editingSocialId ? "Edit Social Link" : "Add New Social Link"}
+                      {editingSocialId
+                        ? "Edit Social Link"
+                        : "Add New Social Link"}
                     </h4>
                     <form onSubmit={handleSocialSubmit} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -777,7 +832,8 @@ export default function EnhancedProfilePage() {
                       No Social Links Yet
                     </h4>
                     <p className="text-gray-600 mb-6">
-                      Start by adding your social media profiles to showcase your reach
+                      Start by adding your social media profiles to showcase
+                      your reach
                     </p>
                     <button
                       onClick={() => setShowSocialForm(true)}
@@ -797,7 +853,8 @@ export default function EnhancedProfilePage() {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                              {platformIcons[link.platform] || platformIcons.other}
+                              {platformIcons[link.platform] ||
+                                platformIcons.other}
                             </div>
                             <div>
                               <h4 className="font-bold text-gray-900 capitalize">
@@ -869,9 +926,13 @@ export default function EnhancedProfilePage() {
                     <p className="text-4xl font-bold text-gray-900 mb-2">
                       {formatNumber(profile.audience_size)}
                     </p>
-                    <p className="text-sm font-medium text-gray-700">Total Audience Size</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Total Audience Size
+                    </p>
                     <div className="mt-4 pt-4 border-t border-blue-200">
-                      <p className="text-xs text-gray-600">Across all platforms</p>
+                      <p className="text-xs text-gray-600">
+                        Across all platforms
+                      </p>
                     </div>
                   </div>
 
@@ -885,10 +946,14 @@ export default function EnhancedProfilePage() {
                     <p className="text-4xl font-bold text-gray-900 mb-2">
                       {profile.engagement_rate}%
                     </p>
-                    <p className="text-sm font-medium text-gray-700">Engagement Rate</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Engagement Rate
+                    </p>
                     <div className="mt-4 pt-4 border-t border-green-200">
                       <p className="text-xs text-gray-600">
-                        {profile.engagement_rate > 3 ? "Above average" : "Growing"}
+                        {profile.engagement_rate > 3
+                          ? "Above average"
+                          : "Growing"}
                       </p>
                     </div>
                   </div>
@@ -902,9 +967,13 @@ export default function EnhancedProfilePage() {
                     <p className="text-4xl font-bold text-gray-900 mb-2">
                       {socialLinks.length}
                     </p>
-                    <p className="text-sm font-medium text-gray-700">Connected Platforms</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Connected Platforms
+                    </p>
                     <div className="mt-4 pt-4 border-t border-purple-200">
-                      <p className="text-xs text-gray-600">Active social channels</p>
+                      <p className="text-xs text-gray-600">
+                        Active social channels
+                      </p>
                     </div>
                   </div>
 
@@ -917,9 +986,13 @@ export default function EnhancedProfilePage() {
                     <p className="text-4xl font-bold text-gray-900 mb-2">
                       {formatNumber(totalFollowers)}
                     </p>
-                    <p className="text-sm font-medium text-gray-700">Social Media Reach</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Social Media Reach
+                    </p>
                     <div className="mt-4 pt-4 border-t border-pink-200">
-                      <p className="text-xs text-gray-600">Combined followers</p>
+                      <p className="text-xs text-gray-600">
+                        Combined followers
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -939,7 +1012,9 @@ export default function EnhancedProfilePage() {
                     <div className="w-full bg-white/20 rounded-full h-3">
                       <div
                         className="bg-white rounded-full h-3 transition-all duration-500"
-                        style={{ width: socialLinks.length > 0 ? "100%" : "80%" }}
+                        style={{
+                          width: socialLinks.length > 0 ? "100%" : "80%",
+                        }}
                       ></div>
                     </div>
                     <p className="text-sm text-white/90 mt-4">
