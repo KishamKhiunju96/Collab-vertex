@@ -273,22 +273,6 @@ export default function DashboardHeader() {
               {/* Profile Dropdown Menu */}
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-56 bg-white border border-border-subtle rounded-xl shadow-2xl z-50 overflow-hidden animate-scale-in">
-                  <div className="p-4 border-b border-border-subtle bg-gradient-to-r from-background-hero to-white">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary flex items-center justify-center text-white font-bold shadow-md">
-                        {user?.username?.charAt(0).toUpperCase() || "U"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-text-primary text-sm truncate">
-                          {user?.username || "User"}
-                        </p>
-                        <p className="text-xs text-text-muted truncate">
-                          {user?.email || "user@example.com"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="p-2">
                     <Link
                       href="/dashboard/influencerprofile"
