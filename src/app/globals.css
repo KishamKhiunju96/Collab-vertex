@@ -496,6 +496,40 @@ body {
 }
 
 /* ============================================
+   CHAT BUTTON (FAB) - Bottom Left
+============================================ */
+.chat-fab-button {
+    position: fixed;
+    bottom: 2rem;
+    left: calc(280px + 2rem); /* Sidebar width (280px) + offset */
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-base);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+}
+
+.chat-fab-button:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
+}
+
+.chat-fab-button:active {
+    transform: translateY(-2px) scale(1);
+}
+
+/* ============================================
    BRAND TABLE
 ============================================ */
 .brand-table-container {
@@ -1074,12 +1108,27 @@ body {
     }
 }
 
+/* Below lg breakpoint (1024px): sidebar is hidden on mobile/tablet */
+@media (max-width: 1023px) {
+    .chat-fab-button {
+        left: 2rem; /* No sidebar visible, position from left edge */
+    }
+}
+
 @media (max-width: 768px) {
     .fab-button {
         bottom: 1rem;
         right: 1rem;
         padding: 0.875rem 1.5rem;
         font-size: 0.9rem;
+    }
+
+    .chat-fab-button {
+        bottom: 1rem;
+        left: 1rem; /* Mobile: no sidebar, so reset to edge */
+        width: 50px;
+        height: 50px;
+        padding: 0.875rem;
     }
 
     .brand-table-container {
@@ -1174,6 +1223,14 @@ body {
         padding: 0.75rem 1rem;
         font-size: 0.875rem;
         border-radius: 2rem;
+    }
+
+    .chat-fab-button {
+        bottom: 1rem;
+        left: 1rem; /* Small mobile: no sidebar, so reset to edge */
+        width: 48px;
+        height: 48px;
+        padding: 0.75rem;
     }
 
     .brand-table-container {

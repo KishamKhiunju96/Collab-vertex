@@ -1,6 +1,6 @@
 import api from "@/api/axiosInstance";
 import { API_PATHS } from "@/api/apiPaths";
-import { ChatMessage, GetMessagesParams } from "@/chat/types";
+import { ChatMessage, GetMessagesParams, ChatConversation } from "@/chat/types";
 
 /**
  * Chat Service - REST API operations
@@ -42,12 +42,21 @@ export const chatService = {
 
   /**
    * Get all conversations/chat users
-   * Note: You may need to add this endpoint to your backend
+   * Returns list of users the current user has chatted with
+   * Note: This endpoint needs to be implemented on the backend
+   * The backend should return a list of all users the current user has exchanged messages with
    */
-  async getConversations(): Promise<never[]> {
-    // This would require a backend endpoint to get list of users
-    // the current user has chatted with
-    console.warn("getConversations endpoint not implemented in backend");
-    return [];
+  async getConversations(): Promise<ChatConversation[]> {
+    try {
+      const response = await api.get<ChatConversation[]>(
+        API_PATHS.CHAT.GET_CONVERSATIONS,
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+      // If the endpoint is not implemented, throw the error
+      // The frontend will handle this gracefully
+      throw error;
+    }
   },
 };

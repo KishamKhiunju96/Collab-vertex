@@ -1,6 +1,7 @@
 // src/components/applications/ApplicationsList.tsx
 "use client";
 
+import { useState } from "react";
 import ApplicationCard, { Application } from "./ApplicationCard";
 import { useEventApplications } from "@/features/events/hooks/useEventApplications";
 import { applicationService } from "@/features/applications/services/application.service";
@@ -14,6 +15,7 @@ type Props = {
 export default function ApplicationsList({ eventId }: Props) {
   const { applications, loading, error, refetch } =
     useEventApplications(eventId);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Map EventApplication to Application type
   const mapToApplicationCard = (app: EventApplication): Application => {
@@ -42,21 +44,69 @@ export default function ApplicationsList({ eventId }: Props) {
     applicationId: string,
     status: "accepted" | "rejected",
   ) => {
+    console.log("=== ApplicationsList.handleUpdateStatus called ===");
+    console.log("Application ID:", applicationId);
+    console.log("Status:", status);
+    console.log("Type of applicationId:", typeof applicationId);
+    console.log("Type of status:", typeof status);
+
+    if (!applicationId) {
+      console.error("Application ID is required");
+      alert("Error: Application ID is required");
+      return;
+    }
+
+    console.log("Setting updatingId to:", applicationId);
+    setUpdatingId(applicationId);
+
     try {
-      await applicationService.updateApplicationStatus(applicationId, {
-        status,
-      });
+      console.log("About to call applicationService.updateApplicationStatus");
+      console.log("Service:", applicationService);
+      console.log("Method:", applicationService.updateApplicationStatus);
+
+      const result = await applicationService.updateApplicationStatus(
+        applicationId,
+        {
+          status,
+        },
+      );
+      console.log("Update result:", result);
+      console.log("Update successful!");
 
       // Refetch applications after status update
       if (refetch) {
+        console.log("Refetching applications...");
         await refetch();
+        console.log("Refetch complete");
       } else {
-        window.location.reload(); // fallback
+        // Fallback: reload the page
+        console.log("No refetch function, reloading page...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     } catch (err) {
-      console.error("Failed to update status:", err);
+      console.error("=== ERROR in handleUpdateStatus ===");
+      console.error("Error type:", typeof err);
+      console.error("Error:", err);
+      console.error(
+        "Error stack:",
+        err instanceof Error ? err.stack : "No stack",
+      );
+      alert(
+        `Failed to update application status: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      // Error notification is already shown by the service
+    } finally {
+      setUpdatingId(null);
     }
   };
+
+  console.log("Applications state:", {
+    loading,
+    error,
+    applicationsCount: applications?.length,
+  });
 
   if (loading) {
     return (
@@ -96,13 +146,18 @@ export default function ApplicationsList({ eventId }: Props) {
         {applications.length === 1 ? "application" : "applications"}
       </p>
 
-      {applications.map((app) => (
-        <ApplicationCard
-          key={app.id}
-          application={mapToApplicationCard(app)}
-          onUpdateStatus={handleUpdateStatus}
-        />
-      ))}
+      {applications.map((app, index) => {
+
+        const mappedApp = mapToApplicationCard(app);
+        return (
+          <ApplicationCard
+            key={app.id || `app-${index}`}
+            application={mappedApp}
+            onUpdateStatus={handleUpdateStatus}
+            isUpdating={updatingId === app.id}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  User,
   Plus,
   TrendingUp,
   Target,
@@ -17,11 +16,34 @@ import {
 import DashboardHeader from "@/components/influencer/dashboard/DashboardHeader";
 import EventCards from "@/components/influencer/dashboard/EventCards";
 import { influencerService } from "@/api/services/influencerService";
+import FloatingChatButton from "@/chat/components/FloatingChatButton";
 
 export default function InfluencerDashboardPage() {
   const router = useRouter();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Mock chat contacts (replace with actual API call later)
+  const [chatContacts] = useState([
+    {
+      id: "brand-1",
+      username: "Nike Brand",
+      email: "nike@example.com",
+      role: "brand",
+      lastMessage: "We have an exciting campaign for you!",
+      unreadCount: 3,
+      isOnline: true,
+    },
+    {
+      id: "brand-2",
+      username: "Adidas Marketing",
+      email: "adidas@example.com",
+      role: "brand",
+      lastMessage: "Let's discuss collaboration details",
+      unreadCount: 0,
+      isOnline: false,
+    },
+  ]);
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -222,6 +244,17 @@ export default function InfluencerDashboardPage() {
         {/* Events Section */}
         <EventCards />
       </main>
+
+      {/* Floating Chat Button */}
+      <FloatingChatButton
+        contacts={chatContacts}
+        isLoading={false}
+        userRole="influencer"
+        unreadTotal={chatContacts.reduce(
+          (sum, contact) => sum + (contact.unreadCount || 0),
+          0,
+        )}
+      />
     </div>
   );
 }

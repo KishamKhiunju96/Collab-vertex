@@ -48,6 +48,12 @@ export default function BrandDashboardPage() {
     },
   ]);
 
+  // Debug: Log when component mounts
+  useEffect(() => {
+    console.log("BrandDashboardPage mounted");
+    console.log("Chat contacts:", chatContacts);
+  }, [chatContacts]);
+
   const {
     notifications,
     unreadCount,
@@ -154,263 +160,265 @@ export default function BrandDashboardPage() {
   }
 
   return (
-    <div className="dashboard-container p-4 lg:p-6 space-y-8">
-      {/* Header Section */}
-      <div className="dashboard-header">
-        <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-          <div className="flex-1 w-full lg:w-auto mt-12 lg:mt-0">
-            <h1 className="dashboard-title text-xl lg:text-2xl">
-              Hi {user.username}, Welcome to Collab Vertex
-            </h1>
-            <p className="dashboard-subtitle text-sm lg:text-base">
-              Manage your brands, collaborate with influencers, and track
-              performance.
-            </p>
-          </div>
+    <>
+      <div className="dashboard-container p-4 lg:p-6 space-y-8">
+        {/* Header Section */}
+        <div className="dashboard-header">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+            <div className="flex-1 w-full lg:w-auto mt-12 lg:mt-0">
+              <h1 className="dashboard-title text-xl lg:text-2xl">
+                Hi {user.username}, Welcome to Collab Vertex
+              </h1>
+              <p className="dashboard-subtitle text-sm lg:text-base">
+                Manage your brands, collaborate with influencers, and track
+                performance.
+              </p>
+            </div>
 
-          {/* Notifications Bell */}
-          <div className="relative lg:relative  top-4 right-4 lg:top-auto lg:right-auto">
-            <button
-              className="notification-bell"
-              onClick={() => setIsNotifOpen((prev) => !prev)}
-              aria-label="Notifications"
-            >
-              <Bell size={20} className="text-gray-700 lg:w-6 lg:h-6" />
-              {unreadCount > 0 && (
-                <span className="notification-badge">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification Dropdown */}
-            {isNotifOpen && (
-              <div className="notification-dropdown">
-                {notifications.length > 0 && (
-                  <div className="notification-header">
-                    <span className="notification-title">Notifications</span>
-                    <button
-                      onClick={handleMarkAllAsRead}
-                      className="notification-mark-all"
-                    >
-                      Mark all as read
-                    </button>
-                  </div>
+            {/* Notifications Bell */}
+            <div className="relative lg:relative  top-4 right-4 lg:top-auto lg:right-auto">
+              <button
+                className="notification-bell"
+                onClick={() => setIsNotifOpen((prev) => !prev)}
+                aria-label="Notifications"
+              >
+                <Bell size={20} className="text-gray-700 lg:w-6 lg:h-6" />
+                {unreadCount > 0 && (
+                  <span className="notification-badge">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
+              </button>
 
-                <div className="notification-list">
-                  {notifications.length === 0 && (
-                    <div className="notification-empty">
-                      <p>No notifications yet</p>
-                      <p className="text-xs mt-1">
-                        We&apos;ll notify you when something important happens
-                      </p>
+              {/* Notification Dropdown */}
+              {isNotifOpen && (
+                <div className="notification-dropdown">
+                  {notifications.length > 0 && (
+                    <div className="notification-header">
+                      <span className="notification-title">Notifications</span>
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="notification-mark-all"
+                      >
+                        Mark all as read
+                      </button>
                     </div>
                   )}
 
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`notification-item ${
-                        !notif.is_read ? "unread" : ""
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div
-                          className="flex-1 cursor-pointer"
-                          onClick={() => handleNotificationClick(notif)}
-                        >
-                          {notif.title && (
-                            <p className="notification-item-title">
-                              {notif.title}
-                            </p>
-                          )}
-
-                          <p className="notification-item-message">
-                            {notif.message}
-                          </p>
-
-                          <span className="notification-item-time">
-                            {new Date(notif.created_at).toLocaleString()}
-                          </span>
-
-                          {!notif.is_read && (
-                            <div className="notification-unread-indicator">
-                              <div className="notification-unread-dot"></div>
-                              <span className="notification-unread-text">
-                                New
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteNotification(notif.id);
-                          }}
-                          className="notification-delete-btn"
-                          title="Delete notification"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                  <div className="notification-list">
+                    {notifications.length === 0 && (
+                      <div className="notification-empty">
+                        <p>No notifications yet</p>
+                        <p className="text-xs mt-1">
+                          We&apos;ll notify you when something important happens
+                        </p>
                       </div>
-                    </div>
-                  ))}
+                    )}
+
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`notification-item ${
+                          !notif.is_read ? "unread" : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div
+                            className="flex-1 cursor-pointer"
+                            onClick={() => handleNotificationClick(notif)}
+                          >
+                            {notif.title && (
+                              <p className="notification-item-title">
+                                {notif.title}
+                              </p>
+                            )}
+
+                            <p className="notification-item-message">
+                              {notif.message}
+                            </p>
+
+                            <span className="notification-item-time">
+                              {new Date(notif.created_at).toLocaleString()}
+                            </span>
+
+                            {!notif.is_read && (
+                              <div className="notification-unread-indicator">
+                                <div className="notification-unread-dot"></div>
+                                <span className="notification-unread-text">
+                                  New
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNotification(notif.id);
+                            }}
+                            className="notification-delete-btn"
+                            title="Delete notification"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Influencer Search Section */}
-      <InfluencerSearchBox />
+        {/* Influencer Search Section */}
+        <InfluencerSearchBox />
 
-      {/* Empty State */}
-      {!loading && brands.length === 0 && (
-        <div className="empty-state">
-          <div className="empty-state-icon ">
-            <svg
-              viewBox="0 0 200 200"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="100"
-                cy="100"
-                r="80"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="8 8"
-              />
-              <rect
-                x="70"
-                y="80"
-                width="60"
-                height="40"
-                rx="4"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <line
-                x1="100"
-                y1="120"
-                x2="100"
-                y2="140"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <line
-                x1="85"
-                y1="140"
-                x2="115"
-                y2="140"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
+        {/* Empty State */}
+        {!loading && brands.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state-icon ">
+              <svg
+                viewBox="0 0 200 200"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray="8 8"
+                />
+                <rect
+                  x="70"
+                  y="80"
+                  width="60"
+                  height="40"
+                  rx="4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <line
+                  x1="100"
+                  y1="120"
+                  x2="100"
+                  y2="140"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <line
+                  x1="85"
+                  y1="140"
+                  x2="115"
+                  y2="140"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
+            <h3 className="empty-state-title">No Brand Profile Found</h3>
+            <p className="empty-state-description">
+              Click the <strong>Create Brand</strong> button below to get
+              started and begin your collaboration journey.
+            </p>
           </div>
-          <h3 className="empty-state-title">No Brand Profile Found</h3>
-          <p className="empty-state-description">
-            Click the <strong>Create Brand</strong> button below to get started
-            and begin your collaboration journey.
-          </p>
-        </div>
-      )}
+        )}
 
-      {/* Brand Table */}
-      {brands.length > 0 && (
-        <div className="brand-table-container">
-          <table className="brand-table">
-            <thead>
-              <tr>
-                <th>Brand Name</th>
-                <th>Location</th>
-                <th>Website</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {brands.map((brand) => (
-                <tr key={brand.id}>
-                  <td>
-                    <Link
-                      href={`/dashboard/brand/${brand.id}`}
-                      className="brand-table-link"
-                    >
-                      {brand.name}
-                    </Link>
-                  </td>
-                  <td>{brand.location || "—"}</td>
-                  <td>{brand.websiteUrl || "—"}</td>
-                  <td>
-                    <div className="brand-table-actions">
+        {/* Brand Table */}
+        {brands.length > 0 && (
+          <div className="brand-table-container">
+            <table className="brand-table">
+              <thead>
+                <tr>
+                  <th>Brand Name</th>
+                  <th>Location</th>
+                  <th>Website</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {brands.map((brand) => (
+                  <tr key={brand.id}>
+                    <td>
                       <Link
                         href={`/dashboard/brand/${brand.id}`}
-                        className="brand-table-action-btn"
-                        title="View Brand"
+                        className="brand-table-link"
                       >
-                        <Eye size={18} />
+                        {brand.name}
                       </Link>
-                      <Link
-                        href={`/dashboard/brand/${brand.id}/edit`}
-                        className="brand-table-action-btn"
-                        title="Edit Brand"
-                      >
-                        <Pencil size={18} />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(brand.id)}
-                        className="brand-table-action-btn delete"
-                        title="Delete Brand"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    </td>
+                    <td>{brand.location || "—"}</td>
+                    <td>{brand.websiteUrl || "—"}</td>
+                    <td>
+                      <div className="brand-table-actions">
+                        <Link
+                          href={`/dashboard/brand/${brand.id}`}
+                          className="brand-table-action-btn"
+                          title="View Brand"
+                        >
+                          <Eye size={18} />
+                        </Link>
+                        <Link
+                          href={`/dashboard/brand/${brand.id}/edit`}
+                          className="brand-table-action-btn"
+                          title="Edit Brand"
+                        >
+                          <Pencil size={18} />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(brand.id)}
+                          className="brand-table-action-btn delete"
+                          title="Delete Brand"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {/* Analytics & Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        <div className="lg:col-span-2">
-          <AnalyticsChart />
+        {/* Analytics & Activity Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="lg:col-span-2">
+            <AnalyticsChart />
+          </div>
+          <div className="lg:block">
+            <ActivityFeed activities={brandActivities} />
+          </div>
         </div>
-        <div className="lg:block">
-          <ActivityFeed activities={brandActivities} />
-        </div>
+
+        {/* Create Brand Modal */}
+        <Modal
+          open={isCreateOpen}
+          title="Create New Brand"
+          size="lg"
+          onClose={() => setIsCreateOpen(false)}
+        >
+          <CreateBrandForm
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setIsCreateOpen(false)}
+          />
+        </Modal>
+
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="fab-button text-sm lg:text-base px-4 lg:px-8 py-3"
+          aria-label="Create New Brand"
+        >
+          <Plus size={18} className="lg:w-5 lg:h-5" />
+          <span className="hidden sm:inline">Create Brand</span>
+          <span className="sm:hidden">+</span>
+        </button>
       </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setIsCreateOpen(true)}
-        className="fab-button text-sm lg:text-base px-4 lg:px-8 py-3"
-        aria-label="Create New Brand"
-      >
-        <Plus size={18} className="lg:w-5 lg:h-5" />
-        <span className="hidden sm:inline">Create Brand</span>
-        <span className="sm:hidden">+</span>
-      </button>
-
-      {/* Create Brand Modal */}
-      <Modal
-        open={isCreateOpen}
-        title="Create New Brand"
-        size="lg"
-        onClose={() => setIsCreateOpen(false)}
-      >
-        <CreateBrandForm
-          onSuccess={handleCreateSuccess}
-          onCancel={() => setIsCreateOpen(false)}
-        />
-      </Modal>
-
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - Outside Container for Maximum Visibility */}
       <FloatingChatButton
         contacts={chatContacts}
         isLoading={false}
@@ -420,6 +428,6 @@ export default function BrandDashboardPage() {
           0,
         )}
       />
-    </div>
+    </>
   );
 }

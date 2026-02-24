@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Users,
   Megaphone,
-  BarChart3,
   Settings,
   Calendar,
   Link as LinkIcon,
@@ -58,12 +57,6 @@ export const navConfig: Record<UserRole, NavItem[]> = {
       category: "Communication",
     },
     {
-      href: "/dashboard/brand/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      category: "Insights",
-    },
-    {
       href: "/dashboard/brand/settings",
       label: "Settings",
       icon: Settings,
@@ -107,12 +100,6 @@ export const navConfig: Record<UserRole, NavItem[]> = {
       label: "Social Links",
       icon: LinkIcon,
       category: "Profile",
-    },
-    {
-      href: "/dashboard/influencer/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      category: "Insights",
     },
     {
       href: "/dashboard/influencer/settings",

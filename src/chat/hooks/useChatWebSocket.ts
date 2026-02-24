@@ -166,13 +166,6 @@ export function useChatWebSocket({
       return;
     }
 
-    // Handle disabled WebSocket in development
-    if (disableWebSocket) {
-      console.log("Demo mode: Message would be sent:", content);
-      notify.info("Chat is in demo mode. Connect to backend to send messages.");
-      return;
-    }
-
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       console.error("WebSocket is not connected");
       notify.error("Chat is not connected. Please wait...");

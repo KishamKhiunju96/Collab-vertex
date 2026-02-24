@@ -26,6 +26,8 @@ export const API_PATHS = {
     GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
     GET_ALL_EVENTS: (influencerId: string) =>
       `/event/all_events/${influencerId}`,
+    GET_NON_APPLY_EVENTS: (influencerId: string) =>
+      `/event/fuck_events/${influencerId}`,
     GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
     UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
     DELETE: (eventId: string) => `/event/delete_event/${eventId}`,
@@ -71,8 +73,9 @@ export const API_PATHS = {
 
   CHAT: {
     // WebSocket endpoint for real-time chat
-    WEBSOCKET: (otherUserId: string) => `/ws/chat/${otherUserId}`,
+    WEBSOCKET: (otherUserId: string) => `/chat/ws/chat/${otherUserId}`,
     // REST endpoint to get chat history
-    GET_MESSAGES: (otherUserId: string) => `/get_messages/${otherUserId}`,
+    GET_MESSAGES: (otherUserId: string) => `/chat/get_messages/${otherUserId}`,
+    // REST endpoint to get all conversations
   },
 } as const;

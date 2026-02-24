@@ -126,7 +126,7 @@ export default function FloatingChatButton({
   return (
     <>
       {/* Open Chat Windows */}
-      <div className="fixed bottom-0 right-24 flex items-end gap-2 z-40">
+      <div className="fixed bottom-0 right-4 lg:right-8 flex items-end gap-2 z-[9998]">
         {openChats.map((chat) => (
           <ChatWindow
             key={chat.contact.id}
@@ -140,7 +140,7 @@ export default function FloatingChatButton({
 
       {/* Contacts Card - Facebook Style */}
       {isContactsOpen && !isContactsMinimized && (
-        <div className="fixed bottom-0 right-6 w-80 bg-white rounded-t-lg shadow-2xl z-50 flex flex-col max-h-[500px] border border-gray-200">
+        <div className="fixed bottom-0 right-4 lg:right-8 w-80 bg-white rounded-t-lg shadow-2xl z-[9998] flex flex-col max-h-[500px] border border-gray-200">
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-lg">
             <h3 className="font-semibold text-white flex items-center gap-2">
@@ -252,7 +252,7 @@ export default function FloatingChatButton({
       {isContactsMinimized && (
         <div
           onClick={handleToggleContacts}
-          className="fixed bottom-0 right-6 w-60 bg-white rounded-t-lg shadow-lg z-50 cursor-pointer hover:bg-gray-50 transition-colors border-t border-x border-gray-200"
+          className="fixed bottom-0 right-4 lg:right-8 w-60 bg-white rounded-t-lg shadow-lg z-[9998] cursor-pointer hover:bg-gray-50 transition-colors border-t border-x border-gray-200"
         >
           <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-lg">
             <span className="font-semibold text-white text-sm flex items-center gap-2">
@@ -277,17 +277,18 @@ export default function FloatingChatButton({
         </div>
       )}
 
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - Bottom Left */}
       <button
         onClick={handleToggleContacts}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center z-30"
+        className="chat-fab-button"
         aria-label="Open chat"
+        title="Messages"
       >
         <MessageCircle size={24} />
 
         {/* Unread Badge */}
         {unreadTotal > 0 && !isContactsOpen && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white">
+          <span className="absolute -top-1 -right-1 px-2 py-0.5 min-w-[20px] h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white">
             {unreadTotal > 9 ? "9+" : unreadTotal}
           </span>
         )}

@@ -42,11 +42,13 @@ type Props = {
     applicationId: string,
     status: "accepted" | "rejected",
   ) => void;
+  isUpdating?: boolean;
 };
 
 export default function ApplicationCard({
   application,
   onUpdateStatus,
+  isUpdating = false,
 }: Props) {
   const router = useRouter();
   const influencer = application.influencer;
@@ -105,11 +107,37 @@ export default function ApplicationCard({
   const StatusIcon = statusConfig.icon;
 
   const handleStatusUpdate = async (status: "accepted" | "rejected") => {
+    console.log("=== handleStatusUpdate called ===");
+    console.log("Status:", status);
+    console.log("Application:", application);
+    console.log("Application ID:", application.id);
+    console.log("onUpdateStatus function:", typeof onUpdateStatus);
+
+    if (!application.id) {
+      console.error("Application ID is missing");
+      alert("Error: Application ID is missing");
+      return;
+    }
+
+    if (typeof onUpdateStatus !== "function") {
+      console.error("onUpdateStatus is not a function!");
+      alert("Error: onUpdateStatus is not a function");
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      await onUpdateStatus(application.id ?? "", status);
+      console.log("Calling onUpdateStatus with:", application.id, status);
+      await onUpdateStatus(application.id, status);
+      console.log("onUpdateStatus completed successfully");
+    } catch (error) {
+      console.error("Error in handleStatusUpdate:", error);
+      alert(
+        `Error updating status: ${error instanceof Error ? error.message : String(error)}`,
+      );
     } finally {
       setIsProcessing(false);
+      console.log("=== handleStatusUpdate finished ===");
     }
   };
 
@@ -171,28 +199,53 @@ export default function ApplicationCard({
             {application.status === "pending" && (
               <>
                 <button
-                  onClick={() => handleStatusUpdate("accepted")}
-                  disabled={isProcessing}
+                  onClick={() => {
+                    console.log("=== ACCEPT BUTTON CLICKED ===");
+                    handleStatusUpdate("accepted");
+                  }}
+                  disabled={isProcessing || isUpdating}
                   className="flex items-center justify-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-900  text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                 >
-                  <Check className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                  <span>Accept</span>
+                  {isProcessing || isUpdating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                      <span>Accept</span>
+                    </>
+                  )}
                 </button>
 
                 <button
-                  onClick={() => handleStatusUpdate("rejected")}
-                  disabled={isProcessing}
+                  onClick={() => {
+                    console.log("=== REJECT BUTTON CLICKED ===");
+                    handleStatusUpdate("rejected");
+                  }}
+                  disabled={isProcessing || isUpdating}
                   className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-900   text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                 >
-                  <X className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                  <span>Reject</span>
+                  {isProcessing || isUpdating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                      <span>Reject</span>
+                    </>
+                  )}
                 </button>
               </>
             )}
 
             <button
               onClick={handleViewProfile}
-              className="flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-900 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group/view"
+              disabled={isProcessing || isUpdating}
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-900 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/view"
             >
               <span>View Profile</span>
             </button>
@@ -200,83 +253,101 @@ export default function ApplicationCard({
         </div>
 
         {/* Influencer Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Niche */}
-          {influencer.niche && (
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">
-                    Niche
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 line-clamp-1">
-                    {influencer.niche}
-                  </p>
+        {(influencer.niche ||
+          influencer.location ||
+          influencer.audience_size !== undefined ||
+          influencer.engagement_rate !== undefined) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Niche */}
+            {influencer.niche && (
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">
+                      Niche
+                    </p>
+                    <p className="text-sm font-bold text-gray-900 line-clamp-1">
+                      {influencer.niche}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Location */}
-          {influencer.location && (
-            <div className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">
-                    Location
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 line-clamp-1">
-                    {influencer.location}
-                  </p>
+            {/* Location */}
+            {influencer.location && (
+              <div className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">
+                      Location
+                    </p>
+                    <p className="text-sm font-bold text-gray-900 line-clamp-1">
+                      {influencer.location}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Audience Size */}
-          {influencer.audience_size !== undefined && (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">
-                    Audience
-                  </p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {formatNumber(influencer.audience_size)}
-                  </p>
+            {/* Audience Size */}
+            {influencer.audience_size !== undefined && (
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">
+                      Audience
+                    </p>
+                    <p className="text-sm font-bold text-gray-900">
+                      {formatNumber(influencer.audience_size)}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Engagement Rate */}
-          {influencer.engagement_rate !== undefined && (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">
-                    Engagement
-                  </p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {influencer.engagement_rate}%
-                  </p>
+            {/* Engagement Rate */}
+            {influencer.engagement_rate !== undefined && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">
+                      Engagement
+                    </p>
+                    <p className="text-sm font-bold text-gray-900">
+                      {influencer.engagement_rate}%
+                    </p>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Info message when no stats available */}
+        {!influencer.niche &&
+          !influencer.location &&
+          influencer.audience_size === undefined &&
+          influencer.engagement_rate === undefined && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p className="text-sm text-blue-700">
+                <strong>Note:</strong> Influencer profile details are not yet
+                available. The applicant may not have completed their profile.
+              </p>
             </div>
           )}
-        </div>
 
         {/* Contact Information */}
         {influencer.email && (

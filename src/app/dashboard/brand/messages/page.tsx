@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAuthProtection } from "@/api/hooks/useAuth";
 import { Search, MessageCircle, User, X } from "lucide-react";
 import ChatRoom from "@/chat/components/ChatRoom";
+import { useConversations } from "@/chat/hooks/useConversations";
 
 interface ChatContact {
   id: string;
@@ -23,59 +24,24 @@ export default function BrandMessagesPage() {
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Mock chat contacts (replace with actual API call later)
-  const [chatContacts] = useState<ChatContact[]>([
-    {
-      id: "influencer-1",
-      username: "Sarah Johnson",
-      email: "sarah@example.com",
-      role: "influencer",
-      lastMessage: "Thanks for the opportunity! I'm excited to work with you.",
-      unreadCount: 2,
-      isOnline: true,
-      lastMessageTime: "2 min ago",
-    },
-    {
-      id: "influencer-2",
-      username: "Michael Chen",
-      email: "michael@example.com",
-      role: "influencer",
-      lastMessage: "I've reviewed the campaign details. When can we start?",
-      unreadCount: 0,
-      isOnline: true,
-      lastMessageTime: "1 hour ago",
-    },
-    {
-      id: "influencer-3",
-      username: "Emily Rodriguez",
-      email: "emily@example.com",
-      role: "influencer",
-      lastMessage: "Can we schedule a call to discuss the collaboration?",
-      unreadCount: 5,
-      isOnline: false,
-      lastMessageTime: "3 hours ago",
-    },
-    {
-      id: "influencer-4",
-      username: "David Kim",
-      email: "david@example.com",
-      role: "influencer",
-      lastMessage: "The content is ready for review!",
-      unreadCount: 0,
-      isOnline: false,
-      lastMessageTime: "Yesterday",
-    },
-    {
-      id: "influencer-5",
-      username: "Jessica Williams",
-      email: "jessica@example.com",
-      role: "influencer",
-      lastMessage: "Looking forward to our partnership!",
-      unreadCount: 1,
-      isOnline: true,
-      lastMessageTime: "2 days ago",
-    },
-  ]);
+  // Fetch conversations from API
+  const { conversations, isLoading: conversationsLoading } = useConversations();
+
+  // Convert ChatConversation to ChatContact format
+  const chatContacts: ChatContact[] = useMemo(() => {
+    return conversations.map((conv) => ({
+      id: conv.user.id,
+      username: conv.user.username,
+      email: conv.user.email,
+      role: conv.user.role,
+      lastMessage: conv.lastMessage?.content,
+      unreadCount: conv.unreadCount,
+      isOnline: false, // You can add online status via WebSocket presence if backend supports it
+      lastMessageTime: conv.lastMessage
+        ? formatLastMessageTime(conv.lastMessage.sent_at)
+        : undefined,
+    }));
+  }, [conversations]);
 
   const filteredContacts = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -90,6 +56,27 @@ export default function BrandMessagesPage() {
         contact.lastMessage?.toLowerCase().includes(query),
     );
   }, [searchQuery, chatContacts]);
+
+  const formatLastMessageTime = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -119,7 +106,7 @@ export default function BrandMessagesPage() {
   );
 
   // Loading state
-  if (loading) {
+  if (loading || conversationsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -158,7 +145,10 @@ export default function BrandMessagesPage() {
 
       {/* Main Content */}
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ height: "calc(100vh - 200px)" }}>
+        <div
+          className="bg-white rounded-lg shadow-lg overflow-hidden"
+          style={{ height: "calc(100vh - 200px)" }}
+        >
           <div className="grid grid-cols-12 h-full">
             {/* Contacts Sidebar */}
             <div className="col-span-12 md:col-span-4 lg:col-span-3 border-r border-gray-200 flex flex-col">
@@ -181,7 +171,14 @@ export default function BrandMessagesPage() {
 
               {/* Contacts List */}
               <div className="flex-1 overflow-y-auto">
-                {filteredContacts.length === 0 ? (
+                {conversationsLoading && chatContacts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
+                    <p className="text-gray-500 font-medium">
+                      Loading conversations...
+                    </p>
+                  </div>
+                ) : filteredContacts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                     <User size={48} className="text-gray-300 mb-3" />
                     <p className="text-gray-500 font-medium">
