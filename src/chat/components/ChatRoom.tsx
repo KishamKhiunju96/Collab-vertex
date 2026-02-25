@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/chat/hooks/useChat";
 import { ChatMessage } from "@/chat/types";
-import { Send, Loader2, WifiOff, RefreshCw } from "lucide-react";
+import { Send, Loader2, WifiOff, RefreshCw, Plus, Image as ImageIcon, Mic, Smile, ThumbsUp } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
 
 interface ChatRoomProps {
@@ -21,6 +21,14 @@ export default function ChatRoom({
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  console.log("=== Current User Info ===");
+  console.log("User ID:", user?.id);
+  console.log("Username:", user?.username);
+  console.log("Email:", user?.email);
+  console.log("Role:", user?.role);
+  console.log("Full user object:", user);
+  console.log("========================");
 
   const {
     messages,
@@ -47,6 +55,18 @@ export default function ChatRoom({
     messages,
     error 
   });
+
+  // Helper function for initials
+  const getInitials = (name: string) => {
+    if (!name || typeof name !== "string") return "?";
+    return name
+      .split(" ")
+      .filter((n) => n.length > 0)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "?";
+  };
 
   // Auto-scroll to bottom on new messages
   const scrollToBottom = () => {
@@ -81,7 +101,12 @@ export default function ChatRoom({
   };
 
   const formatTime = (timestamp: string) => {
+    if (!timestamp) return "";
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      console.error("Invalid timestamp for formatTime:", timestamp);
+      return "";
+    }
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -89,7 +114,12 @@ export default function ChatRoom({
   };
 
   const formatDate = (timestamp: string) => {
+    if (!timestamp) return "";
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      console.error("Invalid timestamp for formatDate:", timestamp);
+      return "";
+    }
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -108,7 +138,26 @@ export default function ChatRoom({
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
-    const isSentByMe = message.sender_id === user?.id;
+    // Check if message was sent by current user
+    // Method 1: Direct ID match (most reliable)
+    const directMatch = message.sender_id === user?.id;
+    
+    // Method 2: If sender is not the other user, it must be me (fallback)
+    const isNotOtherUser = message.sender_id !== otherUserId;
+    
+    // Use direct match first, fallback to checking if not other user
+    const isSentByMe = directMatch || (!directMatch && isNotOtherUser);
+    
+    console.log("=== Message Render Debug ===");
+    console.log("Message Sender ID:", message.sender_id);
+    console.log("Current User ID:", user?.id);
+    console.log("Other User ID:", otherUserId);
+    console.log("Direct Match:", directMatch);
+    console.log("Is Not Other User:", isNotOtherUser);
+    console.log("Final isSentByMe:", isSentByMe);
+    console.log("Content:", message.content?.substring(0, 30));
+    console.log("===========================");
+    
     const showDateSeparator =
       index === 0 ||
       formatDate(message.sent_at) !== formatDate(safeMessages[index - 1]?.sent_at);
@@ -117,8 +166,8 @@ export default function ChatRoom({
       <div key={message.id}>
         {/* Date Separator */}
         {showDateSeparator && (
-          <div className="flex items-center justify-center my-4">
-            <div className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
+          <div className="flex items-center justify-center my-6">
+            <div className="bg-gray-200 text-gray-700 text-xs px-4 py-1.5 rounded-full font-medium shadow-sm">
               {formatDate(message.sent_at)}
             </div>
           </div>
@@ -126,104 +175,82 @@ export default function ChatRoom({
 
         {/* Message Bubble */}
         <div
-          className={`flex mb-4 ${isSentByMe ? "justify-end" : "justify-start"}`}
+          className={`flex mb-1.5 px-6 group ${isSentByMe ? "justify-end" : "justify-start"}`}
         >
           <div
             className={`max-w-[70%] ${
               isSentByMe
-                ? "bg-blue-600 text-white rounded-l-2xl rounded-br-2xl"
-                : "bg-gray-200 text-gray-900 rounded-r-2xl rounded-bl-2xl"
-            } px-4 py-2 shadow-md`}
+                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-3xl rounded-br-md shadow-md hover:shadow-lg"
+                : "bg-white border border-gray-200 text-gray-900 rounded-3xl rounded-bl-md shadow-sm hover:shadow-md"
+            } px-4 py-3 transition-shadow duration-200`}
           >
-            <p className="text-sm leading-relaxed break-words">
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
               {message.content}
             </p>
-            <div
-              className={`flex items-center justify-end gap-1 mt-1 text-xs ${
-                isSentByMe ? "text-blue-100" : "text-gray-500"
-              }`}
-            >
-              <span>{formatTime(message.sent_at)}</span>
-              {isSentByMe && (
-                <span>
-                  {message.is_read ? (
-                    <span className="text-blue-200">✓✓</span>
-                  ) : message.is_delivered ? (
-                    <span className="text-blue-300">✓✓</span>
-                  ) : (
-                    <span className="text-blue-400">✓</span>
-                  )}
-                </span>
-              )}
-            </div>
           </div>
         </div>
+        
+        {/* Time stamp (shown on last message or after date separator) */}
+        {(index === safeMessages.length - 1 || showDateSeparator) && (
+          <div
+            className={`flex mb-4 px-6 ${isSentByMe ? "justify-end" : "justify-start"}`}
+          >
+            <span className="text-xs text-gray-500 mt-0.5 font-medium">
+              {formatTime(message.sent_at)}
+            </span>
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 shadow-md">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">{otherUserName}</h2>
-            <div className="flex items-center gap-2 text-sm">
-              {isConnected ? (
-                <>
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-blue-100">Connected</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff size={14} />
-                  <span className="text-red-200">Disconnected</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {!isConnected && (
-            <button
-              onClick={reconnect}
-              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm"
-            >
-              <RefreshCw size={16} />
-              Reconnect
-            </button>
-          )}
+    <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-white">
+      {/* Connection Status Banner */}
+      {!isConnected && (
+        <div className="bg-amber-50 px-4 py-2.5 border-b border-amber-200 flex items-center gap-2 animate-pulse">
+          <WifiOff size={16} className="text-amber-700" />
+          <p className="text-amber-800 text-sm font-medium">Connecting to chat server...</p>
         </div>
-      </div>
+      )}
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border-b border-red-200 px-6 py-3">
-          <p className="text-red-700 text-sm">{error}</p>
+        <div className="bg-red-50 px-4 py-2.5 border-b border-red-200 flex items-center justify-between">
+          <p className="text-red-700 text-sm font-medium">{error}</p>
+          <button
+            onClick={reconnect}
+            className="text-red-700 hover:text-red-800 text-xs font-semibold flex items-center gap-1"
+          >
+            <RefreshCw size={14} />
+            Retry
+          </button>
         </div>
       )}
 
       {/* Messages Container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-6 py-4 bg-gray-50"
+        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
         style={{ scrollBehavior: "smooth" }}
       >
         {/* Load More Button */}
         {hasMore && (
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center py-4">
             <button
               onClick={handleLoadMore}
               disabled={isLoading}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 
+                rounded-full text-xs font-semibold transition-all duration-200 shadow-sm hover:shadow-md
+                disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
             >
               {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="animate-spin" size={16} />
-                  Loading...
-                </span>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="animate-spin" size={14} />
+                  <span>Loading messages...</span>
+                </div>
               ) : (
-                "Load older messages"
+                "Load earlier messages"
               )}
             </button>
           </div>
@@ -231,46 +258,83 @@ export default function ChatRoom({
 
         {/* Messages */}
         {safeMessages.length === 0 && !isLoading ? (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            <div className="text-center">
-              <p className="text-lg font-medium mb-2">No messages yet</p>
-              <p className="text-sm">Start a conversation!</p>
+          <div className="flex items-center justify-center h-full text-gray-400 px-4">
+            <div className="text-center max-w-sm">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
+                flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                {getInitials(otherUserName)}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{otherUserName}</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                You're now connected on Messenger
+              </p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Start the conversation with a friendly message. This is the beginning of your chat history.
+              </p>
             </div>
           </div>
         ) : (
-          <div>{safeMessages.map((msg, idx) => renderMessage(msg, idx))}</div>
+          <div className="py-6">{safeMessages.map((msg, idx) => renderMessage(msg, idx))}</div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white px-6 py-4">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+      <div className="border-t border-gray-200 bg-white px-4 py-3.5 shadow-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          {/* Action buttons */}
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+              title="Add attachment"
+            >
+              <Plus size={20} />
+            </button>
+            <button
+              type="button"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+              title="Attach image"
+            >
+              <ImageIcon size={20} />
+            </button>
+          </div>
+
+          {/* Input field */}
           <input
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder={
-              isConnected ? "Type a message..." : "Connecting to chat..."
-            }
+            placeholder={isConnected ? "Type a message..." : "Connecting..."}
             disabled={!isConnected}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-gray-100 border-none rounded-full 
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white
+              disabled:cursor-not-allowed text-sm placeholder:text-gray-500 transition-all duration-200"
           />
-          <button
-            type="submit"
-            disabled={!isConnected || !inputMessage.trim()}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center gap-2 font-medium"
-          >
-            <Send size={18} />
-            <span className="hidden sm:inline">Send</span>
-          </button>
-        </form>
 
-        {/* Typing Indicator (optional - requires backend support) */}
-        {/* <div className="mt-2 text-xs text-gray-500 h-4">
-          <span>typing...</span>
-        </div> */}
+          {/* Send button or like */}
+          {inputMessage.trim() ? (
+            <button
+              type="submit"
+              disabled={!isConnected || !inputMessage.trim()}
+              className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 
+                hover:to-purple-700 rounded-full transition-all duration-200 disabled:opacity-50 
+                disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105"
+              title="Send message"
+            >
+              <Send size={18} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+              title="Send emoji"
+            >
+              <Smile size={20} />
+            </button>
+          )}
+        </form>
       </div>
     </div>
   );

@@ -97,11 +97,24 @@ export function useChatWebSocket({
       ws.onmessage = (event) => {
         try {
           const message: ChatMessage = JSON.parse(event.data);
-          console.log("WebSocket message received:", { message, type: typeof message });
+          console.log("=== WebSocket Message Received ===");
+          console.log("Full message:", message);
+          console.log("Sender ID:", message.sender_id);
+          console.log("Receiver ID:", message.receiver_id);
+          console.log("Content:", message.content);
+          console.log("Timestamp:", message.sent_at);
+          console.log("Timestamp type:", typeof message.sent_at);
+          console.log("==================================");
 
           // Validate message object
           if (!message || typeof message !== 'object') {
             console.error("Invalid message format received:", message);
+            return;
+          }
+
+          // Validate required fields
+          if (!message.sender_id || !message.receiver_id || !message.content) {
+            console.error(" Missing required fields in message:", message);
             return;
           }
 
