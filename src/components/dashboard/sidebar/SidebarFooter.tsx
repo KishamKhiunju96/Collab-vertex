@@ -31,12 +31,13 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
   };
 
   const getInitials = (name?: string) => {
-    if (!name) return "CV";
-    const parts = name.split(" ");
+    if (!name || typeof name !== "string") return "CV";
+    
+    const parts = name.split(" ").filter((n) => n.length > 0);
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    return parts.length > 0 ? parts[0].substring(0, 2).toUpperCase() : "CV";
   };
 
   return (

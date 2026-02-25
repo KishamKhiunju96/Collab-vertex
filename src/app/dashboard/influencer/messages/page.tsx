@@ -28,9 +28,11 @@ export default function InfluencerMessagesPage() {
   const { conversations, isLoading: conversationsLoading } = useConversations();
 
   // Convert ChatConversation to ChatContact format
+  // NOTE: conv.user.id is already the user_id (not profile id) from the backend
   const chatContacts: ChatContact[] = useMemo(() => {
-    return conversations.map((conv) => ({
-      id: conv.user.id,
+    console.log("Influencer Messages - Raw conversations:", conversations);
+    const contacts = conversations.map((conv) => ({
+      id: conv.user.id, // ✅ This is user_id, safe for WebSocket
       username: conv.user.username,
       email: conv.user.email,
       role: conv.user.role,
@@ -41,6 +43,8 @@ export default function InfluencerMessagesPage() {
         ? formatLastMessageTime(conv.lastMessage.sent_at)
         : undefined,
     }));
+    console.log("Influencer Messages - Converted contacts:", contacts);
+    return contacts;
   }, [conversations]);
 
   const filteredContacts = useMemo(() => {
@@ -79,12 +83,15 @@ export default function InfluencerMessagesPage() {
   };
 
   const getInitials = (name: string) => {
+    if (!name || typeof name !== "string") return "??";
+    
     return name
       .split(" ")
+      .filter((n) => n.length > 0) // Filter out empty strings
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || "??"; // Fallback if result is empty
   };
 
   const getRoleColor = (role?: string) => {
@@ -195,7 +202,10 @@ export default function InfluencerMessagesPage() {
                     {filteredContacts.map((contact) => (
                       <button
                         key={contact.id}
-                        onClick={() => setSelectedContact(contact)}
+                        onClick={() => {
+                          console.log("Contact selected:", contact);
+                          setSelectedContact(contact);
+                        }}
                         className={`w-full p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors ${
                           selectedContact?.id === contact.id
                             ? "bg-purple-50 border-l-4 border-purple-600"
@@ -296,7 +306,7 @@ export default function InfluencerMessagesPage() {
                   {/* Chat Room */}
                   <div className="flex-1 overflow-hidden">
                     <ChatRoom
-                      otherUserId={selectedContact.id}
+                      otherUserId={selectedContact.id} // ✅ CORRECT: This is user_id for WebSocket
                       otherUserName={selectedContact.username}
                     />
                   </div>

@@ -31,6 +31,8 @@ export function useChat({
   otherUserId,
   enabled = true,
 }: UseChatProps): UseChatReturn {
+  console.log("useChat initialized:", { otherUserId, enabled });
+  
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -46,16 +48,20 @@ export function useChat({
     error: wsError,
     reconnect,
   } = useChatWebSocket({
-    otherUserId: enabled ? otherUserId : "",
+    otherUserId: enabled && otherUserId ? otherUserId : "",
     onMessageReceived: (message) => {
+      console.log("useChat - Message received via WebSocket:", message);
       // Add received message to the list if not already present
       setAllMessages((prev) => {
-        const exists = prev.some((msg) => msg.id === message.id);
-        if (exists) return prev;
-        return [...prev, message];
+        // Ensure prev is an array
+        const safePrev = Array.isArray(prev) ? prev : [];
+        const exists = safePrev.some((msg) => msg.id === message.id);
+        if (exists) return safePrev;
+        return [...safePrev, message];
       });
     },
     onConnectionChange: (connected) => {
+      console.log("useChat - WebSocket connection changed:", connected);
       if (connected && !hasFetchedInitial.current) {
         // Load initial messages when connected
         loadInitialMessages();
@@ -76,9 +82,13 @@ export function useChat({
         offset: 0,
       });
 
-      setAllMessages(messages);
-      setOffset(messages.length);
-      setHasMore(messages.length === limit);
+      // Ensure messages is an array
+      const safeMessages = Array.isArray(messages) ? messages : [];
+      console.log("Loaded initial messages:", { count: safeMessages.length, isArray: Array.isArray(messages), raw: messages });
+      
+      setAllMessages(safeMessages);
+      setOffset(safeMessages.length);
+      setHasMore(safeMessages.length === limit);
       hasFetchedInitial.current = true;
     } catch (error) {
       console.error("Failed to load initial messages:", error);
@@ -101,11 +111,17 @@ export function useChat({
         offset,
       });
 
-      if (messages.length > 0) {
+      // Ensure messages is an array
+      const safeMessages = Array.isArray(messages) ? messages : [];
+      
+      if (safeMessages.length > 0) {
         // Prepend older messages
-        setAllMessages((prev) => [...messages, ...prev]);
-        setOffset((prev) => prev + messages.length);
-        setHasMore(messages.length === limit);
+        setAllMessages((prev) => {
+          const safePrev = Array.isArray(prev) ? prev : [];
+          return [...safeMessages, ...safePrev];
+        });
+        setOffset((prev) => prev + safeMessages.length);
+        setHasMore(safeMessages.length === limit);
       } else {
         setHasMore(false);
       }
@@ -133,11 +149,12 @@ export function useChat({
    */
   const markAsRead = useCallback((messageIds: string[]) => {
     // Update local state
-    setAllMessages((prev) =>
-      prev.map((msg) =>
+    setAllMessages((prev) => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      return safePrev.map((msg) =>
         messageIds.includes(msg.id) ? { ...msg, is_read: true } : msg,
-      ),
-    );
+      );
+    });
 
     // You can also call API to mark as read on server
     chatService.markMessagesAsRead(messageIds).catch((err) => {
@@ -162,15 +179,24 @@ export function useChat({
 
   // Merge WebSocket messages with existing messages
   useEffect(() => {
-    if (wsMessages.length > 0) {
+    if (Array.isArray(wsMessages) && wsMessages.length > 0) {
       setAllMessages((prev) => {
+        const safePrev = Array.isArray(prev) ? prev : [];
         const newMessages = wsMessages.filter(
-          (wsMsg) => !prev.some((msg) => msg.id === wsMsg.id),
+          (wsMsg) => !safePrev.some((msg) => msg.id === wsMsg.id),
         );
-        return [...prev, ...newMessages];
+        return [...safePrev, ...newMessages];
       });
     }
   }, [wsMessages]);
+
+  // Debug logging
+  console.log("useChat returning:", {
+    messagesCount: allMessages.length,
+    messagesType: typeof allMessages,
+    isArray: Array.isArray(allMessages),
+    allMessages: allMessages,
+  });
 
   return {
     messages: allMessages,

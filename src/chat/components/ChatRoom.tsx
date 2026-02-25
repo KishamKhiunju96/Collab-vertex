@@ -7,7 +7,7 @@ import { Send, Loader2, WifiOff, RefreshCw } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
 
 interface ChatRoomProps {
-  otherUserId: string;
+  otherUserId: string; // User's UUID (NOT profile id) - required for WebSocket connection
   otherUserName?: string;
 }
 
@@ -15,6 +15,8 @@ export default function ChatRoom({
   otherUserId,
   otherUserName = "User",
 }: ChatRoomProps) {
+  console.log("ChatRoom initialized with:", { otherUserId, otherUserName });
+  
   const { user } = useUserData();
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,6 +36,18 @@ export default function ChatRoom({
     enabled: true,
   });
 
+  // Ensure messages is always an array
+  const safeMessages = Array.isArray(messages) ? messages : [];
+
+  console.log("ChatRoom state:", { 
+    isConnected, 
+    messageCount: safeMessages.length, 
+    messagesType: typeof messages,
+    isArray: Array.isArray(messages),
+    messages,
+    error 
+  });
+
   // Auto-scroll to bottom on new messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,7 +55,7 @@ export default function ChatRoom({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [safeMessages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +111,7 @@ export default function ChatRoom({
     const isSentByMe = message.sender_id === user?.id;
     const showDateSeparator =
       index === 0 ||
-      formatDate(message.sent_at) !== formatDate(messages[index - 1]?.sent_at);
+      formatDate(message.sent_at) !== formatDate(safeMessages[index - 1]?.sent_at);
 
     return (
       <div key={message.id}>
@@ -216,7 +230,7 @@ export default function ChatRoom({
         )}
 
         {/* Messages */}
-        {messages.length === 0 && !isLoading ? (
+        {safeMessages.length === 0 && !isLoading ? (
           <div className="flex items-center justify-center h-full text-gray-400">
             <div className="text-center">
               <p className="text-lg font-medium mb-2">No messages yet</p>
@@ -224,7 +238,7 @@ export default function ChatRoom({
             </div>
           </div>
         ) : (
-          <div>{messages.map((msg, idx) => renderMessage(msg, idx))}</div>
+          <div>{safeMessages.map((msg, idx) => renderMessage(msg, idx))}</div>
         )}
 
         <div ref={messagesEndRef} />

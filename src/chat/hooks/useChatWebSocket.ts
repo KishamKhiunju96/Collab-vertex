@@ -5,7 +5,7 @@ import { ChatMessage, SendMessagePayload } from "@/chat/types";
 import { notify } from "@/utils/notify";
 
 interface UseChatWebSocketProps {
-  otherUserId: string;
+  otherUserId: string; // IMPORTANT: Must be user_id (UUID), NOT profile id
   onMessageReceived?: (message: ChatMessage) => void;
   onConnectionChange?: (connected: boolean) => void;
 }
@@ -26,10 +26,6 @@ const WS_BASE_URL =
       : "ws://api.dixam.me"
     : "wss://api.dixam.me");
 
-// Development mode flag - disable WebSocket in development if backend is not available
-const isDevelopment = process.env.NODE_ENV === "development";
-const disableWebSocket = isDevelopment && !process.env.NEXT_PUBLIC_WS_URL;
-
 /**
  * Hook for managing WebSocket connection for real-time chat
  * Handles connection, reconnection, message sending/receiving
@@ -48,21 +44,22 @@ export function useChatWebSocket({
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectDelay = 3000;
-  const connectRef = useRef<(() => void) | null>(null);
+  
+  // Store callbacks in refs to prevent reconnection loops
+  const onMessageReceivedRef = useRef(onMessageReceived);
+  const onConnectionChangeRef = useRef(onConnectionChange);
+  
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageReceivedRef.current = onMessageReceived;
+    onConnectionChangeRef.current = onConnectionChange;
+  }, [onMessageReceived, onConnectionChange]);
 
   const connect = useCallback(() => {
+    console.log("useChatWebSocket.connect called with otherUserId:", otherUserId);
+    
     if (!otherUserId) {
       console.warn("Cannot connect: otherUserId is required");
-      return;
-    }
-
-    // Skip WebSocket connection in development if disabled
-    if (disableWebSocket) {
-      console.log(
-        "WebSocket disabled in development mode (no backend available)",
-      );
-      setIsConnected(false);
-      setError(null); // Don't show error in dev mode when disabled
       return;
     }
 
@@ -72,12 +69,19 @@ export function useChatWebSocket({
       (wsRef.current.readyState === WebSocket.CONNECTING ||
         wsRef.current.readyState === WebSocket.OPEN)
     ) {
+      console.log("WebSocket connection already exists, skipping");
       return;
     }
 
     try {
-      const wsUrl = `${WS_BASE_URL}/ws/chat/${otherUserId}`;
-      console.log("Connecting to WebSocket:", wsUrl);
+      //  CORRECT: wss://api.dixam.me/chat/ws/chat/{user_id}
+      //  WRONG: wss://api.dixam.me/chat/ws/chat/{profile_id}
+      const wsUrl = `${WS_BASE_URL}/chat/ws/chat/${otherUserId}`;
+      console.log("=== WebSocket Connection Details ===");
+      console.log("Base URL:", WS_BASE_URL);
+      console.log("Other User ID:", otherUserId);
+      console.log("Full WebSocket URL:", wsUrl);
+      console.log("====================================");
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -87,38 +91,50 @@ export function useChatWebSocket({
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
-        onConnectionChange?.(true);
+        onConnectionChangeRef.current?.(true);
       };
 
       ws.onmessage = (event) => {
         try {
           const message: ChatMessage = JSON.parse(event.data);
-          console.log("Message received:", message);
+          console.log("WebSocket message received:", { message, type: typeof message });
+
+          // Validate message object
+          if (!message || typeof message !== 'object') {
+            console.error("Invalid message format received:", message);
+            return;
+          }
 
           // Add message to local state
-          setMessages((prev) => [...prev, message]);
+          setMessages((prev) => {
+            const safePrev = Array.isArray(prev) ? prev : [];
+            return [...safePrev, message];
+          });
 
           // Call callback if provided
-          onMessageReceived?.(message);
+          onMessageReceivedRef.current?.(message);
         } catch (err) {
-          console.error("Failed to parse message:", err);
+          console.error("Failed to parse WebSocket message:", err);
           setError("Failed to parse incoming message");
         }
       };
 
-      ws.onerror = (event) => {
-        // Only log error if not in disabled development mode
-        if (!disableWebSocket) {
-          console.error("WebSocket error:", event);
-          setError("WebSocket connection error");
-        }
-      };
-
       ws.onclose = (event) => {
-        console.log("WebSocket closed:", event.code, event.reason);
+        console.log("WebSocket closed:", {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
         setIsConnected(false);
         wsRef.current = null;
-        onConnectionChange?.(false);
+        onConnectionChangeRef.current?.(false);
+
+        // Handle specific close codes
+        if (event.code === 1008) {
+          setError("Authentication failed. Please log in again.");
+          notify.error("Chat authentication failed. Please refresh and log in again.");
+          return;
+        }
 
         // Attempt to reconnect if not closed intentionally
         if (
@@ -131,7 +147,7 @@ export function useChatWebSocket({
           );
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            connectRef.current?.();
+            connect();
           }, reconnectDelay);
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           setError("Failed to connect after multiple attempts");
@@ -142,7 +158,7 @@ export function useChatWebSocket({
       console.error("Failed to create WebSocket:", err);
       setError("Failed to create WebSocket connection");
     }
-  }, [otherUserId, onMessageReceived, onConnectionChange]);
+  }, [otherUserId]); // Only reconnect when otherUserId changes
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -191,26 +207,23 @@ export function useChatWebSocket({
     setTimeout(() => connect(), 100);
   }, [connect, disconnect]);
 
-  // Update connectRef when connect changes
-  useEffect(() => {
-    connectRef.current = connect;
-  }, [connect]);
-
   // Connect on mount and when otherUserId changes
   useEffect(() => {
-    // Intentionally calling connect here to establish WebSocket connection
-    // This is the correct pattern for initializing external system connections
-    const initConnection = () => {
-      connect();
-    };
+    if (!otherUserId) {
+      console.log("No otherUserId, skipping connection");
+      return;
+    }
 
-    initConnection();
+    console.log("Initializing WebSocket connection for:", otherUserId);
+    connect();
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when otherUserId changes
     return () => {
+      console.log("Cleaning up WebSocket connection");
       disconnect();
     };
-  }, [connect, disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherUserId]); // Only reconnect when otherUserId changes
 
   return {
     sendMessage,

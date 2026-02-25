@@ -46,3 +46,6 @@ export interface WebSocketMessage {
   type: WebSocketMessageType;
   payload: ChatMessage | { typing: boolean } | { error: string };
 }
+
+// Export chatable types
+export * from "./types/chatable";

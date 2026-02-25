@@ -1,5 +1,6 @@
 import api from "@/api/axiosInstance";
 import { API_PATHS } from "@/api/apiPaths";
+import { ChatableBrand } from "@/chat/types/chatable";
 
 export interface CreateInfluencerPayload {
   id?: string; // optional for responses
@@ -75,6 +76,18 @@ export const influencerService = {
   searchByName: async (name: string): Promise<InfluencerProfile> => {
     const response = await api.get<InfluencerProfile>(
       API_PATHS.INFLUENCER.GET_BY_NAME(name),
+    );
+    return response.data;
+  },
+
+  /**
+   * Get list of brands that the influencer can chat with
+   * Returns brands whose events the influencer has applied to
+   * IMPORTANT: Use user_id for WebSocket connections, NOT the brand profile id
+   */
+  getChatableBrands: async (): Promise<ChatableBrand[]> => {
+    const response = await api.get<ChatableBrand[]>(
+      API_PATHS.INFLUENCER.GET_CHATABLE_BRANDS
     );
     return response.data;
   },

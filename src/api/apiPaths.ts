@@ -19,6 +19,7 @@ export const API_PATHS = {
       `/brand/update_brandprofile/${brandId}`,
     DELETE_PROFILE: (brandId: string) =>
       `/brand/delete_brandprofile/${brandId}`,
+    GET_CHATABLE_INFLUENCERS: "/brand/chatable_influencers",
   },
 
   EVENT: {
@@ -59,6 +60,7 @@ export const API_PATHS = {
       `/influencer/update_sociallink/${sociallinkId}`,
     DELETE_SOCIAL_LINK: (sociallinkId: string) =>
       `/influencer/delete_sociallink/${sociallinkId}`,
+    GET_CHATABLE_BRANDS: "/influencer/chatable_brands",
   },
 
   NOTIFICATION: {
@@ -76,6 +78,7 @@ export const API_PATHS = {
     WEBSOCKET: (otherUserId: string) => `/chat/ws/chat/${otherUserId}`,
     // REST endpoint to get chat history
     GET_MESSAGES: (otherUserId: string) => `/chat/get_messages/${otherUserId}`,
-    // REST endpoint to get all conversations
+    // REST endpoint to get all conversations (deprecated - use role-specific endpoints)
+    GET_CONVERSATIONS: "/chat/conversations",
   },
 } as const;

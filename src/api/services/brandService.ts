@@ -1,4 +1,6 @@
 import api from "@/api/axiosInstance";
+import { API_PATHS } from "@/api/apiPaths";
+import { ChatableInfluencer } from "@/chat/types/chatable";
 
 export interface Brand {
   id: string;
@@ -88,5 +90,17 @@ export const brandService = {
   deleteBrand: async (id: string): Promise<void> => {
     if (!id) throw new Error("Brand ID is required");
     await api.delete(`/brand/delete_brandprofile/${id}`);
+  },
+
+  /**
+   * Get list of influencers that the brand can chat with
+   * Returns influencers who have applied to the brand's events
+   * IMPORTANT: Use user_id for WebSocket connections, NOT the influencer profile id
+   */
+  getChatableInfluencers: async (): Promise<ChatableInfluencer[]> => {
+    const response = await api.get<ChatableInfluencer[]>(
+      API_PATHS.BRAND.GET_CHATABLE_INFLUENCERS
+    );
+    return response.data;
   },
 };
