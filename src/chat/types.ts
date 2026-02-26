@@ -7,17 +7,26 @@ export interface ConversationMessage {
   id: string;
   conversation_id: string;
   sender_id: string;
+  receiver_id: string;
   sender_name?: string;
   content: string;
-  type: 'TEXT' | 'IMAGE' | 'FILE';
+  type: "TEXT" | "IMAGE" | "FILE";
   timestamp: string; // ISO timestamp
+  sent_at?: string; // Alternative timestamp field from API
   created_at: string;
   updated_at: string;
+  edited_at?: string | null;
+  deleted_at?: string | null;
+  read_by?: string[];
+  delivered_to?: string[];
+  is_read?: boolean;
+  is_delivered?: boolean;
 }
 
 // Conversation participant
+// Note: Backend sends 'id' field, not 'user_id'
 export interface ConversationParticipant {
-  user_id: string;
+  id: string; // User UUID from backend
   username: string;
   email?: string;
   role?: string;
@@ -27,7 +36,7 @@ export interface ConversationParticipant {
 // Conversation structure
 export interface Conversation {
   id: string;
-  type: 'DIRECT' | 'GROUP';
+  type: "DIRECT" | "GROUP";
   name?: string; // For group chats
   description?: string; // For group chats
   avatar_url?: string; // For group chats
@@ -51,7 +60,7 @@ export interface ChatMessage {
 
 export interface SendMessagePayload {
   content: string;
-  type?: 'TEXT' | 'IMAGE' | 'FILE';
+  type?: "TEXT" | "IMAGE" | "FILE";
 }
 
 // Payload for creating direct conversation

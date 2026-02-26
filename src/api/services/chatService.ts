@@ -193,10 +193,6 @@ export const chatService = {
       console.log("✅ Created direct conversation:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error("❌ Failed to create direct conversation");
-      console.error("Error status:", error.response?.status);
-      console.error("Error message:", error.response?.data);
-      console.error("Full error:", error);
       throw error;
     }
   },
@@ -273,13 +269,18 @@ export const chatService = {
         }
       );
 
-      console.log("Fetched conversation messages:", {
+      console.log("📨 Fetched conversation messages:", {
         conversationId,
         messageCount: response.data?.length,
-        data: response.data,
+        firstMessage: response.data?.[0] ? {
+          sender_id: response.data[0].sender_id,
+          receiver_id: response.data[0].receiver_id,
+          content: response.data[0].content?.substring(0, 30),
+        } : null,
       });
 
       if (!Array.isArray(response.data)) {
+        console.warn("⚠️ Response data is not an array");
         return [];
       }
 

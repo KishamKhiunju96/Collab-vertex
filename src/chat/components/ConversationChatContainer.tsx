@@ -6,7 +6,7 @@ import { useConversations } from "@/chat/hooks/useConversationsList";
 import { ConversationsList } from "./ConversationsList";
 import ConversationChatRoom from "./ConversationChatRoom";
 import ChatContactsList from "./ChatContactsList";
-import { X, MessageSquarePlus, Users, ArrowLeft, Loader2 } from "lucide-react";
+import { X, MessageSquarePlus, Users, User, ArrowLeft, Loader2 } from "lucide-react";
 
 interface ChatContact {
   id: string;
@@ -63,6 +63,30 @@ export default function ConversationChatContainer({
       const conversation = await getOrCreateDirectConversation(contact.id);
       
       if (conversation) {
+        // Enrich conversation with contact info if participants not available
+        if (!conversation.participants || conversation.participants.length === 0) {
+          console.log("⚠️ Conversation has no participants, enriching with contact data");
+          conversation.participants = [
+            {
+              id: contact.id,
+              username: contact.username,
+              email: contact.email,
+              role: contact.role,
+            },
+          ];
+        }
+        
+        // Ensure conversation name is set for direct chats
+        if (!conversation.name && conversation.type === "DIRECT") {
+          conversation.name = contact.username;
+        }
+        
+        console.log("✅ Conversation ready:", {
+          id: conversation.id,
+          name: conversation.name,
+          participants: conversation.participants,
+        });
+        
         setSelectedConversation(conversation);
         setView("conversations");
       }
@@ -94,10 +118,10 @@ export default function ConversationChatContainer({
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-lg shadow-xl flex overflow-hidden border border-gray-200">
+    <div className="w-full h-full bg-white rounded-xl shadow-2xl flex overflow-hidden border border-gray-200">
       {/* Left Sidebar - Conversations or Contacts */}
       {!selectedConversation && (
-        <div className="w-80 flex flex-col border-r border-gray-200">
+        <div className="w-80 flex flex-col border-r border-gray-200 bg-gray-50">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
             <h2 className="text-lg font-semibold">Messages</h2>
@@ -218,28 +242,37 @@ export default function ConversationChatContainer({
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-b border-purple-700">
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white border-b border-purple-700 shadow-lg">
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBackToList}
-                  className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
                   aria-label="Back to conversations"
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {getConversationDisplayInfo(selectedConversation).name}
-                  </h2>
-                  <p className="text-xs text-purple-100">
-                    {getConversationDisplayInfo(selectedConversation).subtitle}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    {getConversationDisplayInfo(selectedConversation).isGroup ? (
+                      <Users size={20} />
+                    ) : (
+                      <User size={20} />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">
+                      {getConversationDisplayInfo(selectedConversation).name}
+                    </h2>
+                    <p className="text-xs text-purple-100">
+                      {getConversationDisplayInfo(selectedConversation).subtitle}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {selectedConversation.type === "GROUP" && (
                 <button
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-full transition-all duration-200"
                   aria-label="Group info"
                 >
                   <Users size={20} />

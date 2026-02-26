@@ -133,7 +133,18 @@ export function useConversationWebSocket({
         try {
           const data = JSON.parse(event.data);
           console.log("=== WebSocket Message Received ===");
-          console.log("Data:", data);
+          console.log("Type:", data.type || 'message');
+          
+          if (data.content) {
+            console.log("📨 Message data:", {
+              id: data.id,
+              sender_id: data.sender_id,
+              receiver_id: data.receiver_id,
+              content: data.content?.substring(0, 30) + '...',
+              sender_id_type: typeof data.sender_id,
+              full_data: data,
+            });
+          }
           console.log("=================================");
 
           // Call callback for all message types
@@ -142,6 +153,11 @@ export function useConversationWebSocket({
           // Only add to messages array if it's an actual chat message
           if (data.type === "message" || !data.type || data.content) {
             const message: ConversationMessage = data;
+            console.log("💾 Adding message to array:", {
+              id: message.id,
+              sender_id: message.sender_id,
+              content: message.content?.substring(0, 20),
+            });
             setMessages((prev) => [...prev, message]);
           }
           // For typing, read_receipt, status_update - just pass to callback, don't add to messages

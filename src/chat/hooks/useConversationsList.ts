@@ -132,7 +132,7 @@ export function useConversations(): UseConversationsReturn {
       // First, check if conversation already exists
       const existing = conversations.find((conv) => {
         if (conv.type !== 'DIRECT') return false;
-        return conv.participants?.some((p) => p.user_id === otherUserId) || false;
+        return conv.participants?.some((p) => p.id === otherUserId) || false;
       });
 
       if (existing) {
