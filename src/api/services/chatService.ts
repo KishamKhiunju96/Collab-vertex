@@ -1,10 +1,20 @@
 import api from "@/api/axiosInstance";
 import { API_PATHS } from "@/api/apiPaths";
-import { ChatMessage, GetMessagesParams, ChatConversation } from "@/chat/types";
+import { 
+  ChatMessage, 
+  GetMessagesParams, 
+  ChatConversation,
+  Conversation,
+  ConversationMessage,
+  CreateDirectConversationPayload,
+  CreateGroupConversationPayload,
+  AddParticipantsPayload,
+  SendMessagePayload,
+} from "@/chat/types";
 import { ChatableInfluencer, ChatableBrand } from "@/chat/types/chatable";
 
 /**
- * Chat Service - REST API operations
+ * Chat Service - REST API operations for conversation-based messaging
  * WebSocket operations are handled separately in the chat hooks
  */
 
@@ -85,73 +95,20 @@ const brandToChatConversation = (brand: ChatableBrand): ChatConversation => {
 };
 
 export const chatService = {
-  /**
-   * Get chat message history with another user
-   * @param otherUserId - The ID of the other user in the conversation
-   * @param params - Pagination parameters (limit, offset)
-   * @returns Promise<ChatMessage[]>
-   */
   async getMessages(
     otherUserId: string,
     params?: GetMessagesParams,
   ): Promise<ChatMessage[]> {
-    const { limit = 50, offset = 0 } = params || {};
-
-    try {
-      const response = await api.get<ChatMessage[]>(
-        API_PATHS.CHAT.GET_MESSAGES(otherUserId),
-        {
-          params: { limit, offset },
-        },
-      );
-
-      console.log("getMessages API response:", { 
-        data: response.data, 
-        isArray: Array.isArray(response.data),
-        type: typeof response.data 
-      });
-
-      // Ensure we always return an array
-      if (!Array.isArray(response.data)) {
-        console.error("❌ API returned non-array data for messages:", response.data);
-        return [];
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Failed to get messages:", error);
-      return []; // Return empty array on error
-    }
+    console.warn("⚠️ chatService.getMessages() is deprecated");
+    
+    // This method no longer has a backend endpoint
+    // Return empty array to prevent errors
+    return [];
   },
-
-  /**
-   * Mark messages as read (if you add this endpoint to backend)
-   * @param messageIds - Array of message IDs to mark as read
-   */
   async markMessagesAsRead(messageIds: string[]): Promise<void> {
     // This would require a backend endpoint
     // For now, marking as read is handled via WebSocket
     console.log("Mark as read:", messageIds);
-  },
-
-  /**
-   * Get all conversations/chat users
-   * Returns list of users the current user has chatted with
-   * Note: This endpoint needs to be implemented on the backend
-   * The backend should return a list of all users the current user has exchanged messages with
-   */
-  async getConversations(): Promise<ChatConversation[]> {
-    try {
-      const response = await api.get<ChatConversation[]>(
-        API_PATHS.CHAT.GET_CONVERSATIONS,
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch conversations:", error);
-      // If the endpoint is not implemented, throw the error
-      // The frontend will handle this gracefully
-      throw error;
-    }
   },
 
   /**
@@ -203,4 +160,222 @@ export const chatService = {
       return this.getChatableBrands();
     }
   },
+
+  // ===================================================================
+  //  NEW CONVERSATION-BASED API METHODS
+  // ===================================================================
+
+  /**
+   * Create a direct (one-to-one) conversation
+   * @param payload - Contains other_user_id (user UUID from Users table)
+   * @returns Promise<Conversation>
+   * 
+   * IMPORTANT: Field name is 'other_user_id' and expects user UUID from Users table
+   * - Get user UUIDs from chatable_influencers or chatable_brands endpoints (user_id field)
+   * - Example: { other_user_id: contact.user_id } where contact.user_id is the user UUID
+   * - Backend authorization checks are based on user_id, not profile_id
+   */
+  async createDirectConversation(
+    payload: CreateDirectConversationPayload
+  ): Promise<Conversation> {
+    try {
+      console.log("=== Creating Direct Conversation ===");
+      console.log("Endpoint:", API_PATHS.CHAT.CREATE_DIRECT_CONVERSATION);
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("Payload field name:", Object.keys(payload));
+      console.log("Payload other_user_id value:", payload.other_user_id);
+      console.log("===================================");
+      
+      const response = await api.post<Conversation>(
+        API_PATHS.CHAT.CREATE_DIRECT_CONVERSATION,
+        payload
+      );
+      console.log("✅ Created direct conversation:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Failed to create direct conversation");
+      console.error("Error status:", error.response?.status);
+      console.error("Error message:", error.response?.data);
+      console.error("Full error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a group conversation
+   * @param payload - Contains name, participant_ids (user UUIDs), description, avatar_url
+   * @returns Promise<Conversation>
+   * 
+   * IMPORTANT: Field name is 'participant_ids' and expects user UUIDs from Users table
+   * - Get user UUIDs from chatable_influencers or chatable_brands endpoints (user_id field)
+   * - Example: { name: "Team Chat", participant_ids: [contact1.user_id, contact2.user_id] }
+   */
+  async createGroupConversation(
+    payload: CreateGroupConversationPayload
+  ): Promise<Conversation> {
+    try {
+      const response = await api.post<Conversation>(
+        API_PATHS.CHAT.CREATE_GROUP_CONVERSATION,
+        payload
+      );
+      console.log("Created group conversation:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to create group conversation:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all conversations for the current user
+   * @returns Promise<Conversation[]>
+   */
+  async getConversationsList(): Promise<Conversation[]> {
+    try {
+      console.log("Fetching conversations from:", API_PATHS.CHAT.GET_CONVERSATIONS_LIST);
+      const response = await api.get<Conversation[]>(
+        API_PATHS.CHAT.GET_CONVERSATIONS_LIST
+      );
+      console.log("✅ Fetched conversations:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Failed to fetch conversations");
+      console.error("Error details:", {
+        status: error.response?.status,
+        message: error.response?.data?.detail || error.message,
+        endpoint: API_PATHS.CHAT.GET_CONVERSATIONS_LIST
+      });
+      
+      // Return empty array instead of throwing - allows UI to work even if endpoint fails
+      // User can still create new conversations
+      console.warn("⚠️ Returning empty conversations array - endpoint may not be implemented");
+      return [];
+    }
+  },
+
+  /**
+   * Get messages for a specific conversation
+   * @param conversationId - The conversation ID
+   * @param params - Pagination parameters
+   * @returns Promise<ConversationMessage[]>
+   */
+  async getConversationMessages(
+    conversationId: string,
+    params?: GetMessagesParams
+  ): Promise<ConversationMessage[]> {
+    const { limit = 50, offset = 0 } = params || {};
+
+    try {
+      const response = await api.get<ConversationMessage[]>(
+        API_PATHS.CHAT.GET_CONVERSATION_MESSAGES(conversationId),
+        {
+          params: { limit, offset },
+        }
+      );
+
+      console.log("Fetched conversation messages:", {
+        conversationId,
+        messageCount: response.data?.length,
+        data: response.data,
+      });
+
+      if (!Array.isArray(response.data)) {
+        return [];
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to get conversation messages:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Send a message to a conversation (via REST API - for offline messages)
+   * For real-time messages, use WebSocket
+   * @param conversationId - The conversation ID
+   * @param payload - Message content and type
+   * @returns Promise<ConversationMessage>
+   */
+  async sendConversationMessage(
+    conversationId: string,
+    payload: SendMessagePayload
+  ): Promise<ConversationMessage> {
+    try {
+      const response = await api.post<ConversationMessage>(
+        API_PATHS.CHAT.GET_CONVERSATION_MESSAGES(conversationId),
+        payload
+      );
+      console.log("Sent message:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark a conversation as read (REST API)
+   * 
+   * @deprecated Prefer using WebSocket for read receipts instead
+   * Send { type: "read" } via WebSocket connection to mark as read
+   * WebSocket method is more reliable and provides real-time broadcast
+   * 
+   * @param conversationId - The conversation ID
+   * @returns Promise<void>
+   */
+  async markConversationAsRead(conversationId: string): Promise<void> {
+    try {
+      await api.patch(API_PATHS.CHAT.MARK_CONVERSATION_READ(conversationId));
+      console.log("Marked conversation as read (REST):", conversationId);
+    } catch (error) {
+      console.error("Failed to mark conversation as read (REST API):", error);
+      // Don't throw - this is not critical and WebSocket handles it
+      console.warn("⚠️ Use WebSocket { type: 'read' } instead for read receipts");
+    }
+  },
+
+  /**
+   * Add participants to a group conversation
+   * @param conversationId - The conversation ID
+   * @param payload - Contains user_ids array
+   * @returns Promise<void>
+   */
+  async addParticipants(
+    conversationId: string,
+    payload: AddParticipantsPayload
+  ): Promise<void> {
+    try {
+      await api.post(
+        API_PATHS.CHAT.ADD_PARTICIPANTS(conversationId),
+        payload
+      );
+      console.log("Added participants:", payload.user_ids);
+    } catch (error) {
+      console.error("Failed to add participants:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove a participant from a group conversation
+   * @param conversationId - The conversation ID
+   * @param userId - The user ID to remove
+   * @returns Promise<void>
+   */
+  async removeParticipant(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      await api.delete(
+        API_PATHS.CHAT.REMOVE_PARTICIPANT(conversationId, userId)
+      );
+      console.log("Removed participant:", userId);
+    } catch (error) {
+      console.error("Failed to remove participant:", error);
+      throw error;
+    }
+  },
 };
+

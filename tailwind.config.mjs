@@ -86,14 +86,43 @@ const config = {
         bounce: "bounce 1s ease-in-out infinite",
       },
       /* ==============================
-         BRAND COLORS (LOUD)
+         BRAND COLORS (LOUD & REFINED)
       =============================== */
       colors: {
         brand: {
-          primary: "#6C5CE7", // Electric Violet
-          accent: "#FF7675", // Coral Pink
-          secondary: "#2ED8B6", // Mint Teal
-          highlight: "#FDCB6E", // Soft Gold
+          // Primary Purple Palette
+          primary: {
+            DEFAULT: "#6C5CE7", // Electric Violet
+            50: "#F5F3FF",
+            100: "#EDE9FE",
+            200: "#DDD6FE",
+            300: "#C4B5FD",
+            400: "#A78BFA",
+            500: "#8B5CF6",
+            600: "#7C3AED",
+            700: "#6D28D9",
+            800: "#5B21B6",
+            900: "#4C1D95",
+          },
+          
+          // Accent Colors
+          accent: {
+            DEFAULT: "#FF7675", // Coral Pink
+            light: "#FF9E9D",
+            dark: "#E84C4B",
+          },
+          
+          secondary: {
+            DEFAULT: "#2ED8B6", // Mint Teal
+            light: "#4FE3C7",
+            dark: "#1DB896",
+          },
+          
+          highlight: {
+            DEFAULT: "#FDCB6E", // Soft Gold
+            light: "#FED98E",
+            dark: "#E0AD4F",
+          },
         },
 
         /* ==============================
@@ -103,16 +132,15 @@ const config = {
           hero: "#F9F8FF",
           alternate: "#FFF5F5",
           highlight: "#F1FFFA",
-
           app: "#FAFAFC",
           card: "#FFFFFF",
           surface: "#F3F4F8",
-
           muted: "#F1F5F9",
           disabled: "#EEF0F4",
-
-          overlayLight: "rgba(255,255,255,0.6)",
-          overlayDark: "rgba(31,41,55,0.6)",
+          overlayLight: "rgba(255,255,255,0.8)",
+          overlayDark: "rgba(31,41,55,0.75)",
+          glass: "rgba(255,255,255,0.9)",
+          glassDark: "rgba(31,41,55,0.9)",
         },
 
         /* ==============================
@@ -141,6 +169,7 @@ const config = {
             active: "#4B3FC4",
             disabled: "#C7C3F4",
             text: "#FFFFFF",
+            ring: "rgba(108, 92, 231, 0.3)",
           },
 
           secondary: {
@@ -148,6 +177,15 @@ const config = {
             hover: "#FF5C5B",
             active: "#E84C4B",
             text: "#FFFFFF",
+            ring: "rgba(255, 118, 117, 0.3)",
+          },
+
+          success: {
+            DEFAULT: "#2ED8B6",
+            hover: "#26C2A3",
+            active: "#1DB896",
+            text: "#FFFFFF",
+            ring: "rgba(46, 216, 182, 0.3)",
           },
 
           tertiary: {
@@ -212,14 +250,19 @@ const config = {
       },
 
       /* ==============================
-         SHADOWS (SOFT, PLAYFUL)
+         SHADOWS (SOFT, ELEVATED)
       =============================== */
       boxShadow: {
         xs: "0 1px 2px rgba(0,0,0,0.04)",
-        sm: "0 2px 6px rgba(0,0,0,0.06)",
-        md: "0 4px 16px rgba(108,92,231,0.12)",
-        lg: "0 12px 30px rgba(108,92,231,0.18)",
+        sm: "0 2px 8px rgba(0,0,0,0.08)",
+        md: "0 4px 16px rgba(108,92,231,0.15)",
+        lg: "0 12px 32px rgba(108,92,231,0.2)",
+        xl: "0 20px 48px rgba(108,92,231,0.25)",
         card: "0 4px 20px rgba(0,0,0,0.08)",
+        hover: "0 8px 24px rgba(108,92,231,0.15)",
+        glow: "0 0 32px rgba(108,92,231,0.4)",
+        "glow-accent": "0 0 32px rgba(255,118,117,0.4)",
+        "glow-secondary": "0 0 32px rgba(46,216,182,0.4)",
       },
 
       /* ==============================

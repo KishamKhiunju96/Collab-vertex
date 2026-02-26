@@ -7,7 +7,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-screen overflow-hidden bg-gray-800">
+    <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <Image
@@ -20,7 +20,7 @@ export default function HeroSection() {
       </div>
 
       {/* Animated Gradient Overlay */}
-      <div className="absolute inset-0 bg-gray-800" />
+      <div className="absolute inset-0 bg-gradient-to-br from-button-primary-DEFAULT/20 via-brand-accent-DEFAULT/10 to-brand-secondary-DEFAULT/20" />
 
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -35,7 +35,7 @@ export default function HeroSection() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-72 h-72 bg-button-primary-DEFAULT/30 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -48,7 +48,7 @@ export default function HeroSection() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-brand-secondary-DEFAULT/30 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -60,7 +60,7 @@ export default function HeroSection() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-accent-DEFAULT/20 rounded-full blur-3xl"
         />
       </div>
 
@@ -78,7 +78,7 @@ export default function HeroSection() {
               <span className="text-white font-medium">
                 #1 Influencer Collaboration Platform
               </span>
-              <div className="w-2 h-2 bg-green-400 rounded-full " />
+              <div className="w-2 h-2 bg-brand-secondary-DEFAULT rounded-full animate-pulse" />
             </div>
           </motion.div>
 
@@ -89,11 +89,11 @@ export default function HeroSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight mb-6"
           >
-            <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent drop-shadow-2xl">
+            <span className="bg-gradient-to-r from-white via-brand-primary-200 to-brand-secondary-light bg-clip-text text-transparent drop-shadow-2xl">
               Connect, Create,
             </span>
             <br />
-            <span className="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-transparent drop-shadow-2xl">
+            <span className="bg-gradient-to-r from-brand-secondary-light via-brand-primary-200 to-brand-accent-light bg-clip-text text-transparent drop-shadow-2xl">
               Collaborate
             </span>
           </motion.h1>
@@ -106,8 +106,8 @@ export default function HeroSection() {
             className="text-xl sm:text-2xl md:text-3xl max-w-4xl mx-auto mb-12 text-white/90 leading-relaxed font-light"
           >
             The ultimate platform bridging{" "}
-            <span className="font-semibold text-purple-300">brands</span> and{" "}
-            <span className="font-semibold text-blue-300">influencers</span>.
+            <span className="font-semibold text-brand-accent-light">brands</span> and{" "}
+            <span className="font-semibold text-brand-secondary-light">influencers</span>.
             Discover authentic collaborations that amplify your reach.
           </motion.p>
 
@@ -120,16 +120,16 @@ export default function HeroSection() {
           >
             <Link
               href="/select-role"
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 flex items-center gap-2 overflow-hidden"
+              className="group relative px-8 py-4 bg-gradient-to-r from-button-primary-DEFAULT to-brand-accent-DEFAULT text-white rounded-xl font-bold text-lg shadow-glow hover:shadow-glow-accent transition-all duration-300 hover:scale-105 flex items-center gap-2 overflow-hidden"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="absolute inset-0 bg-gradient-to-r from-button-primary-hover to-brand-accent-light opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative z-10">Get Started Free</span>
               <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <Link
               href="/login"
-              className="group px-8 py-4 bg-white/10 backdrop-blur-xl border-2 border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="group px-8 py-4 bg-white/10 backdrop-blur-xl border-2 border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/20 hover:border-white/50 transition-all duration-300 hover:scale-105 flex items-center gap-2"
             >
               <span>Sign In</span>
             </Link>

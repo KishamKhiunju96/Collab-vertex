@@ -2,6 +2,43 @@
  * Chat Types - Matching Backend Structure
  */
 
+// Message structure for conversation-based chat
+export interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_name?: string;
+  content: string;
+  type: 'TEXT' | 'IMAGE' | 'FILE';
+  timestamp: string; // ISO timestamp
+  created_at: string;
+  updated_at: string;
+}
+
+// Conversation participant
+export interface ConversationParticipant {
+  user_id: string;
+  username: string;
+  email?: string;
+  role?: string;
+  joined_at?: string;
+}
+
+// Conversation structure
+export interface Conversation {
+  id: string;
+  type: 'DIRECT' | 'GROUP';
+  name?: string; // For group chats
+  description?: string; // For group chats
+  avatar_url?: string; // For group chats
+  participants?: ConversationParticipant[]; // May not be populated in list responses
+  last_message?: ConversationMessage;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Legacy message structure (keep for backward compatibility)
 export interface ChatMessage {
   id: string;
   sender_id: string;
@@ -14,6 +51,27 @@ export interface ChatMessage {
 
 export interface SendMessagePayload {
   content: string;
+  type?: 'TEXT' | 'IMAGE' | 'FILE';
+}
+
+// Payload for creating direct conversation
+// IMPORTANT: Field name is 'other_user_id' and expects user UUID from Users table
+export interface CreateDirectConversationPayload {
+  other_user_id: string; // User UUID from Users table (user_id field from chatable endpoints)
+}
+
+// Payload for creating group conversation
+// IMPORTANT: Field name is 'participant_ids' and expects user UUIDs from Users table
+export interface CreateGroupConversationPayload {
+  name: string;
+  participant_ids: string[]; // User UUIDs from Users table (user_id fields from chatable endpoints)
+  description?: string;
+  avatar_url?: string;
+}
+
+// Payload for adding participants
+export interface AddParticipantsPayload {
+  user_ids: string[];
 }
 
 export interface GetMessagesParams {

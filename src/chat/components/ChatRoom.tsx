@@ -148,15 +148,15 @@ export default function ChatRoom({
     // Use direct match first, fallback to checking if not other user
     const isSentByMe = directMatch || (!directMatch && isNotOtherUser);
     
-    console.log("=== Message Render Debug ===");
-    console.log("Message Sender ID:", message.sender_id);
-    console.log("Current User ID:", user?.id);
-    console.log("Other User ID:", otherUserId);
-    console.log("Direct Match:", directMatch);
-    console.log("Is Not Other User:", isNotOtherUser);
-    console.log("Final isSentByMe:", isSentByMe);
-    console.log("Content:", message.content?.substring(0, 30));
-    console.log("===========================");
+    // console.log("=== Message Render Debug ===");
+    // console.log("Message Sender ID:", message.sender_id);
+    // console.log("Current User ID:", user?.id);
+    // console.log("Other User ID:", otherUserId);
+    // console.log("Direct Match:", directMatch);
+    // console.log("Is Not Other User:", isNotOtherUser);
+    // console.log("Final isSentByMe:", isSentByMe);
+    // console.log("Content:", message.content?.substring(0, 30));
+    // console.log("===========================");
     
     const showDateSeparator =
       index === 0 ||
@@ -266,7 +266,7 @@ export default function ChatRoom({
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">{otherUserName}</h3>
               <p className="text-sm text-gray-600 mb-3">
-                You're now connected on Messenger
+                You're now connected on Collab Chat
               </p>
               <p className="text-xs text-gray-400 leading-relaxed">
                 Start the conversation with a friendly message. This is the beginning of your chat history.
@@ -292,13 +292,7 @@ export default function ChatRoom({
             >
               <Plus size={20} />
             </button>
-            <button
-              type="button"
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
-              title="Attach image"
-            >
-              <ImageIcon size={20} />
-            </button>
+            
           </div>
 
           {/* Input field */}
@@ -310,7 +304,7 @@ export default function ChatRoom({
             disabled={!isConnected}
             className="flex-1 px-4 py-2.5 bg-gray-100 border-none rounded-full 
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white
-              disabled:cursor-not-allowed text-sm placeholder:text-gray-500 transition-all duration-200"
+              disabled:cursor-not-allowed text-sm placeholder:text-gray-500 transition-all duration-200 text-black"
           />
 
           {/* Send button or like */}

@@ -55,7 +55,7 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
 
         <ChevronUp
           size={16}
-          className={`text-gray-400 transition-transform duration-200 ${
+          className={`text-slate-400 transition-all duration-300 relative z-10 ${
             isMenuOpen ? "rotate-180" : ""
           }`}
         />
@@ -63,16 +63,16 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
 
       {/* Dropdown Menu */}
       {isMenuOpen && (
-        <div className="mt-2 rounded-lg bg-gray-800 overflow-hidden border border-gray-700 shadow-lg animate-[slideDown_0.2s_ease-out]">
+        <div className="mt-3 rounded-xl bg-white/95 backdrop-blur-lg overflow-hidden border border-button-primary-DEFAULT/20 shadow-xl shadow-button-primary-DEFAULT/10 animate-[slideDown_0.3s_ease-out]">
           <button
             onClick={() => {
               router.push("/dashboard/profile");
               setIsMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-primary hover:bg-gradient-to-r hover:from-button-primary-DEFAULT/10 hover:to-brand-accent-DEFAULT/10 transition-all duration-200 group"
           >
-            <User size={16} />
-            <span>Profile</span>
+            <User size={16} className="text-brand-secondary-DEFAULT group-hover:scale-110 transition-transform" />
+            <span className="font-medium">Profile</span>
           </button>
 
           <button
@@ -80,33 +80,33 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
               router.push("/dashboard/settings");
               setIsMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors border-t border-gray-700"
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-primary hover:bg-gradient-to-r hover:from-button-primary-DEFAULT/10 hover:to-brand-accent-DEFAULT/10 transition-all duration-200 border-t border-button-primary-DEFAULT/20 group"
           >
-            <Settings size={16} />
-            <span>Settings</span>
+            <Settings size={16} className="text-brand-highlight-DEFAULT group-hover:scale-110 transition-transform" />
+            <span className="font-medium">Settings</span>
           </button>
 
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-900/20 transition-colors border-t border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-error hover:bg-brand-accent-DEFAULT/10 transition-all duration-200 border-t border-button-primary-DEFAULT/20 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <LogOut size={16} />
-            <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
+            <LogOut size={16} className="group-hover:scale-110 transition-transform" />
+            <span className="font-medium">{isLoggingOut ? "Logging out..." : "Log out"}</span>
           </button>
         </div>
       )}
 
       {/* Quick Stats */}
-      <div className="mt-4 pt-4 border-t border-gray-700">
+      <div className="mt-4 pt-4 border-t border-button-primary-DEFAULT/20">
         <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-gray-800 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Active</p>
-            <p className="text-lg font-bold text-white">2</p>
+          <div className="bg-gradient-to-br from-button-primary-DEFAULT/10 to-brand-secondary-DEFAULT/5 rounded-xl p-3 border border-button-primary-DEFAULT/20 hover:border-button-primary-DEFAULT/40 transition-all duration-200 cursor-pointer group">
+            <p className="text-xs text-text-muted mb-1 font-medium">Active</p>
+            <p className="text-lg font-bold bg-gradient-to-br from-brand-primary-400 to-brand-secondary-DEFAULT bg-clip-text text-transparent group-hover:scale-110 transition-transform">2</p>
           </div>
-          <div className="bg-gray-800 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Total</p>
-            <p className="text-lg font-bold text-white">8</p>
+          <div className="bg-gradient-to-br from-brand-accent-DEFAULT/10 to-brand-highlight-DEFAULT/5 rounded-xl p-3 border border-brand-accent-DEFAULT/20 hover:border-brand-accent-DEFAULT/40 transition-all duration-200 cursor-pointer group">
+            <p className="text-xs text-text-muted mb-1 font-medium">Total</p>
+            <p className="text-lg font-bold bg-gradient-to-br from-brand-accent-light to-brand-highlight-DEFAULT bg-clip-text text-transparent group-hover:scale-110 transition-transform">8</p>
           </div>
         </div>
       </div>

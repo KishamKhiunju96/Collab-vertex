@@ -47,15 +47,17 @@ export default function Modal({
         className={`relative w-full ${sizeClasses[size]} mx-4 rounded-xl bg-white shadow-xl animate-scaleIn`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          {title && <h2 className="text-lg font-semibold text-gray-900">{title}</h2>}
-          <button onClick={onClose} className="rounded p-1 hover:bg-gray-100">
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
-        </div>
+        {title && (
+          <div className="flex items-center justify-between border-b px-5 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <button onClick={onClose} className="rounded p-1 hover:bg-gray-100">
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+        )}
 
         {/* Body */}
-        <div className="p-5">{children}</div>
+        <div className={title ? "p-5" : ""}>{children}</div>
       </div>
     </div>
   );

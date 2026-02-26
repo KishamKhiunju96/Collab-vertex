@@ -14,6 +14,15 @@ export interface CreateInfluencerPayload {
   updated_at?: string;
 }
 
+export interface UpdateInfluencerPayload {
+  name?: string;
+  niche?: string;
+  audience_size?: number;
+  engagement_rate?: number;
+  bio?: string;
+  location?: string;
+}
+
 export interface InfluencerProfile {
   id: string;
   name: string;
@@ -40,6 +49,18 @@ export const influencerService = {
   createProfile: async (payload: CreateInfluencerPayload) => {
     const response = await api.post(
       API_PATHS.INFLUENCER.CREATE_PROFILE,
+      payload,
+    );
+    return response.data;
+  },
+
+  // Update influencer profile
+  updateProfile: async (
+    influencerId: string,
+    payload: UpdateInfluencerPayload,
+  ): Promise<InfluencerProfile> => {
+    const response = await api.put<InfluencerProfile>(
+      API_PATHS.INFLUENCER.UPDATE_PROFILE(influencerId),
       payload,
     );
     return response.data;

@@ -48,6 +48,8 @@ export const API_PATHS = {
 
   INFLUENCER: {
     CREATE_PROFILE: "/influencer/create_influencerprofile",
+    UPDATE_PROFILE: (influencerId: string) =>
+      `/influencer/update_influencerprofile/${influencerId}`,
     GET_BY_USER: "/influencer/get_influencer_by_user",
     GET_BY_ID: (influencerId: string) =>
       `/influencer/get_influencer_by_id/${influencerId}`,
@@ -74,11 +76,44 @@ export const API_PATHS = {
   },
 
   CHAT: {
-    // WebSocket endpoint for real-time chat
-    WEBSOCKET: (otherUserId: string) => `/chat/ws/chat/${otherUserId}`,
-    // REST endpoint to get chat history
-    GET_MESSAGES: (otherUserId: string) => `/chat/get_messages/${otherUserId}`,
-    // REST endpoint to get all conversations (deprecated - use role-specific endpoints)
-    GET_CONVERSATIONS: "/chat/conversations",
+    /**
+     * WebSocket endpoint for real-time chat in a conversation
+     * 
+     * Usage Flow:
+     * 1. Get chatable contacts: GET /brand/chatable_influencers or /influencer/chatable_brands
+     * 2. Create conversation: POST CREATE_DIRECT_CONVERSATION with { other_user_id: contact.user_id }
+     * 3. Get conversation_id from response
+     * 4. Connect WebSocket: wss://api.dixam.me/chat/ws/conversation/{conversation_id}
+     * 5. Both users connect to same conversation_id
+     * 6. Send/receive messages in real-time
+     * 
+     * Authentication: HttpOnly cookies (automatic)
+     * 
+     * IMPORTANT: Use user_id (not profile id) from chatable endpoints
+     * - Chatable endpoints return: { user_id: "user-uuid", id: "profile-uuid", name: "..." }
+     * - For creating conversations, use: { other_user_id: contact.user_id }
+     * - Backend authorization checks are based on user_id from Users table
+     * 
+     * @param conversation_id - UUID of the conversation from CREATE_DIRECT_CONVERSATION response
+     * @returns WebSocket path: /chat/ws/conversation/{conversation_id}
+     * 
+     * Full URL: wss://api.dixam.me/chat/ws/conversation/{conversation_id}
+     */
+    WEBSOCKET: (conversation_id: string) => `/chat/ws/conversation/${conversation_id}`,
+        
+    // Conversation management
+    CREATE_DIRECT_CONVERSATION: "/chat/conversations/direct",
+    CREATE_GROUP_CONVERSATION: "/chat/conversations/group",
+    GET_CONVERSATIONS_LIST: "/chat/conversations",
+    GET_CONVERSATION_MESSAGES: (conversationId: string) =>
+      `/chat/conversations/${conversationId}/messages`,
+    // SEND_MESSAGE: (conversationId: string) =>
+    //   `/chat/conversations/${conversationId}/messages`,
+    MARK_CONVERSATION_READ: (conversationId: string) =>
+      `/chat/conversations/${conversationId}/read`,
+    ADD_PARTICIPANTS: (conversationId: string) =>
+      `/chat/conversations/${conversationId}/participants`,
+    REMOVE_PARTICIPANT: (conversationId: string, userId: string) =>
+      `/chat/conversations/${conversationId}/participants/${userId}`,
   },
 } as const;

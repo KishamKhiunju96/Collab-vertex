@@ -20,15 +20,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen bg-gray-100">
-        <aside className="w-64">
-          <Sidebar />
-        </aside>
+return (
+  <SidebarProvider>
+    <div className="flex h-screen overflow-hidden bg-gray-100">
+      <aside className="w-64 flex-shrink-0">
+        <Sidebar />
+      </aside>
 
-        <main className="flex-1 p-6 overflow-auto relative">{children}</main>
-      </div>
-    </SidebarProvider>
-  );
+      <main className="flex-1 p-6 overflow-hidden relative">{children}</main>
+    </div>
+  </SidebarProvider>
+);
 }

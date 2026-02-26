@@ -114,7 +114,6 @@ export function useChatWebSocket({
 
           // Validate required fields
           if (!message.sender_id || !message.receiver_id || !message.content) {
-            console.error(" Missing required fields in message:", message);
             return;
           }
 

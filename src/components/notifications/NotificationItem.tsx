@@ -14,17 +14,24 @@ export default function NotificationItem({
 }: Props) {
   return (
     <div
-      className={`p-3 border-b ${notification.is_read ? "bg-gray-100" : "bg-white"} hover:bg-gray-50 transition`}
+      className={`p-4 border-b border-border-subtle ${notification.is_read ? "bg-background-muted" : "bg-white"} hover:bg-background-surface transition-all duration-200`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <h4 className="font-bold">{notification.title}</h4>
-          <p className="text-sm text-gray-700">{notification.message}</p>
-          <div className="flex gap-2 mt-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-start gap-2">
+            {!notification.is_read && (
+              <div className="w-2 h-2 bg-button-primary-DEFAULT rounded-full mt-1.5 shrink-0" />
+            )}
+            <div className="flex-1">
+              <h4 className="font-semibold text-text-primary">{notification.title}</h4>
+              <p className="text-sm text-text-secondary mt-1">{notification.message}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
             {!notification.is_read && (
               <button
                 onClick={() => onMarkAsRead(notification.id)}
-                className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                className="text-xs text-button-tertiary-text hover:text-button-primary-hover font-semibold transition-colors"
               >
                 Mark as read
               </button>
@@ -33,7 +40,7 @@ export default function NotificationItem({
         </div>
         <button
           onClick={() => onDelete(notification.id)}
-          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition"
+          className="text-icon-default hover:text-text-error p-1.5 rounded-lg hover:bg-status-errorBg transition-all duration-200"
           title="Delete notification"
         >
           <Trash2 size={16} />

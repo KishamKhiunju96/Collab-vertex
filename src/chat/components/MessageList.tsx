@@ -7,7 +7,7 @@ const MessageList: React.FC = () => {
   const messages: ChatMessage[] = useChatStore((state) => state.messages);
 
   return (
-    <div className="flex flex-col space-y-2 overflow-y-auto h-full p-2">
+    <div className="flex flex-col space-y-2 overflow-y-auto h-full p-2 ">
       {messages.map((msg) => (
         <div key={msg.id} className="p-2 rounded bg-gray-200">
           <strong>{msg.senderId}:</strong> {msg.content}

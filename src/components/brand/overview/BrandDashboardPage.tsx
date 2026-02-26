@@ -161,7 +161,7 @@ export default function BrandDashboardPage() {
 
   return (
     <>
-      <div className="dashboard-container p-4 lg:p-6 space-y-8">
+      <div className="dashboard-container p-4 lg:p-6 space-y-8 overflow-auto">
         {/* Header Section */}
         <div className="dashboard-header">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
@@ -396,7 +396,6 @@ export default function BrandDashboardPage() {
         {/* Create Brand Modal */}
         <Modal
           open={isCreateOpen}
-          title="Create New Brand"
           size="lg"
           onClose={() => setIsCreateOpen(false)}
         >

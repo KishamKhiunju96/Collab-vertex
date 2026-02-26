@@ -6,6 +6,20 @@ import { chatService } from "@/api/services/chatService";
 import { ChatMessage } from "@/chat/types";
 import { notify } from "@/utils/notify";
 
+/**
+ * @deprecated This hook uses the old user-to-user chat pattern.
+ * For new implementations, use:
+ * - useConversations() from "./useConversationsList" for conversation management
+ * - useConversationWebSocket() from "./useConversationWebSocket" for real-time messaging
+ * 
+ * This hook is kept for backward compatibility with existing ChatRoom.tsx component.
+ * 
+ * Migration guide:
+ * 1. Create/get conversation: getOrCreateDirectConversation(otherUserId)
+ * 2. Connect WebSocket: useConversationWebSocket({ conversationId, autoConnect: true })
+ * 3. Fetch messages: chatService.getConversationMessages(conversationId)
+ */
+
 interface UseChatProps {
   otherUserId: string;
   enabled?: boolean;
@@ -24,6 +38,7 @@ interface UseChatReturn {
 }
 
 /**
+ * @deprecated Use useConversations() and useConversationWebSocket() instead
  * Comprehensive chat hook that combines WebSocket for real-time messaging
  * and REST API for loading message history
  */
