@@ -30,7 +30,7 @@ export function MobileSidebar() {
 
       <SheetContent side="left" className="w-[280px] p-0">
         {/* Sidebar Header */}
-        <div className="sidebar-header border-b border-white/10">
+        <div className="sidebar-header">
           <Link href="/" className="sidebar-logo" onClick={close}>
             <div className="sidebar-logo-icon">
               <span>C</span>
@@ -45,7 +45,7 @@ export function MobileSidebar() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="border-t border-white/10">
+        <div>
           <SidebarFooter role={role} />
         </div>
       </SheetContent>

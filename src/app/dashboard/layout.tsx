@@ -3,6 +3,7 @@
 import { useAuthProtection } from "@/api/hooks/useAuth";
 import { ReactNode } from "react";
 import Sidebar from "@/components/dashboard/sidebar/Sidebar";
+import { MobileSidebar } from "@/components/dashboard/sidebar/MobileSidebar";
 import { SidebarProvider } from "@/components/dashboard/sidebar/SidebarProvider";
 
 interface DashboardLayoutProps {
@@ -23,11 +24,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 return (
   <SidebarProvider>
     <div className="flex h-screen overflow-hidden bg-gray-100">
-      <aside className="w-64 flex-shrink-0">
+      {/* Mobile Sidebar */}
+      <MobileSidebar />
+      
+      {/* Desktop Sidebar - Hidden on mobile/tablet */}
+      <aside className="hidden lg:flex w-64 flex-shrink-0">
         <Sidebar />
       </aside>
 
-      <main className="flex-1 p-6 overflow-hidden relative">{children}</main>
+      {/* Main Content - Full width on mobile, adjusted for sidebar on desktop */}
+      <main className="flex-1 p-4 lg:p-6 overflow-auto relative pt-20 lg:pt-6">
+        {children}
+      </main>
     </div>
   </SidebarProvider>
 );
