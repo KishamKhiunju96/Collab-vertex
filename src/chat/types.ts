@@ -37,12 +37,18 @@ export interface ConversationParticipant {
 export interface Conversation {
   id: string;
   type: "DIRECT" | "GROUP";
-  name?: string; // For group chats
+  participant_ids?: string[]; // Array of user IDs in this conversation
+  name?: string; // For group chats or direct chat (set to other person's username by backend)
   description?: string; // For group chats
   avatar_url?: string; // For group chats
   participants?: ConversationParticipant[]; // May not be populated in list responses
+  created_by_id?: string; // UUID of user who created the conversation
+  admin_ids?: string[]; // Array of admin user IDs (for group chats)
+  unread_counts?: Record<string, number>; // Map of user_id -> unread count
+  last_message_id?: string; // UUID of last message
+  last_message_at?: string; // Timestamp of last message
   last_message?: ConversationMessage;
-  unread_count: number;
+  unread_count: number; // Current user's unread count
   created_at: string;
   updated_at: string;
 }

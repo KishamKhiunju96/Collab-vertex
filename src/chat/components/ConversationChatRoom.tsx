@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Conversation, ConversationMessage } from "@/chat/types";
 import { chatService } from "@/api/services/chatService";
 import { useConversationWebSocket } from "@/chat/hooks/useConversationWebSocket";
+import { useChatStore } from "@/chat/store/chatStore";
 import { Send, Loader2, WifiOff, RefreshCw, Users, User } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
 
@@ -17,7 +18,20 @@ export default function ConversationChatRoom({
   onMarkAsRead,
 }: ConversationChatRoomProps) {
   const { user, loading: userLoading } = useUserData();
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  
+  // Initialize conversation in store if it doesn't exist
+  const initConversation = useChatStore((state) => state.initConversation);
+  const setMessages = useChatStore((state) => state.setMessages);
+  
+  // Initialize on mount
+  useEffect(() => {
+    initConversation(conversation.id);
+  }, [conversation.id, initConversation]);
+  
+  // Get messages from chatStore for this specific conversation
+  // Now guaranteed to have an array (never undefined)
+  const messages = useChatStore((state) => state.messagesByConversation[conversation.id] ?? []);
+  
   const [inputMessage, setInputMessage] = useState("");
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -27,7 +41,6 @@ export default function ConversationChatRoom({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
-    messages: wsMessages,
     sendMessage,
     sendTypingIndicator,
     markAsRead: markAsReadWS,
@@ -43,7 +56,7 @@ export default function ConversationChatRoom({
       if (data.type === "typing") {
         handleTypingIndicator(data);
       } else if (data.type === "read_receipt") {
-        // Read receipt received
+        // Read receipt received - already handled in useConversationWebSocket
       } else if (data.type === "status_update") {
         // Status update
       } else if (data.content) {
@@ -99,7 +112,8 @@ export default function ConversationChatRoom({
           return timeA - timeB;
         });
         
-        setMessages(sortedData);
+        // Store messages for this specific conversation in chatStore
+        setMessages(conversation.id, sortedData);
 
         // Mark as read when opening conversation
         onMarkAsRead();
@@ -114,7 +128,7 @@ export default function ConversationChatRoom({
     };
 
     fetchMessages();
-  }, [conversation.id, onMarkAsRead]);
+  }, [conversation.id, onMarkAsRead, setMessages]);
 
   // Auto-connect WebSocket when component mounts
   useEffect(() => {
@@ -125,28 +139,12 @@ export default function ConversationChatRoom({
     };
   }, [conversation.id, connect, disconnect]);
 
-  // Merge WebSocket messages with fetched messages
+  // Auto-scroll to bottom when messages change (new messages arrive)
   useEffect(() => {
-    if (wsMessages.length > 0) {
-      setMessages((prev) => {
-        // Avoid duplicates
-        const newMessages = wsMessages.filter(
-          (wsMsg) => !prev.some((msg) => msg.id === wsMsg.id),
-        );
-        
-        // Combine and sort by timestamp
-        const combined = [...prev, ...newMessages];
-        return combined.sort((a, b) => {
-          const timeA = new Date(a.sent_at || a.timestamp || a.created_at).getTime();
-          const timeB = new Date(b.sent_at || b.timestamp || b.created_at).getTime();
-          return timeA - timeB;
-        });
-      });
-
-      // Auto-scroll to bottom with smooth animation
+    if (messages.length > 0) {
       setTimeout(() => scrollToBottom(), 100);
     }
-  }, [wsMessages]);
+  }, [messages.length]);
 
   // Mark conversation as read when viewing messages
   useEffect(() => {
@@ -210,16 +208,19 @@ export default function ConversationChatRoom({
 
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
+    // Convert UTC timestamp to local time
     const date = new Date(timestamp);
     if (isNaN(date.getTime())) return "";
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   };
 
   const formatDate = (timestamp: string) => {
     if (!timestamp) return "";
+    // Convert UTC timestamp to local time for date comparison
     const date = new Date(timestamp);
     if (isNaN(date.getTime())) return "";
     const today = new Date();
@@ -236,6 +237,64 @@ export default function ConversationChatRoom({
         day: "numeric",
         year: "numeric",
       });
+    }
+  };
+
+  // Get message status: sent, delivered, or read
+  const getMessageStatus = (message: ConversationMessage, isSentByMe: boolean) => {
+    if (!isSentByMe) return null; // Only show status for sent messages
+
+    const readBy = message.read_by || [];
+    const deliveredTo = message.delivered_to || [];
+    
+    // For group chats, check if at least one person (other than sender) has read/received
+    const isGroupChat = conversation.type === "GROUP";
+    
+    if (isGroupChat) {
+      // In groups, if anyone (other than sender) has read it
+      const othersReadCount = readBy.filter(id => id !== message.sender_id).length;
+      if (othersReadCount > 0) return "read";
+      
+      // If delivered to anyone
+      const deliveredCount = deliveredTo.length;
+      if (deliveredCount > 0) return "delivered";
+    } else {
+      // For direct chats
+      const otherPersonRead = readBy.some(id => id !== message.sender_id);
+      if (otherPersonRead) return "read";
+      
+      const otherPersonDelivered = deliveredTo.length > 0;
+      if (otherPersonDelivered) return "delivered";
+    }
+    
+    return "sent";
+  };
+
+  // Render message status indicator
+  const renderMessageStatus = (status: string | null) => {
+    if (!status) return null;
+
+    if (status === "read") {
+      // Double tick - blue (read)
+      return (
+        <svg className="w-4 h-4 text-blue-400" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.88a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
+        </svg>
+      );
+    } else if (status === "delivered") {
+      // Double tick - gray (delivered)
+      return (
+        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.88a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
+        </svg>
+      );
+    } else {
+      // Single tick - gray (sent)
+      return (
+        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512z" />
+        </svg>
+      );
     }
   };
 
@@ -316,6 +375,9 @@ export default function ConversationChatRoom({
 
     // Show timestamp for last message or after date separator
     const showTimestamp = index === messages.length - 1 || showDateSeparator;
+    
+    // Get message status
+    const messageStatus = getMessageStatus(message, isSentByMe);
 
     return (
       <div key={message.id} className="animate-fadeIn">
@@ -343,10 +405,15 @@ export default function ConversationChatRoom({
               </p>
             </div>
 
-            {/* Timestamp - only show on last message or when hovering */}
+            {/* Timestamp with Status Indicator */}
             {showTimestamp && (
-              <div className="text-[11px] text-gray-500 mt-1 px-2">
-                {formatTime(messageTimestamp)}
+              <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-1 px-2">
+                <span>{formatTime(messageTimestamp)}</span>
+                {isSentByMe && messageStatus && (
+                  <span className="flex items-center">
+                    {renderMessageStatus(messageStatus)}
+                  </span>
+                )}
               </div>
             )}
           </div>

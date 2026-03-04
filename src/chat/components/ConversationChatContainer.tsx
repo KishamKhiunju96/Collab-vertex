@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Conversation } from "@/chat/types";
 import { useConversations } from "@/chat/hooks/useConversationsList";
 import { ConversationsList } from "./ConversationsList";
@@ -17,6 +17,7 @@ interface ChatContact {
   lastMessage?: string;
   unreadCount?: number;
   isOnline?: boolean;
+  lastMessageTime?: string; // ISO timestamp from conversation.last_message.sent_at
 }
 
 interface ConversationChatContainerProps {
@@ -46,6 +47,32 @@ export default function ConversationChatContainer({
     getOrCreateDirectConversation,
     createGroupConversation,
   } = useConversations();
+  
+  // ✅ ENHANCEMENT: Enrich contacts with conversation data
+  // Merge existing conversations with contact list to show last messages and unread counts
+  const enrichedContacts = useMemo(() => {
+    if (!contacts || contacts.length === 0) return [];
+    
+    return contacts.map((contact) => {
+      // Find existing direct conversation with this contact
+      const existingConversation = conversations.find(
+        (conv) => 
+          conv.type === "DIRECT" && 
+          conv.participant_ids?.includes(contact.id)
+      );
+      
+      if (existingConversation) {
+        return {
+          ...contact,
+          lastMessage: existingConversation.last_message?.content,
+          unreadCount: existingConversation.unread_count || 0,
+          lastMessageTime: existingConversation.last_message?.sent_at,
+        };
+      }
+      
+      return contact;
+    });
+  }, [contacts, conversations]);
 
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -118,23 +145,31 @@ export default function ConversationChatContainer({
   };
 
   const getConversationDisplayInfo = (conversation: Conversation) => {
+    // ✅ FIXED: Use conversation.name from backend directly
+    // Backend already populates:
+    // - GROUP: name = group name (e.g., "Influencers")
+    // - DIRECT: name = other person's username (e.g., "queen", "queen1")
+    
     if (conversation.type === "GROUP") {
-      const participantCount = conversation.participants?.length || 0;
+      const participantCount = conversation.participants?.length || conversation.participant_ids?.length || 0;
       return {
         name: conversation.name || "Unnamed Group",
         subtitle: `${participantCount} members`,
         isGroup: true,
       };
     } else {
+      // For DIRECT chats, backend sets name to other person's username
+      const displayName = conversation.name || "Unknown User";
+      
+      // Get subtitle from participants if available
       const participants = conversation.participants || [];
-      const otherParticipant =
-        participants.length > 0 ? participants[0] : null;
+      const otherParticipant = participants.find(
+        (p) => conversation.participant_ids?.includes(p.id)
+      );
+      
       return {
-        name:
-          otherParticipant?.username ||
-          conversation.name ||
-          "Unknown User",
-        subtitle: otherParticipant?.email || "",
+        name: displayName,
+        subtitle: otherParticipant?.email || otherParticipant?.role || "",
         isGroup: false,
       };
     }
@@ -252,43 +287,54 @@ export default function ConversationChatContainer({
                 </div>
               ) : (
                 <div>
-                  {contacts.map((contact) => (
-                    <button
-                      key={contact.id}
-                      onClick={() => handleContactSelect(contact)}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-all duration-150 border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold text-lg">
-                          {contact.username
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </div>
-                        {contact.isOnline && (
-                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0 text-left">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-sm font-semibold text-gray-900 truncate">
-                            {contact.username}
-                          </h3>
-                          {contact.role && (
-                            <span className="text-xs text-gray-500 ml-2">
-                              {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                            </span>
+                  {enrichedContacts.map((contact) => {
+                    const hasUnread = (contact.unreadCount || 0) > 0;
+                    
+                    return (
+                      <button
+                        key={contact.id}
+                        onClick={() => handleContactSelect(contact)}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-all duration-150 border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="relative flex-shrink-0">
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold text-lg">
+                            {contact.username
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </div>
+                          {contact.isOnline && (
+                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 truncate">
-                          {contact.email || 'Start a conversation...'}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
+
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className={`text-sm font-semibold truncate ${hasUnread ? 'text-gray-900' : 'text-gray-900'}`}>
+                              {contact.username}
+                            </h3>
+                            {contact.lastMessageTime && (
+                              <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                {formatTimestamp(contact.lastMessageTime)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className={`text-xs truncate ${hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                              {contact.lastMessage || contact.email || 'Start a conversation...'}
+                            </p>
+                            {hasUnread && (
+                              <span className="ml-2 flex-shrink-0 bg-purple-600 text-white text-xs rounded-full px-2 py-0.5 font-semibold">
+                                {contact.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -372,4 +418,27 @@ export default function ConversationChatContainer({
       </div>
     </div>
   );
+}
+
+/**
+ * Format timestamp to relative time (converts UTC to local)
+ */
+function formatTimestamp(timestamp: string): string {
+  // Convert UTC timestamp to local time
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  // For older messages, show date in local time
+  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const day = date.getDate();
+  return `${month} ${day}`;
 }

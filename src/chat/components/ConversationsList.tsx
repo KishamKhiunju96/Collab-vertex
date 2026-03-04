@@ -52,24 +52,27 @@ export function ConversationsList({
         const isSelected = conversation.id === selectedConversationId;
         const isGroup = conversation.type === "GROUP";
 
-        // Get display name and avatar
-        let displayName = "";
-        let avatarUrl = "";
-
-        if (isGroup) {
-          displayName = conversation.name || "Unnamed Group";
-          avatarUrl = conversation.avatar_url || "";
-        } else {
-          // For direct conversations, show the other participant
-          const participants = conversation.participants || [];
-          const otherParticipant = participants.length > 0 ? participants[0] : null;
-          displayName = otherParticipant?.username || conversation.name || "Unknown User";
-          avatarUrl = ""; // No avatar_url in participant type
+        // ✅ FIXED: Use conversation.name directly from backend
+        // Backend already sets:
+        // - For GROUP: name = group name (e.g., "Influencers")
+        // - For DIRECT: name = other person's username (e.g., "queen", "queen1")
+        let displayName = conversation.name || "Unknown";
+        
+        // Fallback: If no name, try to get from participants (shouldn't happen)
+        if (!displayName || displayName === "Unknown") {
+          if (isGroup) {
+            displayName = "Unnamed Group";
+          } else {
+            const participants = conversation.participants || [];
+            const otherParticipant = participants.length > 0 ? participants[0] : null;
+            displayName = otherParticipant?.username || "Unknown User";
+          }
         }
 
+        const avatarUrl = conversation.avatar_url || "";
         const lastMessagePreview = conversation.last_message?.content || "No messages yet";
-        const lastMessageTime = conversation.last_message?.timestamp || conversation.last_message?.created_at
-          ? formatTimestamp(conversation.last_message.timestamp || conversation.last_message.created_at)
+        const lastMessageTime = conversation.last_message?.sent_at || conversation.last_message?.timestamp
+          ? formatTimestamp(conversation.last_message.sent_at || conversation.last_message.timestamp)
           : "";
 
         const unreadCount = conversation.unread_count || 0;
@@ -158,9 +161,10 @@ export function ConversationsList({
 }
 
 /**
- * Format timestamp to relative time
+ * Format timestamp to relative time (converts UTC to local)
  */
 function formatTimestamp(timestamp: string): string {
+  // Convert UTC timestamp to local time
   const date = new Date(timestamp);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -173,7 +177,7 @@ function formatTimestamp(timestamp: string): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  // For older messages, show date
+  // For older messages, show date in local time
   const month = date.toLocaleDateString("en-US", { month: "short" });
   const day = date.getDate();
   return `${month} ${day}`;

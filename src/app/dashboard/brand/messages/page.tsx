@@ -28,16 +28,11 @@ export default function BrandMessagesPage() {
         setIsLoadingContacts(true);
         const response = await axiosInstance.get(API_PATHS.BRAND.GET_CHATABLE_INFLUENCERS);
         
-        console.log("=== Chatable Influencers Response ===");
-        console.log("Raw response:", response.data);
-        console.log("First influencer:", response.data[0]);
-        console.log("Fields in first influencer:", Object.keys(response.data[0] || {}));
-        console.log("user_id (for auth):", response.data[0]?.user_id);
-        console.log("id (profile):", response.data[0]?.id);
-        console.log("=====================================");
-        
         // Map backend response to ChatContact format
         // IMPORTANT: Use user_id (not profile id) for creating conversations
+        // When conversation is created, backend automatically sets:
+        // - For DIRECT chats: conversation.name = other person's username
+        // - For GROUP chats: conversation.name = group name
         const contactsData = response.data.map((influencer: any) => ({
           id: influencer.user_id || influencer.id, // Use user_id for authorization
           username: influencer.name || influencer.username || "Unknown User",
@@ -45,11 +40,6 @@ export default function BrandMessagesPage() {
           role: "influencer",
           isOnline: false,
         }));
-        
-        console.log("=== Mapped Contacts ===");
-        console.log("First contact:", contactsData[0]);
-        console.log("Contact ID (user UUID for auth):", contactsData[0]?.id);
-        console.log("======================");
         
         setContacts(contactsData);
       } catch (error) {

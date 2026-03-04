@@ -30,6 +30,9 @@ export default function InfluencerMessagesPage() {
         
         // Map backend response to ChatContact format
         // IMPORTANT: Use user_id (not profile id) for creating conversations
+        // When conversation is created, backend automatically sets:
+        // - For DIRECT chats: conversation.name = other person's username
+        // - For GROUP chats: conversation.name = group name
         const contactsData = response.data.map((brand: any) => ({
           id: brand.user_id || brand.id, // Use user_id for authorization
           username: brand.name || brand.username || "Unknown Brand",

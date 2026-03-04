@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { ConversationMessage, SendMessagePayload } from "@/chat/types";
 import { notify } from "@/utils/notify";
+import { useChatStore } from "@/chat/store/chatStore";
 
 interface UseConversationWebSocketProps {
   conversationId: string;
@@ -35,6 +36,9 @@ const WS_BASE_URL =
  * Hook for managing WebSocket connection for conversation-based real-time chat
  * Handles connection, reconnection, message sending/receiving
  * 
+ * CRITICAL FIX: All incoming messages are now filtered by conversation_id to prevent
+ * messages from one conversation appearing in another when multiple chats are open.
+ * 
  * IMPORTANT: WebSocket Authentication
  * - The WebSocket connection uses HttpOnly cookies for authentication (same as REST API)
  * - Cookies are automatically sent by the browser with WebSocket connections
@@ -48,6 +52,12 @@ const WS_BASE_URL =
  * 5. Backend validates the user's session cookie
  * 6. If valid, WebSocket connection is established
  * 7. Both users in the conversation can now send/receive real-time messages
+ * 
+ * Message Filtering:
+ * - All incoming messages contain a conversation_id field
+ * - Messages are only stored if conversation_id matches this hook's conversationId
+ * - Prevents cross-conversation message contamination
+ * - Delivery and read receipts are also filtered by conversation_id
  * 
  * Usage:
  * const { sendMessage, isConnected, messages } = useConversationWebSocket({
@@ -63,8 +73,21 @@ export function useConversationWebSocket({
   autoConnect = false,
 }: UseConversationWebSocketProps): UseConversationWebSocketReturn {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Initialize conversation in store
+  const initConversation = useChatStore((state) => state.initConversation);
+  
+  useEffect(() => {
+    initConversation(conversationId);
+  }, [conversationId, initConversation]);
+  
+  // Use chatStore to get messages for this specific conversation
+  // Now guaranteed to have an array (never undefined)
+  const messages = useChatStore((state) => state.messagesByConversation[conversationId] ?? []);
+  const addMessage = useChatStore((state) => state.addMessage);
+  const updateMessageDeliveryStatus = useChatStore((state) => state.updateMessageDeliveryStatus);
+  const updateMessageReadStatus = useChatStore((state) => state.updateMessageReadStatus);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -119,15 +142,51 @@ export function useConversationWebSocket({
         try {
           const data = JSON.parse(event.data);
 
-          // Call callback for all message types
+          // ⚠️ CRITICAL FIX: Filter all incoming messages by conversation_id
+          // Backend sends conversation_id with every message, delivery_receipt, and read_receipt
+          // Only process messages that belong to THIS conversation
+          const messageConversationId = data.conversation_id;
+          
+          // If message has conversation_id and it doesn't match our conversation, IGNORE IT
+          if (messageConversationId && messageConversationId !== conversationId) {
+            // Message belongs to a different conversation - ignore it
+            // This prevents messages from Direct Chat appearing in Group Chat and vice versa
+            return;
+          }
+
+          // Call callback for all message types (typing, read_receipt, status_update)
           onMessageReceivedRef.current?.(data);
 
-          // Only add to messages array if it's an actual chat message
+          // Handle different message types
           if (data.type === "message" || !data.type || data.content) {
-            const message: ConversationMessage = data;
-            setMessages((prev) => [...prev, message]);
+            // This is an actual chat message - add to store
+            const message: ConversationMessage = {
+              ...data,
+              conversation_id: conversationId, // Ensure conversation_id is set
+            };
+            
+            // Add to per-conversation message store
+            addMessage(conversationId, message);
+          } else if (data.type === "delivery_receipt") {
+            // Update delivery status for messages in THIS conversation only
+            if (data.message_id && data.delivered_to) {
+              updateMessageDeliveryStatus(
+                conversationId,
+                data.message_id,
+                data.delivered_to
+              );
+            }
+          } else if (data.type === "read_receipt") {
+            // Update read status for messages in THIS conversation only
+            if (data.message_id && data.read_by) {
+              updateMessageReadStatus(
+                conversationId,
+                data.message_id,
+                data.read_by
+              );
+            }
           }
-          // For typing, read_receipt, status_update - just pass to callback, don't add to messages
+          // For typing, status_update - just pass to callback, don't add to messages
         } catch (error) {
           // Failed to parse WebSocket message
         }
