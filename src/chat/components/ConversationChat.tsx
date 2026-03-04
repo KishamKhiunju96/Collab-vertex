@@ -29,7 +29,6 @@ export default function ConversationChat({ onClose }: ConversationChatProps) {
   const handleMarkAsRead = () => {
     // WebSocket handles sending read receipt via markAsReadWS() in ConversationChatRoom
     // No need to call REST API - backend handles it via WebSocket { type: "read" }
-    console.log("Conversation marked as read via WebSocket");
   };
 
   const handleBackToList = () => {

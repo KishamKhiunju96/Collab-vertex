@@ -54,7 +54,6 @@ export function useConversations(): UseConversationsReturn {
           : `Failed to load ${user.role === "brand" ? "influencers" : "brands"}`;
 
       setError(errorMessage);
-      console.error("Error fetching conversations:", err);
 
       // Don't show error notification for 404 (endpoint not implemented)
       if (error?.response?.status !== 404) {

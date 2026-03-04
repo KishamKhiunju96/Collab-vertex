@@ -15,20 +15,10 @@ export default function ChatRoom({
   otherUserId,
   otherUserName = "User",
 }: ChatRoomProps) {
-  console.log("ChatRoom initialized with:", { otherUserId, otherUserName });
-  
   const { user } = useUserData();
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  console.log("=== Current User Info ===");
-  console.log("User ID:", user?.id);
-  console.log("Username:", user?.username);
-  console.log("Email:", user?.email);
-  console.log("Role:", user?.role);
-  console.log("Full user object:", user);
-  console.log("========================");
 
   const {
     messages,
@@ -46,15 +36,6 @@ export default function ChatRoom({
 
   // Ensure messages is always an array
   const safeMessages = Array.isArray(messages) ? messages : [];
-
-  console.log("ChatRoom state:", { 
-    isConnected, 
-    messageCount: safeMessages.length, 
-    messagesType: typeof messages,
-    isArray: Array.isArray(messages),
-    messages,
-    error 
-  });
 
   // Helper function for initials
   const getInitials = (name: string) => {
@@ -104,7 +85,6 @@ export default function ChatRoom({
     if (!timestamp) return "";
     const date = new Date(timestamp);
     if (isNaN(date.getTime())) {
-      console.error("Invalid timestamp for formatTime:", timestamp);
       return "";
     }
     return date.toLocaleTimeString("en-US", {
@@ -117,7 +97,6 @@ export default function ChatRoom({
     if (!timestamp) return "";
     const date = new Date(timestamp);
     if (isNaN(date.getTime())) {
-      console.error("Invalid timestamp for formatDate:", timestamp);
       return "";
     }
     const today = new Date();
@@ -147,16 +126,6 @@ export default function ChatRoom({
     
     // Use direct match first, fallback to checking if not other user
     const isSentByMe = directMatch || (!directMatch && isNotOtherUser);
-    
-    // console.log("=== Message Render Debug ===");
-    // console.log("Message Sender ID:", message.sender_id);
-    // console.log("Current User ID:", user?.id);
-    // console.log("Other User ID:", otherUserId);
-    // console.log("Direct Match:", directMatch);
-    // console.log("Is Not Other User:", isNotOtherUser);
-    // console.log("Final isSentByMe:", isSentByMe);
-    // console.log("Content:", message.content?.substring(0, 30));
-    // console.log("===========================");
     
     const showDateSeparator =
       index === 0 ||

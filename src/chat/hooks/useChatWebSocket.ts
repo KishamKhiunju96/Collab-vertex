@@ -56,10 +56,7 @@ export function useChatWebSocket({
   }, [onMessageReceived, onConnectionChange]);
 
   const connect = useCallback(() => {
-    console.log("useChatWebSocket.connect called with otherUserId:", otherUserId);
-    
     if (!otherUserId) {
-      console.warn("Cannot connect: otherUserId is required");
       return;
     }
 
@@ -69,7 +66,6 @@ export function useChatWebSocket({
       (wsRef.current.readyState === WebSocket.CONNECTING ||
         wsRef.current.readyState === WebSocket.OPEN)
     ) {
-      console.log("WebSocket connection already exists, skipping");
       return;
     }
 
@@ -77,17 +73,11 @@ export function useChatWebSocket({
       //  CORRECT: wss://api.dixam.me/chat/ws/chat/{user_id}
       //  WRONG: wss://api.dixam.me/chat/ws/chat/{profile_id}
       const wsUrl = `${WS_BASE_URL}/chat/ws/chat/${otherUserId}`;
-      console.log("=== WebSocket Connection Details ===");
-      console.log("Base URL:", WS_BASE_URL);
-      console.log("Other User ID:", otherUserId);
-      console.log("Full WebSocket URL:", wsUrl);
-      console.log("====================================");
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("WebSocket connected");
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
@@ -97,18 +87,9 @@ export function useChatWebSocket({
       ws.onmessage = (event) => {
         try {
           const message: ChatMessage = JSON.parse(event.data);
-          console.log("=== WebSocket Message Received ===");
-          console.log("Full message:", message);
-          console.log("Sender ID:", message.sender_id);
-          console.log("Receiver ID:", message.receiver_id);
-          console.log("Content:", message.content);
-          console.log("Timestamp:", message.sent_at);
-          console.log("Timestamp type:", typeof message.sent_at);
-          console.log("==================================");
 
           // Validate message object
           if (!message || typeof message !== 'object') {
-            console.error("Invalid message format received:", message);
             return;
           }
 
@@ -126,17 +107,11 @@ export function useChatWebSocket({
           // Call callback if provided
           onMessageReceivedRef.current?.(message);
         } catch (err) {
-          console.error("Failed to parse WebSocket message:", err);
           setError("Failed to parse incoming message");
         }
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket closed:", {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
         setIsConnected(false);
         wsRef.current = null;
         onConnectionChangeRef.current?.(false);
@@ -154,9 +129,6 @@ export function useChatWebSocket({
           reconnectAttemptsRef.current < maxReconnectAttempts
         ) {
           reconnectAttemptsRef.current += 1;
-          console.log(
-            `Reconnecting... Attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`,
-          );
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
@@ -167,7 +139,6 @@ export function useChatWebSocket({
         }
       };
     } catch (err) {
-      console.error("Failed to create WebSocket:", err);
       setError("Failed to create WebSocket connection");
     }
   }, [otherUserId]); // Only reconnect when otherUserId changes
@@ -190,12 +161,10 @@ export function useChatWebSocket({
 
   const sendMessage = useCallback((content: string) => {
     if (!content.trim()) {
-      console.warn("Cannot send empty message");
       return;
     }
 
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket is not connected");
       notify.error("Chat is not connected. Please wait...");
       setError("WebSocket is not connected");
       return;
@@ -204,9 +173,7 @@ export function useChatWebSocket({
     try {
       const payload: SendMessagePayload = { content };
       wsRef.current.send(JSON.stringify(payload));
-      console.log("Message sent:", payload);
     } catch (err) {
-      console.error("Failed to send message:", err);
       setError("Failed to send message");
       notify.error("Failed to send message. Please try again.");
     }
@@ -222,16 +189,13 @@ export function useChatWebSocket({
   // Connect on mount and when otherUserId changes
   useEffect(() => {
     if (!otherUserId) {
-      console.log("No otherUserId, skipping connection");
       return;
     }
 
-    console.log("Initializing WebSocket connection for:", otherUserId);
     connect();
 
     // Cleanup on unmount or when otherUserId changes
     return () => {
-      console.log("Cleaning up WebSocket connection");
       disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

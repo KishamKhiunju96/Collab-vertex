@@ -46,8 +46,6 @@ export function useChat({
   otherUserId,
   enabled = true,
 }: UseChatProps): UseChatReturn {
-  console.log("useChat initialized:", { otherUserId, enabled });
-  
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -65,7 +63,6 @@ export function useChat({
   } = useChatWebSocket({
     otherUserId: enabled && otherUserId ? otherUserId : "",
     onMessageReceived: (message) => {
-      console.log("useChat - Message received via WebSocket:", message);
       // Add received message to the list if not already present
       setAllMessages((prev) => {
         // Ensure prev is an array
@@ -76,7 +73,6 @@ export function useChat({
       });
     },
     onConnectionChange: (connected) => {
-      console.log("useChat - WebSocket connection changed:", connected);
       if (connected && !hasFetchedInitial.current) {
         // Load initial messages when connected
         loadInitialMessages();
@@ -99,14 +95,12 @@ export function useChat({
 
       // Ensure messages is an array
       const safeMessages = Array.isArray(messages) ? messages : [];
-      console.log("Loaded initial messages:", { count: safeMessages.length, isArray: Array.isArray(messages), raw: messages });
       
       setAllMessages(safeMessages);
       setOffset(safeMessages.length);
       setHasMore(safeMessages.length === limit);
       hasFetchedInitial.current = true;
     } catch (error) {
-      console.error("Failed to load initial messages:", error);
       notify.error("Failed to load chat history");
     } finally {
       setIsLoading(false);
@@ -141,7 +135,6 @@ export function useChat({
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Failed to load more messages:", error);
       notify.error("Failed to load more messages");
     } finally {
       setIsLoading(false);
@@ -173,7 +166,7 @@ export function useChat({
 
     // You can also call API to mark as read on server
     chatService.markMessagesAsRead(messageIds).catch((err) => {
-      console.error("Failed to mark messages as read:", err);
+      // Failed to mark messages as read
     });
   }, []);
 
@@ -204,14 +197,6 @@ export function useChat({
       });
     }
   }, [wsMessages]);
-
-  // Debug logging
-  console.log("useChat returning:", {
-    messagesCount: allMessages.length,
-    messagesType: typeof allMessages,
-    isArray: Array.isArray(allMessages),
-    allMessages: allMessages,
-  });
 
   return {
     messages: allMessages,

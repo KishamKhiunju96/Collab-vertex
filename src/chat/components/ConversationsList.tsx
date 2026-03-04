@@ -19,7 +19,7 @@ export function ConversationsList({
 }: ConversationsListProps) {
   if (loading) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-500">Loading conversations...</p>
@@ -30,7 +30,7 @@ export function ConversationsList({
 
   if (conversations.length === 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-full h-full flex items-center justify-center p-8 bg-white">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
             <Users className="w-8 h-8 text-purple-500" />
@@ -38,8 +38,8 @@ export function ConversationsList({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             No conversations yet
           </h3>
-          <p className="text-sm text-gray-500">
-            Start a conversation by clicking on a user
+          <p className="text-sm text-gray-500 max-w-xs">
+            Start a conversation from the "New Chat" tab
           </p>
         </div>
       </div>
@@ -47,7 +47,7 @@ export function ConversationsList({
   }
 
   return (
-    <div className="w-full h-full overflow-y-auto">
+    <div className="w-full h-full overflow-y-auto bg-white">
       {conversations.map((conversation) => {
         const isSelected = conversation.id === selectedConversationId;
         const isGroup = conversation.type === "GROUP";
@@ -79,11 +79,11 @@ export function ConversationsList({
             key={conversation.id}
             onClick={() => onConversationSelect(conversation)}
             className={`
-              w-full p-4 flex items-start gap-3 transition-all duration-200
-              border-b border-gray-100 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50
+              w-full px-4 py-3 flex items-center gap-3 transition-all duration-150
+              hover:bg-gray-50 border-b border-gray-100 last:border-b-0
               ${
                 isSelected
-                  ? "bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500"
+                  ? "bg-gray-50"
                   : ""
               }
             `}
@@ -94,10 +94,10 @@ export function ConversationsList({
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-md"
+                  className="w-14 h-14 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold shadow-md">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold text-lg">
                   {isGroup ? (
                     <Users className="w-6 h-6" />
                   ) : (
@@ -106,9 +106,14 @@ export function ConversationsList({
                 </div>
               )}
 
+              {/* Online indicator - only show for direct chats */}
+              {!isGroup && (
+                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
+              )}
+
               {/* Unread badge */}
               {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
+                <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </div>
               )}
@@ -117,23 +122,18 @@ export function ConversationsList({
             {/* Content */}
             <div className="flex-1 min-w-0 text-left">
               {/* Name and time */}
-              <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between mb-1">
                 <h3
-                  className={`font-semibold truncate ${
+                  className={`text-sm font-semibold truncate ${
                     unreadCount > 0
                       ? "text-gray-900"
-                      : "text-gray-700"
+                      : "text-gray-900"
                   }`}
                 >
                   {displayName}
-                  {isGroup && (
-                    <span className="text-xs text-gray-500 ml-2">
-                      ({conversation.participants?.length || 0} members)
-                    </span>
-                  )}
                 </h3>
                 {lastMessageTime && (
-                  <span className="text-xs text-gray-500 flex-shrink-0">
+                  <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
                     {lastMessageTime}
                   </span>
                 )}

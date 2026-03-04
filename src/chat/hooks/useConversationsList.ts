@@ -55,13 +55,7 @@ export function useConversations(): UseConversationsReturn {
       setError(null);
       const data = await chatService.getConversationsList();
       setConversations(data);
-      console.log("📋 Loaded conversations:", data.length);
-      
-      if (data.length === 0) {
-        console.log("💡 No conversations yet - start by messaging a contact");
-      }
     } catch (err: any) {
-      console.error("❌ Failed to fetch conversations:", err);
       const errorMsg = err.response?.data?.detail || "Failed to load conversations";
       setError(errorMsg);
       setConversations([]);
@@ -89,7 +83,6 @@ export function useConversations(): UseConversationsReturn {
           other_user_id: otherUserId, // Field name is other_user_id, value is user UUID from Users table
         };
 
-        console.log("Creating direct conversation with user:", otherUserId);
         const conversation = await chatService.createDirectConversation(payload);
 
         // Add to local state
@@ -105,7 +98,6 @@ export function useConversations(): UseConversationsReturn {
         notify.success("Conversation created");
         return conversation;
       } catch (err: any) {
-        console.error("Failed to create direct conversation:", err);
         
         // Check if conversation already exists (409 Conflict)
         if (err.response?.status === 409) {
@@ -136,7 +128,6 @@ export function useConversations(): UseConversationsReturn {
       });
 
       if (existing) {
-        console.log("Found existing conversation:", existing);
         return existing;
       }
 
@@ -169,7 +160,6 @@ export function useConversations(): UseConversationsReturn {
           avatar_url: avatarUrl,
         };
 
-        console.log("Creating group conversation:", payload);
         const conversation = await chatService.createGroupConversation(payload);
 
         // Add to local state
@@ -178,7 +168,6 @@ export function useConversations(): UseConversationsReturn {
         notify.success(`Group "${name}" created`);
         return conversation;
       } catch (err) {
-        console.error("Failed to create group conversation:", err);
         notify.error("Failed to create group");
         return null;
       }
@@ -206,7 +195,6 @@ export function useConversations(): UseConversationsReturn {
         )
       );
     } catch (err) {
-      console.error("Failed to mark conversation as read (REST):", err);
       // Don't show error notification - WebSocket handles this
     }
   }, []);
@@ -227,7 +215,6 @@ export function useConversations(): UseConversationsReturn {
 
         notify.success("Participants added");
       } catch (err) {
-        console.error("Failed to add participants:", err);
         notify.error("Failed to add participants");
       }
     },
@@ -249,7 +236,6 @@ export function useConversations(): UseConversationsReturn {
 
         notify.success("Participant removed");
       } catch (err) {
-        console.error("Failed to remove participant:", err);
         notify.error("Failed to remove participant");
       }
     },

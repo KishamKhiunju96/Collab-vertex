@@ -23,7 +23,6 @@ class WebSocketManager {
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
-      console.log("WebSocket connected");
       this.isConnected = true;
       // flush offline queue if needed
     };
@@ -34,14 +33,12 @@ class WebSocketManager {
     };
 
     this.socket.onclose = () => {
-      console.log("WebSocket disconnected. Reconnecting...");
       this.isConnected = false;
       this.socket = null;
       setTimeout(() => this.connect(this.url), this.reconnectTimeout);
     };
 
     this.socket.onerror = (err) => {
-      console.error("WebSocket error", err);
       this.socket?.close();
     };
   }
@@ -50,7 +47,6 @@ class WebSocketManager {
     if (this.isConnected && this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(event));
     } else {
-      console.warn("WebSocket not connected, message not sent.");
       // Could push to offline queue here
     }
   }

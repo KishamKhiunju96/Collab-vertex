@@ -84,11 +84,7 @@ export function useConversationWebSocket({
   }, [onMessageReceived, onConnectionChange]);
 
   const connect = useCallback(() => {
-    console.log("=== useConversationWebSocket.connect ===");
-    console.log("Conversation ID:", conversationId);
-    
     if (!conversationId) {
-      console.warn("Cannot connect: conversationId is required");
       setError("No conversation ID provided");
       return;
     }
@@ -101,7 +97,6 @@ export function useConversationWebSocket({
       (wsRef.current.readyState === WebSocket.CONNECTING ||
         wsRef.current.readyState === WebSocket.OPEN)
     ) {
-      console.log("WebSocket connection already exists, skipping");
       return;
     }
 
@@ -109,20 +104,11 @@ export function useConversationWebSocket({
       // Construct WebSocket URL for conversation
       // Path matches API_PATHS.CHAT.WEBSOCKET: /chat/ws/conversation/{conversation_id}
       const wsUrl = `${WS_BASE_URL}/chat/ws/conversation/${conversationId}`;
-      
-      console.log("=== WebSocket Connection Details ===");
-      console.log("Base URL:", WS_BASE_URL);
-      console.log("Conversation ID:", conversationId);
-      console.log("Full WebSocket URL:", wsUrl);
-      console.log("Expected Backend Path: /chat/ws/conversation/{id}");
-      console.log("Authentication: HttpOnly cookies (automatic)");
-      console.log("====================================");
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("✅ WebSocket connected to conversation:", conversationId);
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
@@ -132,20 +118,6 @@ export function useConversationWebSocket({
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log("=== WebSocket Message Received ===");
-          console.log("Type:", data.type || 'message');
-          
-          if (data.content) {
-            console.log("📨 Message data:", {
-              id: data.id,
-              sender_id: data.sender_id,
-              receiver_id: data.receiver_id,
-              content: data.content?.substring(0, 30) + '...',
-              sender_id_type: typeof data.sender_id,
-              full_data: data,
-            });
-          }
-          console.log("=================================");
 
           // Call callback for all message types
           onMessageReceivedRef.current?.(data);
@@ -153,17 +125,11 @@ export function useConversationWebSocket({
           // Only add to messages array if it's an actual chat message
           if (data.type === "message" || !data.type || data.content) {
             const message: ConversationMessage = data;
-            console.log("💾 Adding message to array:", {
-              id: message.id,
-              sender_id: message.sender_id,
-              content: message.content?.substring(0, 20),
-            });
             setMessages((prev) => [...prev, message]);
           }
           // For typing, read_receipt, status_update - just pass to callback, don't add to messages
         } catch (error) {
-          console.error("Failed to parse WebSocket message:", error);
-          console.error("Raw message:", event.data);
+          // Failed to parse WebSocket message
         }
       };
 
@@ -172,12 +138,6 @@ export function useConversationWebSocket({
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket closed:", {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
-
         setIsConnected(false);
         onConnectionChangeRef.current?.(false);
 
@@ -188,9 +148,6 @@ export function useConversationWebSocket({
           event.code !== 1000 // Don't reconnect if it was a clean close
         ) {
           reconnectAttemptsRef.current += 1;
-          console.log(
-            `Attempting to reconnect... (${reconnectAttemptsRef.current}/${maxReconnectAttempts})`
-          );
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
@@ -201,13 +158,11 @@ export function useConversationWebSocket({
         }
       };
     } catch (error) {
-      console.error("Failed to create WebSocket connection:", error);
       setError("Failed to establish connection");
     }
   }, [conversationId]);
 
   const disconnect = useCallback(() => {
-    console.log("Disconnecting WebSocket for conversation:", conversationId);
     shouldConnectRef.current = false;
 
     if (reconnectTimeoutRef.current) {
@@ -225,7 +180,6 @@ export function useConversationWebSocket({
   }, [conversationId]);
 
   const reconnect = useCallback(() => {
-    console.log("Manual reconnection requested");
     disconnect();
     reconnectAttemptsRef.current = 0;
     setTimeout(() => {
@@ -236,13 +190,11 @@ export function useConversationWebSocket({
   const sendMessage = useCallback(
     (content: string, type: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT') => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        console.warn("Cannot send message: WebSocket not connected");
         notify.error("Not connected to chat. Please try again.");
         return;
       }
 
       if (!content.trim()) {
-        console.warn("Cannot send empty message");
         return;
       }
 
@@ -253,14 +205,9 @@ export function useConversationWebSocket({
           content: content.trim(),
           message_type: type,
         };
-
-        console.log("=== Sending Message ===");
-        console.log("Payload:", JSON.stringify(payload, null, 2));
-        console.log("======================");
         
         wsRef.current.send(JSON.stringify(payload));
       } catch (error) {
-        console.error("Failed to send message:", error);
         notify.error("Failed to send message");
       }
     },
@@ -279,10 +226,9 @@ export function useConversationWebSocket({
           is_typing: isTyping,
         };
 
-        console.log("📝 Sending typing indicator:", isTyping);
         wsRef.current.send(JSON.stringify(payload));
       } catch (error) {
-        console.error("Failed to send typing indicator:", error);
+        // Failed to send typing indicator
       }
     },
     []
@@ -298,10 +244,9 @@ export function useConversationWebSocket({
         type: "read",
       };
 
-      console.log("✅ Marking conversation as read");
       wsRef.current.send(JSON.stringify(payload));
     } catch (error) {
-      console.error("Failed to send read receipt:", error);
+      // Failed to send read receipt
     }
   }, []);
 
@@ -313,9 +258,8 @@ export function useConversationWebSocket({
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         try {
           wsRef.current.send(JSON.stringify({ type: "heartbeat" }));
-          console.log("💓 Heartbeat sent");
         } catch (error) {
-          console.error("Failed to send heartbeat:", error);
+          // Failed to send heartbeat
         }
       }
     }, 30000); // Send heartbeat every 30 seconds

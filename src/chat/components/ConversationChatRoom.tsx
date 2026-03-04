@@ -43,14 +43,13 @@ export default function ConversationChatRoom({
       if (data.type === "typing") {
         handleTypingIndicator(data);
       } else if (data.type === "read_receipt") {
-        console.log("Read receipt received:", data);
+        // Read receipt received
       } else if (data.type === "status_update") {
-        console.log("Status update:", data);
+        // Status update
       } else if (data.content) {
         // ⚠️ CRITICAL FIX: If backend doesn't set sender_id, inject current user's ID
         // This happens when the backend echoes our message back but doesn't populate sender_id
         if (!data.sender_id && user?.id) {
-          console.log("⚠️ Backend didn't set sender_id, injecting current user ID");
           data.sender_id = user.id;
         }
       }
@@ -81,30 +80,9 @@ export default function ConversationChatRoom({
     }, 3000);
   };
 
-  // Log current user ID for debugging
+  // User validation
   useEffect(() => {
-    console.log("🔍 USER DEBUG - Full user object:", user);
-    console.log("🔍 USER DEBUG - Object keys:", user ? Object.keys(user) : "user is null");
-    
-    if (!user) {
-      console.error("🚨 USER IS NULL!");
-    } else if (!user.id) {
-      console.error("🚨 USER EXISTS BUT user.id IS UNDEFINED!");
-      console.error("User object:", JSON.stringify(user, null, 2));
-    } else {
-      console.log("✅ Current user in chat room:", {
-        id: user.id,
-        id_type: typeof user.id,
-        username: user.username,
-        role: user.role,
-      });
-      console.log("📋 Conversation participants:", {
-        conversationId: conversation.id,
-        type: conversation.type,
-        participants: conversation.participants,
-        participantCount: conversation.participants?.length || 0,
-      });
-    }
+    // Validate user and participants
   }, [user, conversation]);
 
   // Fetch initial messages
@@ -122,17 +100,6 @@ export default function ConversationChatRoom({
         });
         
         setMessages(sortedData);
-        
-        console.log("📥 Fetched messages:", {
-          conversationId: conversation.id,
-          messageCount: sortedData.length,
-          firstMessage: sortedData[0] ? {
-            id: sortedData[0].id,
-            sender_id: sortedData[0].sender_id,
-            receiver_id: sortedData[0].receiver_id,
-            content: sortedData[0].content?.substring(0, 30) + "...",
-          } : null,
-        });
 
         // Mark as read when opening conversation
         onMarkAsRead();
@@ -140,7 +107,7 @@ export default function ConversationChatRoom({
         // Scroll to bottom after messages load
         setTimeout(() => scrollToBottom(), 100);
       } catch (err) {
-        console.error("Failed to fetch messages:", err);
+        // Failed to fetch messages
       } finally {
         setIsLoadingMessages(false);
       }
@@ -151,11 +118,9 @@ export default function ConversationChatRoom({
 
   // Auto-connect WebSocket when component mounts
   useEffect(() => {
-    console.log("Auto-connecting to conversation:", conversation.id);
     connect();
 
     return () => {
-      console.log("Disconnecting from conversation:", conversation.id);
       disconnect();
     };
   }, [conversation.id, connect, disconnect]);
@@ -239,7 +204,7 @@ export default function ConversationChatRoom({
         clearTimeout(typingTimeoutRef.current);
       }
     } catch (err) {
-      console.error("Failed to send message:", err);
+      // Failed to send message
     }
   };
 
@@ -277,7 +242,6 @@ export default function ConversationChatRoom({
   const renderMessage = (message: ConversationMessage, index: number) => {
     // Ensure we have valid user data
     if (!user) {
-      console.error("🚨 Cannot render message - user not loaded");
       return null;
     }
 
@@ -292,9 +256,6 @@ export default function ConversationChatRoom({
       
       if (currentUserParticipant) {
         currentUserId = currentUserParticipant.id;
-        if (index === 0) {
-          console.log("✅ Found user ID from conversation participants:", currentUserId);
-        }
       }
     }
     
@@ -307,9 +268,6 @@ export default function ConversationChatRoom({
       );
       if (senderParticipant && senderParticipant.username === user.username) {
         currentUserId = messageSenderId;
-        if (index === 0) {
-          console.log("✅ Matched message by username instead of ID");
-        }
       }
     }
     
@@ -319,20 +277,6 @@ export default function ConversationChatRoom({
     
     // Determine if message was sent by current user
     const isSentByMe = Boolean(senderIdStr && userIdStr && senderIdStr === userIdStr);
-
-    // 🔍 DEBUGGING: Log comparison details
-    console.log("🔍 Message alignment check:", {
-      messageId: message.id,
-      currentUserId: currentUserId,
-      currentUserId_type: typeof currentUserId,
-      messageSenderId: messageSenderId,
-      messageSenderId_type: typeof messageSenderId,
-      userIdStr: userIdStr,
-      senderIdStr: senderIdStr,
-      isSentByMe: isSentByMe,
-      comparison: `"${senderIdStr}" === "${userIdStr}" = ${senderIdStr === userIdStr}`,
-      content: message.content?.substring(0, 20) + "...",
-    });
 
     // Get sender name from multiple sources
     let senderName = "Unknown User";
@@ -375,39 +319,23 @@ export default function ConversationChatRoom({
 
     return (
       <div key={message.id} className="animate-fadeIn">
-        {/* Date Separator */}
-        {showDateSeparator && (
-          <div className="flex items-center justify-center my-4">
-            <div className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full font-medium">
-              {formatDate(messageTimestamp)}
-            </div>
-          </div>
-        )}
-
         {/* Message Container */}
         <div
-          className={`flex mb-2 px-3 ${
+          className={`flex mb-1.5 ${
             isSentByMe ? "justify-end" : "justify-start"
           }`}
         >
           <div
-            className={`max-w-[75%] sm:max-w-[60%] ${
+            className={`max-w-[70%] ${
               isSentByMe ? "items-end" : "items-start"
             } flex flex-col`}
           >
-            {/* Sender Name (only for received messages) */}
-            {!isSentByMe && (
-              <span className="text-xs text-gray-500 mb-1 px-3">
-                {senderName}
-              </span>
-            )}
-
             {/* Message Bubble */}
             <div
-              className={`relative px-4 py-2 rounded-2xl ${
+              className={`relative px-4 py-2.5 ${
                 isSentByMe
-                  ? "bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-br-sm"
-                  : "bg-white border border-gray-200 text-gray-900 rounded-bl-sm shadow-sm"
+                  ? "bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-3xl rounded-br-lg"
+                  : "bg-gray-100 text-gray-900 rounded-3xl rounded-bl-lg"
               }`}
             >
               <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
@@ -415,22 +343,12 @@ export default function ConversationChatRoom({
               </p>
             </div>
 
-            {/* Timestamp below message bubble */}
-            <div
-              className={`flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs ${
-                isSentByMe 
-                  ? "bg-purple-100 text-purple-700" 
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <span>{formatTime(messageTimestamp)}</span>
-              {isSentByMe && message.is_read && (
-                <span>✓✓</span>
-              )}
-              {isSentByMe && !message.is_read && message.is_delivered && (
-                <span>✓</span>
-              )}
-            </div>
+            {/* Timestamp - only show on last message or when hovering */}
+            {showTimestamp && (
+              <div className="text-[11px] text-gray-500 mt-1 px-2">
+                {formatTime(messageTimestamp)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -485,12 +403,20 @@ export default function ConversationChatRoom({
       {/* Messages List */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-2 py-4 bg-gradient-to-b from-gray-50 to-gray-100"
+        className="flex-1 overflow-y-auto px-6 py-4 bg-white"
         style={{ 
           scrollBehavior: "smooth",
           overscrollBehavior: "contain"
         }}
       >
+        {/* Date Separator */}
+        {messages.length > 0 && (
+          <div className="flex items-center justify-center my-4">
+            <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">
+              Today
+            </span>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center px-4">
             <div className="text-center">
@@ -510,7 +436,7 @@ export default function ConversationChatRoom({
             </div>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {user && messages.map((message, index) => renderMessage(message, index))}
             <div ref={messagesEndRef} />
           </div>
@@ -518,43 +444,91 @@ export default function ConversationChatRoom({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white shadow-lg">
+      <div className="border-t border-gray-200 bg-white">
         {/* Typing Indicator */}
         {typingUsers.size > 0 && (
-          <div className="px-4 pt-3 pb-1 animate-fadeIn">
+          <div className="px-6 pt-3 pb-1 animate-fadeIn">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <div className="flex gap-1">
-                <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
               </div>
               <span className="italic">
                 {Array.from(typingUsers).length === 1
-                  ? "Someone is typing"
-                  : `${Array.from(typingUsers).length} people are typing`}
+                  ? "typing..."
+                  : `${Array.from(typingUsers).length} people are typing...`}
               </span>
             </div>
           </div>
         )}
 
-        <div className="p-4">
-          <form onSubmit={handleSendMessage} className="flex gap-3">
+        <div className="px-4 py-3">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+            {/* Emoji Button */}
+            <button
+              type="button"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              title="Add emoji"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            {/* Attachment Button */}
+            <button
+              type="button"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              title="Attach file"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
+
+            {/* Image Button */}
+            <button
+              type="button"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              title="Add image"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </button>
+
+            {/* Input */}
             <input
               type="text"
               value={inputMessage}
               onChange={handleInputChange}
-              placeholder="Type your message..."
+              placeholder="Message..."
               disabled={!isConnected}
-              className="flex-1 px-4 py-3 rounded-full border-2 border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm placeholder:text-gray-400"
+              className="flex-1 px-4 py-2.5 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm placeholder:text-gray-500"
             />
-            <button
-              type="submit"
-              disabled={!isConnected || !inputMessage.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-full hover:from-purple-700 hover:to-purple-600 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-xl flex items-center gap-2 font-medium text-sm transform hover:scale-105 active:scale-95"
-              title="Send message"
-            >
-              <Send size={18} />
-            </button>
+
+            {/* Send/Like Button */}
+            {inputMessage.trim() ? (
+              <button
+                type="submit"
+                disabled={!isConnected}
+                className="p-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors disabled:text-gray-400 disabled:cursor-not-allowed flex-shrink-0"
+                title="Send message"
+              >
+                Send
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                title="Like"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+            )}
           </form>
         </div>
       </div>
