@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { ConversationMessage, SendMessagePayload } from "@/chat/types";
 import { notify } from "@/utils/notify";
 import { useChatStore } from "@/chat/store/chatStore";
+import { useUserData } from "@/api/hooks/useUserData";
 
 interface UseConversationWebSocketProps {
   conversationId: string;
@@ -75,6 +76,10 @@ export function useConversationWebSocket({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Get current user for read receipt handling
+  const { user } = useUserData();
+  const currentUserId = user?.id;
+  
   // Initialize conversation in store
   const initConversation = useChatStore((state) => state.initConversation);
   
@@ -88,6 +93,7 @@ export function useConversationWebSocket({
   const addMessage = useChatStore((state) => state.addMessage);
   const updateMessageDeliveryStatus = useChatStore((state) => state.updateMessageDeliveryStatus);
   const updateMessageReadStatus = useChatStore((state) => state.updateMessageReadStatus);
+  const markConversationAsReadByUser = useChatStore((state) => state.markConversationAsReadByUser);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -136,11 +142,23 @@ export function useConversationWebSocket({
         setError(null);
         reconnectAttemptsRef.current = 0;
         onConnectionChangeRef.current?.(true);
+        
+        // Announce online status when connected
+        try {
+          ws.send(JSON.stringify({ 
+            type: "status_update", 
+            is_online: true 
+          }));
+        } catch (error) {
+          // Failed to send status update
+        }
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          
+          console.log('📨 WebSocket received:', data.type, data);
 
           // ⚠️ CRITICAL FIX: Filter all incoming messages by conversation_id
           // Backend sends conversation_id with every message, delivery_receipt, and read_receipt
@@ -168,22 +186,39 @@ export function useConversationWebSocket({
             // Add to per-conversation message store
             addMessage(conversationId, message);
           } else if (data.type === "delivery_receipt") {
-            // Update delivery status for messages in THIS conversation only
-            if (data.message_id && data.delivered_to) {
+            // ✅ Handle delivery receipts from backend
+            const { message_id, delivered_to_user_id, conversation_id } = data;
+            
+            console.log(`✅ Delivery receipt: message ${message_id} delivered to ${delivered_to_user_id}`);
+            
+            // Update the message's delivered_to array
+            if (message_id && delivered_to_user_id) {
               updateMessageDeliveryStatus(
                 conversationId,
-                data.message_id,
-                data.delivered_to
+                message_id,
+                delivered_to_user_id
               );
+              console.log(`✓✓ Message ${message_id} marked as delivered in UI`);
             }
           } else if (data.type === "read_receipt") {
-            // Update read status for messages in THIS conversation only
-            if (data.message_id && data.read_by) {
-              updateMessageReadStatus(
-                conversationId,
-                data.message_id,
-                data.read_by
-              );
+            // ✅ Handle read receipts from backend
+            const { conversation_id, user_id } = data;
+            
+            console.log(`✅ Read receipt received:`, {
+              conversation_id,
+              user_id,
+              currentUserId,
+              expectedConversationId: conversationId,
+              matches: conversation_id === conversationId
+            });
+            
+            // Mark all messages in conversation as read by this user
+            if (user_id && currentUserId && conversation_id) {
+              markConversationAsReadByUser(conversation_id, user_id, currentUserId);
+              console.log(`✓✓ Conversation ${conversation_id} marked as read by ${user_id} in store`);
+              console.log(`🔵 Sender should now see BLUE double checkmarks for their messages`);
+            } else {
+              console.warn('⚠️ Missing required fields for read receipt:', { user_id, currentUserId, conversation_id });
             }
           }
           // For typing, status_update - just pass to callback, don't add to messages
@@ -229,7 +264,17 @@ export function useConversationWebSocket({
       reconnectTimeoutRef.current = null;
     }
 
-    if (wsRef.current) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      // Announce offline status before disconnecting
+      try {
+        wsRef.current.send(JSON.stringify({ 
+          type: "status_update", 
+          is_online: false 
+        }));
+      } catch (error) {
+        // Failed to send status update
+      }
+      
       wsRef.current.close(1000, "User disconnected");
       wsRef.current = null;
     }
@@ -295,6 +340,7 @@ export function useConversationWebSocket({
 
   const markAsRead = useCallback(() => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.warn('⚠️ Cannot send read receipt - WebSocket not connected');
       return;
     }
 
@@ -304,19 +350,24 @@ export function useConversationWebSocket({
       };
 
       wsRef.current.send(JSON.stringify(payload));
+      console.log('📤 Sent WebSocket read event:', { type: 'read', conversationId });
     } catch (error) {
-      // Failed to send read receipt
+      console.error('❌ Failed to send read receipt:', error);
     }
-  }, []);
+  }, [conversationId]);
 
-  // Heartbeat to keep connection alive
+  // Heartbeat to keep connection alive and broadcast online status
   useEffect(() => {
     if (!isConnected || !wsRef.current) return;
 
     const heartbeatInterval = setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         try {
-          wsRef.current.send(JSON.stringify({ type: "heartbeat" }));
+          // Send heartbeat with online status
+          wsRef.current.send(JSON.stringify({ 
+            type: "heartbeat",
+            is_online: true 
+          }));
         } catch (error) {
           // Failed to send heartbeat
         }

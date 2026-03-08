@@ -12,10 +12,17 @@ import { ConversationMessage } from "@/chat/types";
  * - Each conversation has its own isolated message array
  * - Messages are filtered by conversation_id before storage
  * - Delivery and read receipts update only the correct conversation's messages
+ * - Online status tracking for real-time user presence
  */
 interface ChatState {
   // Per-conversation message storage: { "conversation-id": [...messages] }
   messagesByConversation: Record<string, ConversationMessage[]>;
+  
+  // Online status tracking: { "user-id": boolean }
+  onlineUsers: Record<string, boolean>;
+  
+  // Last message update time for conversations: { "conversation-id": timestamp }
+  conversationLastUpdated: Record<string, string>;
   
   // Initialize a conversation with an empty array
   initConversation: (conversationId: string) => void;
@@ -30,15 +37,31 @@ interface ChatState {
   updateMessageDeliveryStatus: (
     conversationId: string,
     messageId: string,
-    deliveredTo: string[]
+    deliveredToUserId: string
   ) => void;
   
   // Update message read status for specific conversation
   updateMessageReadStatus: (
     conversationId: string,
     messageId: string,
-    readBy: string[]
+    readByUserId: string
   ) => void;
+  
+  // Mark all messages in conversation as read by a user
+  markConversationAsReadByUser: (
+    conversationId: string,
+    userId: string,
+    currentUserId: string
+  ) => void;
+  
+  // Set user online status
+  setUserOnlineStatus: (userId: string, isOnline: boolean) => void;
+  
+  // Get user online status
+  isUserOnline: (userId: string) => boolean;
+  
+  // Update conversation last message time
+  updateConversationTime: (conversationId: string, timestamp: string) => void;
   
   // Clear messages for specific conversation
   clearConversationMessages: (conversationId: string) => void;
@@ -49,6 +72,8 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messagesByConversation: {},
+  onlineUsers: {},
+  conversationLastUpdated: {},
   
   addMessage: (conversationId: string, msg: ConversationMessage) => {
     set((state) => {
@@ -101,17 +126,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
   updateMessageDeliveryStatus: (
     conversationId: string,
     messageId: string,
-    deliveredTo: string[]
+    deliveredToUserId: string
   ) => {
     set((state) => {
       const conversationMessages = state.messagesByConversation[conversationId];
       if (!conversationMessages) return state;
       
-      const updatedMessages = conversationMessages.map((msg) =>
-        msg.id === messageId
-          ? { ...msg, delivered_to: deliveredTo, is_delivered: true }
-          : msg
-      );
+      const updatedMessages = conversationMessages.map((msg) => {
+        if (msg.id === messageId) {
+          // Get existing delivered_to array or empty array
+          const currentDeliveredTo = msg.delivered_to || [];
+          
+          // Add user to array if not already present
+          if (!currentDeliveredTo.includes(deliveredToUserId)) {
+            return {
+              ...msg,
+              delivered_to: [...currentDeliveredTo, deliveredToUserId],
+              is_delivered: true,
+            };
+          }
+        }
+        return msg;
+      });
       
       return {
         messagesByConversation: {
@@ -125,17 +161,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
   updateMessageReadStatus: (
     conversationId: string,
     messageId: string,
-    readBy: string[]
+    readByUserId: string
   ) => {
     set((state) => {
       const conversationMessages = state.messagesByConversation[conversationId];
       if (!conversationMessages) return state;
       
-      const updatedMessages = conversationMessages.map((msg) =>
-        msg.id === messageId
-          ? { ...msg, read_by: readBy, is_read: true }
-          : msg
-      );
+      const updatedMessages = conversationMessages.map((msg) => {
+        if (msg.id === messageId) {
+          // Get existing read_by array or empty array
+          const currentReadBy = msg.read_by || [];
+          
+          // Add user to array if not already present
+          if (!currentReadBy.includes(readByUserId)) {
+            return {
+              ...msg,
+              read_by: [...currentReadBy, readByUserId],
+              is_read: true,
+            };
+          }
+        }
+        return msg;
+      });
       
       return {
         messagesByConversation: {
@@ -154,6 +201,72 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
   
   clearAllMessages: () => {
-    set({ messagesByConversation: {} });
+    set({ messagesByConversation: {}, onlineUsers: {}, conversationLastUpdated: {} });
+  },
+  
+  setUserOnlineStatus: (userId: string, isOnline: boolean) => {
+    set((state) => ({
+      onlineUsers: {
+        ...state.onlineUsers,
+        [userId]: isOnline,
+      },
+    }));
+  },
+  
+  isUserOnline: (userId: string) => {
+    return get().onlineUsers[userId] || false;
+  },
+  
+  updateConversationTime: (conversationId: string, timestamp: string) => {
+    set((state) => ({
+      conversationLastUpdated: {
+        ...state.conversationLastUpdated,
+        [conversationId]: timestamp,
+      },
+    }));
+  },
+  
+  markConversationAsReadByUser: (
+    conversationId: string,
+    userId: string,
+    currentUserId: string
+  ) => {
+    set((state) => {
+      const conversationMessages = state.messagesByConversation[conversationId];
+      if (!conversationMessages) {
+        console.warn(`⚠️ No messages found for conversation ${conversationId}`);
+        return state;
+      }
+      
+      let updatedCount = 0;
+      
+      // Mark all messages sent by current user as read by userId
+      const updatedMessages = conversationMessages.map((msg) => {
+        // Only update messages sent by the current user
+        if (msg.sender_id === currentUserId) {
+          const currentReadBy = msg.read_by || [];
+          
+          // Add user to read_by array if not already present
+          if (!currentReadBy.includes(userId)) {
+            updatedCount++;
+            return {
+              ...msg,
+              read_by: [...currentReadBy, userId],
+              is_read: true,
+            };
+          }
+        }
+        return msg;
+      });
+      
+      console.log(`📝 Store updated: ${updatedCount} messages marked as read by ${userId} in conversation ${conversationId}`);
+      
+      return {
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
   },
 }));

@@ -1,207 +1,342 @@
-// components/Footer.tsx
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  ArrowUpRight,
+  Heart,
+  Github,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Send,
+  ChevronRight,
+} from "lucide-react";
+import { useState } from "react";
+
+const quickLinks = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
+  { label: "Services", href: "/services" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact", href: "/contact" },
+];
+
+const getStartedLinks = [
+  { label: "Join as Brand", href: "/register?role=brand" },
+  { label: "Join as Influencer", href: "/register?role=influencer" },
+  { label: "Login", href: "/login" },
+  { label: "Browse Campaigns", href: "/campaigns" },
+  { label: "Success Stories", href: "/stories" },
+];
+
+const legalLinks = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Cookie Policy", href: "/cookies" },
+  { label: "GDPR", href: "/gdpr" },
+];
+
+const socialLinks = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/",
+    icon: Facebook,
+    hoverColor: "hover:bg-blue-600 hover:border-blue-500",
+    hoverShadow: "hover:shadow-blue-500/30",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/",
+    icon: Instagram,
+    hoverColor: "hover:bg-pink-600 hover:border-pink-500",
+    hoverShadow: "hover:shadow-pink-500/30",
+  },
+  {
+    label: "Twitter",
+    href: "https://twitter.com/",
+    icon: Twitter,
+    hoverColor: "hover:bg-sky-500 hover:border-sky-400",
+    hoverShadow: "hover:shadow-sky-500/30",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/",
+    icon: Linkedin,
+    hoverColor: "hover:bg-blue-700 hover:border-blue-600",
+    hoverShadow: "hover:shadow-blue-700/30",
+  },
+  {
+    label: "GitHub",
+    href: "https://github.com/",
+    icon: Github,
+    hoverColor: "hover:bg-gray-700 hover:border-gray-600",
+    hoverShadow: "hover:shadow-gray-700/30",
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
 export default function Footer() {
-  return (
-    <div className="relative border-t border-border-subtle">
-      {/* Decorative top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-brand-primary to-transparent opacity-40" />
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-      <footer className="bg-gradient-to-b from-background-hero via-white to-background-alternate text-text-secondary py-8 sm:py-10 lg:py-12 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      setIsSubscribed(true);
+      setEmail("");
+      setTimeout(() => setIsSubscribed(false), 4000);
+    }
+  };
+
+  return (
+    <footer className="relative overflow-hidden">
+      {/* Top Gradient Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+
+      {/* Newsletter Section */}
+      <div className="relative bg-gradient-to-b from-gray-950 to-gray-900">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-violet-600/10 rounded-full blur-[120px]" />
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px]" />
+          <div
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px)`,
+              backgroundSize: "24px 24px",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="relative bg-gray-900">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute inset-0 opacity-[0.015]"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                               linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: "48px 48px",
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8"
+          >
             {/* Brand Section */}
-            <div className="sm:col-span-2 lg:col-span-1">
-              <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-brand-primary via-brand-accent to-brand-secondary bg-clip-text text-transparent animate-gradient-shift bg-200%">
-                Collab-Vertex
-              </h2>
-              <p className="text-sm sm:text-base leading-relaxed text-text-muted max-w-xs">
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-4 space-y-6"
+            >
+              {/* Logo */}
+              <Link href="/" className="inline-block group">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent group-hover:from-violet-300 group-hover:via-purple-300 group-hover:to-indigo-300 transition-all duration-500">
+                    Collab
+                  </span>
+                  <span className="text-white/90">-</span>
+                  <span className="bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent group-hover:from-pink-300 group-hover:to-rose-300 transition-all duration-500">
+                    Vertex
+                  </span>
+                </h2>
+              </Link>
+
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
                 Connecting brands and influencers to create meaningful
-                collaborations and drive success together.
+                collaborations. Build authentic partnerships that drive real
+                results and mutual growth.
               </p>
-            </div>
+
+              {/* Contact Info */}
+              <div className="space-y-3">
+                <a
+                  href="mailto:hello@collabvertex.com"
+                  className="flex items-center gap-3 text-gray-400 hover:text-violet-400 transition-colors duration-300 group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-300">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm">kishamkhiunju96@gmail.com</span>
+                </a>
+                <a
+                  href="tel:+1234567890"
+                  className="flex items-center gap-3 text-gray-400 hover:text-violet-400 transition-colors duration-300 group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-300">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm">9761646055</span>
+                </a>
+                <div className="flex items-center gap-3 text-gray-400">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm">Bhaktapur, Nepal</span>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex items-center gap-2 pt-2">
+                {socialLinks.map((social) => {
+                  const Icon = social.icon;
+                  return (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      className={`w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${social.hoverColor} ${social.hoverShadow}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            </motion.div>
 
             {/* Quick Links */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 relative pb-2">
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-2 lg:col-start-6"
+            >
+              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-5 flex items-center gap-2">
+                <span className="w-8 h-px bg-gradient-to-r from-violet-500 to-transparent" />
                 Quick Links
-                <span className="absolute bottom-0 left-0 w-10 h-0.5 bg-gradient-to-r from-brand-primary to-brand-accent rounded-full" />
               </h3>
-              <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <Link
-                    href="/"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Home
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      About Us
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/services"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Services
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Contact
-                    </span>
-                  </Link>
-                </li>
+              <ul className="space-y-3">
+                {quickLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white text-sm transition-all duration-300 flex items-center gap-2 group"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all duration-300" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
-            </div>
+            </motion.div>
 
             {/* Get Started */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 relative pb-2">
+            <motion.div variants={itemVariants} className="lg:col-span-3">
+              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-5 flex items-center gap-2">
+                <span className="w-8 h-px bg-gradient-to-r from-violet-500 to-transparent" />
                 Get Started
-                <span className="absolute bottom-0 left-0 w-10 h-0.5 bg-gradient-to-r from-brand-primary to-brand-accent rounded-full" />
               </h3>
-              <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <Link
-                    href="/select-role"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Join as Brand
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/select-role"
-                    className="text-sm sm:text-base text-text-secondary hover:text-brand-accent transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Join as Influencer
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/login"
-                    className="text-sm sm:text-base text-text-primary font-medium underline hover:text-brand-accent hover:no-underline transition-all duration-300 inline-flex items-center group"
-                  >
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 text-xs sm:text-base">
-                      →
-                    </span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">
-                      Login
-                    </span>
-                  </Link>
-                </li>
+              <ul className="space-y-3">
+                {getStartedLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white text-sm transition-all duration-300 flex items-center gap-2 group"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all duration-300" />
+                      <span>{link.label}</span>
+                      {link.label === "Join as Brand" ||
+                      link.label === "Join as Influencer" ? (
+                        <ArrowUpRight className="w-3 h-3 text-gray-600 group-hover:text-violet-400 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                      ) : null}
+                    </Link>
+                  </li>
+                ))}
               </ul>
-            </div>
+            </motion.div>
 
-            {/* Connect With Us */}
-            <div className="space-y-3 sm:space-y-4 sm:col-span-2 lg:col-span-1">
-              <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 relative pb-2">
-                Connect With Us
-                <span className="absolute bottom-0 left-0 w-10 h-0.5 bg-gradient-to-r from-brand-primary to-brand-accent rounded-full" />
+            {/* Legal */}
+            <motion.div variants={itemVariants} className="lg:col-span-3">
+              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-5 flex items-center gap-2">
+                <span className="w-8 h-px bg-gradient-to-r from-violet-500 to-transparent" />
+                Legal
               </h3>
-              <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
-                <a
-                  href="https://www.facebook.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xl sm:text-2xl rounded-lg bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 hover:from-brand-primary/10 hover:to-brand-accent/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-brand-primary/20 active:scale-95"
-                  aria-label="Facebook"
-                >
-                  📘
-                </a>
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xl sm:text-2xl rounded-lg bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 hover:from-brand-primary/10 hover:to-brand-accent/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-brand-accent/20 active:scale-95"
-                  aria-label="Instagram"
-                >
-                  📸
-                </a>
-                <a
-                  href="https://github.com/dashboard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xl sm:text-2xl rounded-lg bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 hover:from-brand-primary/10 hover:to-brand-accent/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-brand-secondary/20 active:scale-95"
-                  aria-label="GitHub"
-                >
-                  🐙
-                </a>
-              </div>
-              <div className="text-xs sm:text-sm text-text-muted">
-                <p className="mb-1">Email:</p>
-                <a
-                  href="mailto:kishamkhiunju96@gmail.com"
-                  className="text-brand-primary font-medium hover:text-brand-accent transition-colors duration-300 relative inline-block after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all after:duration-300 hover:after:w-full break-all"
-                >
-                  kishamkhiunju96@gmail.com
-                </a>
-              </div>
-            </div>
-          </div>
+              <ul className="space-y-3">
+                {legalLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white text-sm transition-all duration-300 flex items-center gap-2 group"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all duration-300" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </motion.div>
+        </div>
 
-          {/* Footer Bottom */}
-          <div className="border-t border-border-subtle/50 mt-8 sm:mt-10 lg:mt-12 pt-5 sm:pt-6 text-center">
-            <p className="text-xs sm:text-sm text-text-muted mb-2 sm:mb-3">
-              © {new Date().getFullYear()} Collab-Vertex. All rights reserved.
-            </p>
-            <div className="flex items-center justify-center flex-wrap gap-3 sm:gap-4">
-              <Link
-                href="/privacy"
-                className="text-xs sm:text-sm text-text-secondary hover:text-brand-accent transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all after:duration-300 hover:after:w-full"
+        {/* Bottom Bar */}
+        <div className="relative z-10 border-t border-white/[0.06]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-gray-500 text-xs sm:text-sm text-center sm:text-left order-2 sm:order-1">
+                © {new Date().getFullYear()} Collab-Vertex. All rights
+                reserved.
+              </p>
+
+              <div className="flex items-center gap-1 text-gray-500 text-xs sm:text-sm order-1 sm:order-2">
+                <span>Made with</span>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                </motion.div>
+                <span>by</span>
+                <a
+                  href="https://github.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-violet-400 font-medium transition-colors duration-300"
+                >
+                  Collab-Vertex Team
+                </a>
+              </div>
+
+              {/* Back to Top */}
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="order-3 w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-violet-500/20 group"
+                aria-label="Back to top"
               >
-                Privacy Policy
-              </Link>
-              <span className="text-text-muted text-xs sm:text-sm">•</span>
-              <Link
-                href="/terms"
-                className="text-xs sm:text-sm text-text-secondary hover:text-brand-accent transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all after:duration-300 hover:after:w-full"
-              >
-                Terms of Service
-              </Link>
+                <ChevronRight className="w-4 h-4 -rotate-90 group-hover:scale-110 transition-transform duration-300" />
+              </button>
             </div>
           </div>
         </div>
-      </footer>
-    </div>
+      </div>
+    </footer>
   );
 }

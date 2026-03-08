@@ -3,6 +3,8 @@
 import React from "react";
 import { Conversation } from "@/chat/types";
 import { Users, User } from "lucide-react";
+import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
+import { useChatStore } from "@/chat/store/chatStore";
 
 interface ConversationsListProps {
   conversations: Conversation[];
@@ -17,6 +19,8 @@ export function ConversationsList({
   onConversationSelect,
   loading = false,
 }: ConversationsListProps) {
+  const isUserOnline = useChatStore((state) => state.isUserOnline);
+  
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-white">
@@ -71,9 +75,21 @@ export function ConversationsList({
 
         const avatarUrl = conversation.avatar_url || "";
         const lastMessagePreview = conversation.last_message?.content || "No messages yet";
-        const lastMessageTime = conversation.last_message?.sent_at || conversation.last_message?.timestamp
-          ? formatTimestamp(conversation.last_message.sent_at || conversation.last_message.timestamp)
-          : "";
+        
+        // Check if the other user is online (for direct chats only)
+        let isOtherUserOnline = false;
+        if (!isGroup && conversation.participant_ids && conversation.participant_ids.length > 0) {
+          // Check online status for participants
+          isOtherUserOnline = conversation.participant_ids.some(userId => isUserOnline(userId));
+        }
+        
+        // Show "Online" if user is online, otherwise show timestamp
+        let lastMessageTime = "";
+        if (!isGroup && isOtherUserOnline) {
+          lastMessageTime = "Online";
+        } else if (conversation.last_message?.sent_at || conversation.last_message?.timestamp) {
+          lastMessageTime = formatTimestamp(conversation.last_message.sent_at || conversation.last_message.timestamp);
+        }
 
         const unreadCount = conversation.unread_count || 0;
 
@@ -110,7 +126,7 @@ export function ConversationsList({
               )}
 
               {/* Online indicator - only show for direct chats */}
-              {!isGroup && (
+              {!isGroup && isOtherUserOnline && (
                 <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
               )}
 
@@ -136,7 +152,7 @@ export function ConversationsList({
                   {displayName}
                 </h3>
                 {lastMessageTime && (
-                  <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                  <span className={`text-xs ml-2 flex-shrink-0 ${isOtherUserOnline && !isGroup ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
                     {lastMessageTime}
                   </span>
                 )}
@@ -161,24 +177,34 @@ export function ConversationsList({
 }
 
 /**
- * Format timestamp to relative time (converts UTC to local)
+ * Format timestamp to relative time (converts UTC to local timezone)
+ * Uses date-fns for accurate timezone conversion and formatting
  */
 function formatTimestamp(timestamp: string): string {
-  // Convert UTC timestamp to local time
-  const date = new Date(timestamp);
+  // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+  // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+  const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+  const date = new Date(utcTimestamp);
+  
+  if (isNaN(date.getTime())) return "";
+  
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-
-  // For older messages, show date in local time
-  const month = date.toLocaleDateString("en-US", { month: "short" });
-  const day = date.getDate();
-  return `${month} ${day}`;
+  const diffHours = diffMs / (1000 * 60 * 60);
+  
+  // For messages within last 24 hours, show relative time
+  if (diffHours < 24) {
+    return formatDistanceToNow(date, { addSuffix: true });
+  }
+  
+  // For today/yesterday
+  if (isToday(date)) {
+    return format(date, "h:mm a");
+  }
+  if (isYesterday(date)) {
+    return "Yesterday";
+  }
+  
+  // For older messages, show date
+  return format(date, "MMM d");
 }

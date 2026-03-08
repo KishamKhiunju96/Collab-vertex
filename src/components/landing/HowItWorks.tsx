@@ -198,39 +198,6 @@ export default function HowItWorks() {
             );
           })}
         </div>
-
-        {/* Success Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden"
-        >
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full blur-3xl" />
-          </div>
-
-          <div className="relative z-10">
-            <CheckCircle className="w-16 h-16 text-white mx-auto mb-4" />
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Ready to Start Your Journey?
-            </h3>
-            <p className="text-lg text-purple-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of successful collaborations happening right now on
-              Collab Vertex
-            </p>
-            <a
-              href="/select-role"
-              className="inline-flex items-center gap-2 bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-            >
-              Get Started Free
-              <ArrowRight className="w-5 h-5" />
-            </a>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

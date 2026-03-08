@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
@@ -16,6 +16,8 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
+  Briefcase,
+  Sparkles,
 } from "lucide-react";
 import { authService } from "@/api/services/authService";
 import { handleRegister } from "@/api/services/registerService";
@@ -29,8 +31,9 @@ interface FormData {
   role: "brand" | "influencer";
 }
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [form, setForm] = useState<FormData>({
     username: "",
@@ -45,28 +48,40 @@ export default function RegisterForm() {
   const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [roleInitialized, setRoleInitialized] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<{
     score: number;
     label: string;
     color: string;
   }>({ score: 0, label: "", color: "" });
 
-  // Read role from localStorage on mount
+  // Read role from URL query param first, then fallback to localStorage
   useEffect(() => {
+    const queryRole = searchParams.get("role");
     const savedRole = localStorage.getItem("pendingUserRole");
-    if (savedRole === "brand" || savedRole === "influencer") {
-      setForm((prev) => ({ ...prev, role: savedRole }));
-    } else {
-      // If no valid role in localStorage, redirect to select-role
-      router.replace("/select-role");
-    }
-  }, [router]);
 
-  useEffect(() => {
-    if (form.role !== "brand" && form.role !== "influencer") {
+    if (queryRole === "brand" || queryRole === "influencer") {
+      // Role from URL takes priority (from RolePreviewCards redirect)
+      setForm((prev) => ({ ...prev, role: queryRole }));
+      localStorage.setItem("pendingUserRole", queryRole);
+      setRoleInitialized(true);
+    } else if (savedRole === "brand" || savedRole === "influencer") {
+      // Fallback to localStorage
+      setForm((prev) => ({ ...prev, role: savedRole }));
+      setRoleInitialized(true);
+    } else {
+      // No valid role found, redirect to select-role page
       router.replace("/select-role");
     }
-  }, [form.role, router]);
+  }, [searchParams, router]);
+
+  // Handle role switch via toggle buttons
+  const handleRoleSwitch = (newRole: "brand" | "influencer") => {
+    setForm((prev) => ({ ...prev, role: newRole }));
+    localStorage.setItem("pendingUserRole", newRole);
+    // Update URL without full navigation
+    router.replace(`/register?role=${newRole}`, { scroll: false });
+  };
 
   // Password strength calculator
   useEffect(() => {
@@ -78,11 +93,8 @@ export default function RegisterForm() {
     let score = 0;
     const password = form.password;
 
-    // Length check
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
-
-    // Character variety checks
     if (/[a-z]/.test(password)) score += 1;
     if (/[A-Z]/.test(password)) score += 1;
     if (/\d/.test(password)) score += 1;
@@ -110,7 +122,7 @@ export default function RegisterForm() {
         .min(8, "Password must be at least 8 characters")
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          "Password must contain uppercase, lowercase & number",
+          "Password must contain uppercase, lowercase & number"
         ),
       confirmPassword: z.string(),
       role: z.enum(["brand", "influencer"]),
@@ -149,11 +161,14 @@ export default function RegisterForm() {
       const data: RegisterResponse = await authService.register(payload);
       handleRegister(data);
 
+      // Clear the pending role from localStorage after successful registration
+      localStorage.removeItem("pendingUserRole");
+
       router.push(`/verify_otp?email=${encodeURIComponent(form.email)}`);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
-          err.response?.data?.message || err.message || "Registration failed",
+          err.response?.data?.message || err.message || "Registration failed"
         );
       } else {
         setApiError("Registration failed. Please try again.");
@@ -165,7 +180,6 @@ export default function RegisterForm() {
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setForm({ ...form, [field]: value });
-    // Clear error for this field
     if (errors[field]) {
       const newErrors = { ...errors };
       delete newErrors[field];
@@ -192,6 +206,20 @@ export default function RegisterForm() {
     },
   ];
 
+  // Show loading state while determining role
+  if (!roleInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-hero via-white to-background-alternate">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+          <p className="text-text-muted font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isBrand = form.role === "brand";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-hero via-white to-background-alternate px-4 py-8 sm:py-12 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -209,18 +237,44 @@ export default function RegisterForm() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary/60 via-brand-primary/40 to-brand-accent/30" />
+          <div
+            className={`absolute inset-0 transition-all duration-500 ${
+              isBrand
+                ? "bg-gradient-to-br from-purple-600/60 via-pink-500/40 to-red-500/30"
+                : "bg-gradient-to-br from-blue-600/60 via-cyan-500/40 to-teal-500/30"
+            }`}
+          />
 
           {/* Overlay Content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8 text-center">
             <div className="max-w-md space-y-4">
+              <div
+                className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl p-0.5 mb-4 shadow-lg ${
+                  isBrand
+                    ? "bg-gradient-to-br from-purple-400 to-pink-400"
+                    : "bg-gradient-to-br from-blue-400 to-cyan-400"
+                }`}
+              >
+                <div className="w-full h-full bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  {isBrand ? (
+                    <Briefcase className="w-10 h-10 text-white" />
+                  ) : (
+                    <Sparkles className="w-10 h-10 text-white" />
+                  )}
+                </div>
+              </div>
+
               <h2 className="text-3xl sm:text-4xl font-bold drop-shadow-lg">
-                Start Your Journey Today
+                {isBrand
+                  ? "Grow Your Brand"
+                  : "Monetize Your Influence"}
               </h2>
               <p className="text-lg sm:text-xl text-white/90 drop-shadow-md">
                 Join as a{" "}
-                <span className="font-bold capitalize">{form.role}</span> and
-                unlock endless collaboration opportunities
+                <span className="font-bold capitalize px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                  {form.role}
+                </span>{" "}
+                and unlock endless collaboration opportunities
               </p>
               <div className="flex items-center justify-center gap-4 mt-6">
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -250,6 +304,34 @@ export default function RegisterForm() {
                   {form.role}
                 </span>
               </p>
+            </div>
+
+            {/* Role Toggle */}
+            <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => handleRoleSwitch("brand")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                  isBrand
+                    ? "bg-white shadow-md text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Briefcase className="w-4 h-4" />
+                Brand
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSwitch("influencer")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                  !isBrand
+                    ? "bg-white shadow-md text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                Influencer
+              </button>
             </div>
 
             {/* Error Alert */}
@@ -284,7 +366,7 @@ export default function RegisterForm() {
                     onChange={(e) =>
                       handleInputChange("username", e.target.value)
                     }
-                    placeholder="Choose a username"
+                    placeholder="Enter a username"
                     className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
                       errors.username
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -318,7 +400,7 @@ export default function RegisterForm() {
                     type="email"
                     value={form.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="your.email@example.com"
+                    placeholder="Enter your email"
                     className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
                       errors.email
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -354,7 +436,7 @@ export default function RegisterForm() {
                     onChange={(e) =>
                       handleInputChange("password", e.target.value)
                     }
-                    placeholder="Create a strong password"
+                    placeholder="Create a password"
                     className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
                       errors.password
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -496,7 +578,11 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 bg-gradient-to-r from-brand-secondary via-brand-primary to-brand-accent hover:from-brand-accent hover:via-brand-primary hover:to-brand-secondary text-white font-semibold rounded-xl shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-accent/40 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 group relative overflow-hidden"
+                className={`w-full py-3.5 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 group relative overflow-hidden ${
+                  isBrand
+                    ? "bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 shadow-purple-500/30 hover:shadow-pink-500/40"
+                    : "bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-teal-600 hover:via-cyan-600 hover:to-blue-600 shadow-blue-500/30 hover:shadow-cyan-500/40"
+                }`}
               >
                 <span className="relative z-10 flex items-center gap-2">
                   {isLoading ? (
@@ -506,7 +592,8 @@ export default function RegisterForm() {
                     </>
                   ) : (
                     <>
-                      Create Account
+                      Create {form.role === "brand" ? "Brand" : "Influencer"}{" "}
+                      Account
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -540,5 +627,22 @@ export default function RegisterForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-hero via-white to-background-alternate">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+            <p className="text-text-muted font-medium">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }

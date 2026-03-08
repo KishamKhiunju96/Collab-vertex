@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useChatStore } from "../store/chatStore";
 import { ConversationMessage } from "@/chat/types";
+import { format } from "date-fns";
 
 /**
  * DEPRECATED: Legacy MessageList component
@@ -30,14 +31,22 @@ const MessageList: React.FC<{ conversationId?: string }> = ({ conversationId }) 
           {conversationId ? "No messages in this conversation" : "Select a conversation to view messages"}
         </div>
       ) : (
-        messages.map((msg) => (
-          <div key={msg.id} className="p-2 rounded bg-gray-200">
-            <strong>{msg.sender_id}:</strong> {msg.content}
-            <div className="text-xs text-gray-500">
-              {new Date(msg.timestamp || msg.sent_at || msg.created_at).toLocaleTimeString()}
+        messages.map((msg) => {
+          // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+          const timestamp = msg.timestamp || msg.sent_at || msg.created_at;
+          const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+          const date = new Date(utcTimestamp);
+          const displayTime = !isNaN(date.getTime()) ? format(date, "h:mm a") : "";
+          
+          return (
+            <div key={msg.id} className="p-2 rounded bg-gray-200">
+              <strong>{msg.sender_id}:</strong> {msg.content}
+              <div className="text-xs text-gray-500">
+                {displayTime}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

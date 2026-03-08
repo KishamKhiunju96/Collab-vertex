@@ -1,5 +1,6 @@
 import api from "../axiosInstance";
 import axios from "axios";
+import { chatService } from "./chatService";
 
 export interface User {
   id: string;
@@ -29,6 +30,25 @@ export async function handleLogin(
 
     const userResponse = await api.get<User>("/user/me");
     const user = userResponse.data;
+
+    // Mark all chat messages as delivered when user logs in
+    // Use sessionStorage to prevent duplicate calls in same session
+    const deliveredMarkedKey = `chat_delivered_marked_${user.id}`;
+    const alreadyMarked = sessionStorage.getItem(deliveredMarkedKey);
+    
+    if (!alreadyMarked) {
+      try {
+        await chatService.markAllDelivered();
+        // Set flag in sessionStorage to prevent duplicate calls this session
+        sessionStorage.setItem(deliveredMarkedKey, 'true');
+        console.log('✅ All messages marked as delivered on login');
+      } catch (error) {
+        // Silently fail - don't break login flow
+        console.warn("Could not mark messages as delivered:", error);
+      }
+    } else {
+      console.log('ℹ️ Messages already marked as delivered this session');
+    }
 
     // 3️⃣ Decide redirect based on role
     let redirectTo: string;

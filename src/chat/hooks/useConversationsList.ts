@@ -6,6 +6,7 @@ import {
   CreateDirectConversationPayload,
   CreateGroupConversationPayload,
   AddParticipantsPayload,
+  ConversationMessage,
 } from "@/chat/types";
 import { chatService } from "@/api/services/chatService";
 import { notify } from "@/utils/notify";
@@ -26,11 +27,17 @@ interface UseConversationsReturn {
   addParticipants: (conversationId: string, userIds: string[]) => Promise<void>;
   removeParticipant: (conversationId: string, userId: string) => Promise<void>;
   getOrCreateDirectConversation: (otherUserId: string) => Promise<Conversation | null>;
+  updateConversationMessage: (conversationId: string, message: ConversationMessage) => void;
 }
 
 /**
  * Hook for managing conversations (both direct and group)
  * Provides methods to create, fetch, and manage conversations
+ * 
+ * ENHANCED: Real-time conversation updates
+ * - Automatically sorts conversations by most recent message
+ * - Updates conversation when new messages arrive
+ * - Tracks unread counts
  * 
  * Usage:
  * const {
@@ -38,13 +45,48 @@ interface UseConversationsReturn {
  *   loading,
  *   createDirectConversation,
  *   createGroupConversation,
- *   markAsRead
+ *   markAsRead,
+ *   updateConversationMessage
  * } = useConversations();
  */
 export function useConversations(): UseConversationsReturn {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Sort conversations by most recent message
+   */
+  const sortConversations = useCallback((convs: Conversation[]): Conversation[] => {
+    return [...convs].sort((a, b) => {
+      const timeA = a.last_message_at || a.updated_at || a.created_at;
+      const timeB = b.last_message_at || b.updated_at || b.created_at;
+      return new Date(timeB).getTime() - new Date(timeA).getTime();
+    });
+  }, []);
+
+  /**
+   * Update a conversation when a new message is received
+   * Moves it to the top of the list
+   */
+  const updateConversationMessage = useCallback((conversationId: string, message: ConversationMessage) => {
+    setConversations((prev) => {
+      const updated = prev.map((conv) => {
+        if (conv.id === conversationId) {
+          return {
+            ...conv,
+            last_message: message,
+            last_message_at: message.sent_at || message.timestamp || message.created_at,
+            last_message_id: message.id,
+          };
+        }
+        return conv;
+      });
+      
+      // Sort to move updated conversation to top
+      return sortConversations(updated);
+    });
+  }, [sortConversations]);
 
   /**
    * Fetch all conversations
@@ -54,7 +96,10 @@ export function useConversations(): UseConversationsReturn {
       setLoading(true);
       setError(null);
       const data = await chatService.getConversationsList();
-      setConversations(data);
+      
+      // Sort conversations by most recent message
+      const sorted = sortConversations(data);
+      setConversations(sorted);
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || "Failed to load conversations";
       setError(errorMsg);
@@ -62,7 +107,7 @@ export function useConversations(): UseConversationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortConversations]);
 
   /**
    * Refresh conversations list
@@ -258,5 +303,6 @@ export function useConversations(): UseConversationsReturn {
     addParticipants,
     removeParticipant,
     getOrCreateDirectConversation,
+    updateConversationMessage,
   };
 }

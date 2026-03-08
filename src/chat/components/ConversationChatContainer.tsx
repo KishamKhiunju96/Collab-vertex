@@ -8,6 +8,8 @@ import ConversationChatRoom from "./ConversationChatRoom";
 import ChatContactsList from "./ChatContactsList";
 import GroupChatCreator from "./GroupChatCreator";
 import { X, MessageSquarePlus, Users, User, ArrowLeft, Loader2, Plus } from "lucide-react";
+import { useChatStore } from "@/chat/store/chatStore";
+import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 
 interface ChatContact {
   id: string;
@@ -46,9 +48,13 @@ export default function ConversationChatContainer({
     refresh,
     getOrCreateDirectConversation,
     createGroupConversation,
+    updateConversationMessage,
   } = useConversations();
   
-  // ✅ ENHANCEMENT: Enrich contacts with conversation data
+  // Get online status checker from store
+  const isUserOnline = useChatStore((state) => state.isUserOnline);
+  
+  // ✅ ENHANCEMENT: Enrich contacts with conversation data and online status
   // Merge existing conversations with contact list to show last messages and unread counts
   const enrichedContacts = useMemo(() => {
     if (!contacts || contacts.length === 0) return [];
@@ -61,18 +67,25 @@ export default function ConversationChatContainer({
           conv.participant_ids?.includes(contact.id)
       );
       
+      // Check if user is online
+      const isOnline = isUserOnline(contact.id);
+      
       if (existingConversation) {
         return {
           ...contact,
           lastMessage: existingConversation.last_message?.content,
           unreadCount: existingConversation.unread_count || 0,
           lastMessageTime: existingConversation.last_message?.sent_at,
+          isOnline,
         };
       }
       
-      return contact;
+      return {
+        ...contact,
+        isOnline,
+      };
     });
-  }, [contacts, conversations]);
+  }, [contacts, conversations, isUserOnline]);
 
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -316,8 +329,8 @@ export default function ConversationChatContainer({
                               {contact.username}
                             </h3>
                             {contact.lastMessageTime && (
-                              <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                                {formatTimestamp(contact.lastMessageTime)}
+                              <span className={`text-xs ml-2 flex-shrink-0 ${contact.isOnline ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                                {contact.isOnline ? 'Online' : formatTimestamp(contact.lastMessageTime)}
                               </span>
                             )}
                           </div>
@@ -391,6 +404,10 @@ export default function ConversationChatContainer({
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
+              onMessageSent={(message) => {
+                // Update conversation list when message is sent
+                updateConversationMessage(selectedConversation.id, message);
+              }}
                 </button>
               </div>
             </div>
@@ -421,24 +438,34 @@ export default function ConversationChatContainer({
 }
 
 /**
- * Format timestamp to relative time (converts UTC to local)
+ * Format timestamp to relative time (converts UTC to local timezone)
+ * Uses date-fns for accurate timezone conversion and formatting
  */
 function formatTimestamp(timestamp: string): string {
-  // Convert UTC timestamp to local time
-  const date = new Date(timestamp);
+  // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+  // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+  const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+  const date = new Date(utcTimestamp);
+  
+  if (isNaN(date.getTime())) return "";
+  
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-
-  // For older messages, show date in local time
-  const month = date.toLocaleDateString("en-US", { month: "short" });
-  const day = date.getDate();
-  return `${month} ${day}`;
+  const diffHours = diffMs / (1000 * 60 * 60);
+  
+  // For messages within last 24 hours, show relative time
+  if (diffHours < 24) {
+    return formatDistanceToNow(date, { addSuffix: true });
+  }
+  
+  // For today/yesterday
+  if (isToday(date)) {
+    return format(date, "h:mm a");
+  }
+  if (isYesterday(date)) {
+    return "Yesterday";
+  }
+  
+  // For older messages, show date
+  return format(date, "MMM d");
 }

@@ -83,7 +83,10 @@ export default function ChatRoom({
 
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
-    const date = new Date(timestamp);
+    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
       return "";
     }
@@ -95,7 +98,10 @@ export default function ChatRoom({
 
   const formatDate = (timestamp: string) => {
     if (!timestamp) return "";
-    const date = new Date(timestamp);
+    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
       return "";
     }

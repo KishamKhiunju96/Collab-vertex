@@ -161,6 +161,20 @@ export const chatService = {
     }
   },
 
+  /**
+   * Mark all messages as delivered for the current user
+   * This should be called when the user logs in or becomes active
+   */
+  async markAllDelivered(): Promise<void> {
+    try {
+      await api.post(API_PATHS.CHAT.MARK_ALL_DELIVERED);
+      console.log("✅ All messages marked as delivered");
+    } catch (error) {
+      console.error("Failed to mark messages as delivered:", error);
+      // Don't throw - this is not critical
+    }
+  },
+
   // ===================================================================
   //  NEW CONVERSATION-BASED API METHODS
   // ===================================================================
@@ -318,9 +332,13 @@ export const chatService = {
   /**
    * Mark a conversation as read (REST API)
    * 
-   * @deprecated Prefer using WebSocket for read receipts instead
-   * Send { type: "read" } via WebSocket connection to mark as read
-   * WebSocket method is more reliable and provides real-time broadcast
+   * ✅ This is intentionally called when opening a conversation
+   * Backend marks all messages as read and sends read_receipt events to other participants
+   * 
+   * USAGE: Call when user opens/navigates to a conversation
+   * - Marks ALL messages in the conversation as read
+   * - Sends read_receipt WebSocket events to senders
+   * - Updates delivered_to and read_by arrays in real-time
    * 
    * @param conversationId - The conversation ID
    * @returns Promise<void>
@@ -328,11 +346,10 @@ export const chatService = {
   async markConversationAsRead(conversationId: string): Promise<void> {
     try {
       await api.patch(API_PATHS.CHAT.MARK_CONVERSATION_READ(conversationId));
-      console.log("Marked conversation as read (REST):", conversationId);
+      console.log("✅ Marked conversation as read (REST API):", conversationId);
     } catch (error) {
       console.error("Failed to mark conversation as read (REST API):", error);
-      // Don't throw - this is not critical and WebSocket handles it
-      console.warn("⚠️ Use WebSocket { type: 'read' } instead for read receipts");
+      throw error; // Throw to allow error handling in caller
     }
   },
 

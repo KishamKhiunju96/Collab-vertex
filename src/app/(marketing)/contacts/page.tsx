@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "@/components/shared/Navbar";
 import { useState } from "react";
 
 export default function ContactPage() {
@@ -32,7 +33,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 text-gray-900 py-20 px-4">
+    <><Navbar /><main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 text-gray-900 py-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-16">
@@ -67,10 +68,9 @@ export default function ContactPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="John Doe"
+                  placeholder="Enter your name"
                   required
-                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-                />
+                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
               </div>
 
               <div>
@@ -86,10 +86,9 @@ export default function ContactPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="john@example.com"
+                  placeholder="abc@gmail.com"
                   required
-                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-                />
+                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
               </div>
 
               <div>
@@ -107,8 +106,7 @@ export default function ContactPage() {
                   placeholder="Tell us about your project..."
                   rows={5}
                   required
-                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition resize-none"
-                />
+                  className="w-full rounded-lg bg-gray-50 border border-gray-300 px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition resize-none" />
               </div>
 
               <button
@@ -134,8 +132,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">contact@collabvertex.com</p>
-                    <p className="text-gray-600">support@collabvertex.com</p>
+                    <p className="text-gray-600">kishamkhiunju96@gmail.com</p>
+                    <p className="text-gray-600">dixamshrestha@gmail.com</p>
                   </div>
                 </div>
 
@@ -148,11 +146,7 @@ export default function ContactPage() {
                       Location
                     </h3>
                     <p className="text-gray-600">
-                      123 Business Street
-                      <br />
-                      Suite 100
-                      <br />
-                      City, State 12345
+                      Bhaktapur
                     </p>
                   </div>
                 </div>
@@ -167,10 +161,6 @@ export default function ContactPage() {
                     </h3>
                     <p className="text-gray-600">
                       Monday - Friday: 9:00 AM - 6:00 PM
-                      <br />
-                      Saturday: 10:00 AM - 4:00 PM
-                      <br />
-                      Sunday: Closed
                     </p>
                   </div>
                 </div>
@@ -216,6 +206,6 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </main>
+    </main></>
   );
 }

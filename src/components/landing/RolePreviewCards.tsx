@@ -35,7 +35,7 @@ const roles = [
       label: "Active Influencers",
     },
     image: "🎯",
-    link: "/select-role?role=brand",
+    link: "/register?role=brand",
   },
   {
     type: "Influencer",
@@ -57,7 +57,7 @@ const roles = [
       label: "Active Brands",
     },
     image: "✨",
-    link: "/select-role?role=influencer",
+    link: "/register?role=influencer",
   },
 ];
 
@@ -201,7 +201,7 @@ export default function RolePreviewCards() {
                     >
                       <span className="absolute inset-0 bg-white opacity-0 group-hover/btn:opacity-20 transition-opacity duration-300" />
                       <span className="relative z-10">
-                        Get Started as {role.type}
+                        Register as {role.type}
                       </span>
                     </Link>
                   </div>

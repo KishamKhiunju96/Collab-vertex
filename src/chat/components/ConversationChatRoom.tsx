@@ -7,21 +7,26 @@ import { useConversationWebSocket } from "@/chat/hooks/useConversationWebSocket"
 import { useChatStore } from "@/chat/store/chatStore";
 import { Send, Loader2, WifiOff, RefreshCw, Users, User } from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface ConversationChatRoomProps {
   conversation: Conversation;
   onMarkAsRead: () => void;
+  onMessageSent?: (message: ConversationMessage) => void;
 }
 
 export default function ConversationChatRoom({
   conversation,
   onMarkAsRead,
+  onMessageSent,
 }: ConversationChatRoomProps) {
   const { user, loading: userLoading } = useUserData();
   
   // Initialize conversation in store if it doesn't exist
   const initConversation = useChatStore((state) => state.initConversation);
   const setMessages = useChatStore((state) => state.setMessages);
+  const updateConversationTime = useChatStore((state) => state.updateConversationTime);
+  const setUserOnlineStatus = useChatStore((state) => state.setUserOnlineStatus);
   
   // Initialize on mount
   useEffect(() => {
@@ -58,12 +63,30 @@ export default function ConversationChatRoom({
       } else if (data.type === "read_receipt") {
         // Read receipt received - already handled in useConversationWebSocket
       } else if (data.type === "status_update") {
-        // Status update
+        // Handle online/offline status updates
+        if (data.user_id && typeof data.is_online === 'boolean') {
+          setUserOnlineStatus(data.user_id, data.is_online);
+        }
       } else if (data.content) {
+        // New message received
+        const message: ConversationMessage = {
+          ...data,
+          conversation_id: conversation.id,
+        };
+        
         // ⚠️ CRITICAL FIX: If backend doesn't set sender_id, inject current user's ID
         // This happens when the backend echoes our message back but doesn't populate sender_id
         if (!data.sender_id && user?.id) {
-          data.sender_id = user.id;
+          message.sender_id = user.id;
+        }
+        
+        // Update conversation time in store
+        const timestamp = message.sent_at || message.timestamp || message.created_at;
+        updateConversationTime(conversation.id, timestamp);
+        
+        // Notify parent component about new message
+        if (onMessageSent) {
+          onMessageSent(message);
         }
       }
     },
@@ -93,9 +116,18 @@ export default function ConversationChatRoom({
     }, 3000);
   };
 
-  // User validation
+  // User validation and initialize online status for participants
   useEffect(() => {
-    // Validate user and participants
+    // Mark current conversation participants as potentially online
+    // The WebSocket will update with actual status
+    if (conversation.participant_ids) {
+      conversation.participant_ids.forEach((participantId) => {
+        if (participantId !== user?.id) {
+          // Don't mark ourselves
+          // Will be updated by status_update messages from WebSocket
+        }
+      });
+    }
   }, [user, conversation]);
 
   // Fetch initial messages
@@ -115,7 +147,17 @@ export default function ConversationChatRoom({
         // Store messages for this specific conversation in chatStore
         setMessages(conversation.id, sortedData);
 
-        // Mark as read when opening conversation
+        // ✅ CRITICAL: Mark conversation as read via REST API when opening
+        // This calls PATCH /chat/conversations/{id}/read endpoint
+        // Backend marks all messages in conversation as read and sends read_receipt events
+        try {
+          await chatService.markConversationAsRead(conversation.id);
+          console.log('✅ Conversation marked as read via REST API');
+        } catch (error) {
+          console.warn('Could not mark conversation as read via REST API:', error);
+        }
+
+        // Call parent callback
         onMarkAsRead();
         
         // Scroll to bottom after messages load
@@ -149,7 +191,10 @@ export default function ConversationChatRoom({
   // Mark conversation as read when viewing messages
   useEffect(() => {
     if (isConnected && messages.length > 0) {
+      // Send WebSocket read receipt
       markAsReadWS();
+      console.log('📨 Sent WebSocket read receipt for conversation:', conversation.id);
+      
       if (onMarkAsRead) {
         onMarkAsRead();
       }
@@ -187,6 +232,9 @@ export default function ConversationChatRoom({
     if (!inputMessage.trim() || !isConnected) return;
 
     try {
+      // Store message content before clearing
+      const messageContent = inputMessage.trim();
+      
       // Stop typing indicator
       if (isTyping) {
         setIsTyping(false);
@@ -194,8 +242,29 @@ export default function ConversationChatRoom({
       }
 
       // Send via WebSocket
-      await sendMessage(inputMessage, "TEXT");
+      await sendMessage(messageContent, "TEXT");
       setInputMessage("");
+
+      // Create a temporary message object for immediate UI update
+      const tempMessage: ConversationMessage = {
+        id: `temp-${Date.now()}`,
+        conversation_id: conversation.id,
+        sender_id: user?.id || '',
+        receiver_id: '',
+        content: messageContent,
+        type: "TEXT",
+        timestamp: new Date().toISOString(),
+        sent_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update conversation time and notify parent
+      const timestamp = tempMessage.sent_at || tempMessage.timestamp || tempMessage.created_at;
+      updateConversationTime(conversation.id, timestamp);
+      if (onMessageSent) {
+        onMessageSent(tempMessage);
+      }
 
       // Clear typing timeout
       if (typingTimeoutRef.current) {
@@ -208,20 +277,37 @@ export default function ConversationChatRoom({
 
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
-    // Convert UTC timestamp to local time
-    const date = new Date(timestamp);
-    if (isNaN(date.getTime())) return "";
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
+    
+    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const date = new Date(utcTimestamp);
+    
+    if (isNaN(date.getTime())) {
+      console.error("Invalid timestamp:", timestamp);
+      return "";
+    }
+    
+    // Debug: Log timezone conversion
+    console.log("📅 Timestamp conversion:", {
+      original: timestamp,
+      utcMarked: utcTimestamp,
+      localTime: date.toLocaleString(),
+      formatted: format(date, "h:mm a")
     });
+    
+    // Use date-fns for consistent formatting across timezones
+    return format(date, "h:mm a");
   };
 
   const formatDate = (timestamp: string) => {
     if (!timestamp) return "";
-    // Convert UTC timestamp to local time for date comparison
-    const date = new Date(timestamp);
+    
+    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
+    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
+    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const date = new Date(utcTimestamp);
+    
     if (isNaN(date.getTime())) return "";
     const today = new Date();
     const yesterday = new Date(today);
@@ -232,11 +318,8 @@ export default function ConversationChatRoom({
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+      // Use date-fns for consistent formatting
+      return format(date, "MMM d, yyyy");
     }
   };
 
@@ -250,24 +333,39 @@ export default function ConversationChatRoom({
     // For group chats, check if at least one person (other than sender) has read/received
     const isGroupChat = conversation.type === "GROUP";
     
-    if (isGroupChat) {
-      // In groups, if anyone (other than sender) has read it
-      const othersReadCount = readBy.filter(id => id !== message.sender_id).length;
-      if (othersReadCount > 0) return "read";
-      
-      // If delivered to anyone
-      const deliveredCount = deliveredTo.length;
-      if (deliveredCount > 0) return "delivered";
-    } else {
-      // For direct chats
-      const otherPersonRead = readBy.some(id => id !== message.sender_id);
-      if (otherPersonRead) return "read";
-      
-      const otherPersonDelivered = deliveredTo.length > 0;
-      if (otherPersonDelivered) return "delivered";
+    // Debug log for status calculation
+    const status = (() => {
+      if (isGroupChat) {
+        // In groups, if anyone (other than sender) has read it
+        const othersReadCount = readBy.filter(id => id !== message.sender_id).length;
+        if (othersReadCount > 0) return "read";
+        
+        // If delivered to anyone
+        const deliveredCount = deliveredTo.length;
+        if (deliveredCount > 0) return "delivered";
+      } else {
+        // For direct chats
+        const otherPersonRead = readBy.some(id => id !== message.sender_id);
+        if (otherPersonRead) return "read";
+        
+        const otherPersonDelivered = deliveredTo.length > 0;
+        if (otherPersonDelivered) return "delivered";
+      }
+      return "sent";
+    })();
+    
+    // Log status for debugging (only log when status is 'read' to avoid spam)
+    if (status === "read" && readBy.length > 0) {
+      console.log(`🔵 Message status: ${status}`, {
+        messageId: message.id,
+        content: message.content?.substring(0, 30),
+        readBy,
+        deliveredTo,
+        isGroupChat
+      });
     }
     
-    return "sent";
+    return status;
   };
 
   // Render message status indicator

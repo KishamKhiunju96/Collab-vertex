@@ -115,5 +115,8 @@ export const API_PATHS = {
       `/chat/conversations/${conversationId}/participants`,
     REMOVE_PARTICIPANT: (conversationId: string, userId: string) =>
       `/chat/conversations/${conversationId}/participants/${userId}`,
+    
+    // Mark all messages as delivered
+    MARK_ALL_DELIVERED: "/chat/mark-all-delivered",
   },
 } as const;
