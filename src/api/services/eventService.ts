@@ -72,6 +72,7 @@ const EVENT_API = {
   CREATE: (brandId: string) => `/event/create_event/${brandId}`,
   GET_BY_BRAND: (brandId: string) => `/event/eventsbybrand/${brandId}`,
   GET_ALL: (influencerId: string) => `/event/all_events/${influencerId}`,
+  GET_NON_APPLIED: (influencerId: string) => `/event/fuck_events/${influencerId}`,
   GET_ALL_GLOBAL: "/event/allevents", // Get all events without influencer filter
   GET_BY_ID: (eventId: string) => `/event/eventbyid/${eventId}`,
   UPDATE: (eventId: string) => `/event/update_event/${eventId}`,
@@ -112,6 +113,12 @@ export const eventService = {
   // ✅ Influencer dashboard (no filters)
   async getAllEvents(influencerId: string): Promise<Event[]> {
     const { data } = await axios.get<Event[]>(EVENT_API.GET_ALL(influencerId));
+    return data;
+  },
+
+  // ✅ Influencer dashboard - Get events not applied to
+  async getNonAppliedEvents(influencerId: string): Promise<Event[]> {
+    const { data } = await axios.get<Event[]>(EVENT_API.GET_NON_APPLIED(influencerId));
     return data;
   },
 

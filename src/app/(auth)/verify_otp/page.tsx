@@ -27,7 +27,6 @@ export default function VerifyOtpPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  // Refs for OTP inputs
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Redirect if email is missing
@@ -49,9 +48,8 @@ export default function VerifyOtpPage() {
     }
   }, [countdown, canResend]);
 
-  // Handle OTP input change
+  // Handle OTP input change — NO auto-submit
   const handleOtpChange = (index: number, value: string) => {
-    // Only allow numbers
     if (value && !/^\d$/.test(value)) return;
 
     const newOtp = [...otp];
@@ -59,21 +57,13 @@ export default function VerifyOtpPage() {
     setOtp(newOtp);
     setError("");
 
-    // Auto-focus next input
+    // Auto-focus next input only
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
-
-    // Auto-submit when all fields are filled
-    if (index === 5 && value) {
-      const otpString = newOtp.join("");
-      if (otpString.length === 6) {
-        handleVerify(otpString);
-      }
-    }
   };
 
-  // Handle backspace
+  // Handle backspace and Enter
   const handleKeyDown = (
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -81,37 +71,103 @@ export default function VerifyOtpPage() {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
+
+    if (e.key === "Enter") {
+      const otpString = otp.join("");
+      if (otpString.length === 6) {
+        handleVerify();
+      }
+    }
   };
 
   // Handle paste
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").trim().slice(0, 6);
 
     if (!/^\d+$/.test(pastedData)) return;
 
-    const newOtp = [...otp];
+    const newOtp = ["", "", "", "", "", ""];
     pastedData.split("").forEach((char, index) => {
       if (index < 6) newOtp[index] = char;
     });
     setOtp(newOtp);
 
-    // Focus last filled input or next empty
-    const lastFilledIndex = pastedData.length - 1;
-    if (lastFilledIndex < 5) {
-      inputRefs.current[lastFilledIndex + 1]?.focus();
-    } else {
-      inputRefs.current[5]?.focus();
-      // Auto-submit if all 6 digits are pasted
-      if (pastedData.length === 6) {
-        handleVerify(pastedData);
-      }
-    }
+    const lastIndex = Math.min(pastedData.length - 1, 5);
+    inputRefs.current[lastIndex]?.focus();
   };
 
-  // Handler for OTP verification
-  const handleVerify = async (otpString?: string) => {
-    const otpCode = otpString || otp.join("");
+  // Helper to safely extract role from unknown response shape
+  const extractRole = (obj: unknown): string | null => {
+    if (!obj || typeof obj !== "object") return null;
+
+    const data = obj as Record<string, unknown>;
+
+    // Check direct role
+    if (typeof data.role === "string") return data.role;
+
+    // Check user.role
+    if (
+      data.user &&
+      typeof data.user === "object" &&
+      typeof (data.user as Record<string, unknown>).role === "string"
+    ) {
+      return (data.user as Record<string, unknown>).role as string;
+    }
+
+    // Check data.role
+    if (
+      data.data &&
+      typeof data.data === "object" &&
+      typeof (data.data as Record<string, unknown>).role === "string"
+    ) {
+      return (data.data as Record<string, unknown>).role as string;
+    }
+
+    // Check data.user.role
+    if (data.data && typeof data.data === "object") {
+      const nestedData = data.data as Record<string, unknown>;
+      if (
+        nestedData.user &&
+        typeof nestedData.user === "object" &&
+        typeof (nestedData.user as Record<string, unknown>).role === "string"
+      ) {
+        return (nestedData.user as Record<string, unknown>).role as string;
+      }
+    }
+
+    return null;
+  };
+
+  // Redirect user based on role
+  const redirectToDashboard = (role: string) => {
+    setRedirecting(true);
+
+    setTimeout(() => {
+      switch (role) {
+        case "brand":
+          notify.success("Welcome to Brand Dashboard! 🚀");
+          router.push("/dashboard/brand");
+          break;
+        case "influencer":
+          notify.success("Welcome to Influencer Dashboard! ⭐");
+          router.push("/dashboard/influencer");
+          break;
+        case "admin":
+          notify.success("Welcome Admin! 👑");
+          router.push("/dashboard/admin");
+          break;
+        default:
+          notify.info("Please log in to continue");
+          router.push("/login");
+          break;
+      }
+    }, 2000);
+  };
+
+  // Handler for OTP verification — only on button click or Enter
+  const handleVerify = async () => {
+    const otpCode = otp.join("");
     setError("");
 
     if (!email) {
@@ -131,47 +187,45 @@ export default function VerifyOtpPage() {
 
       // Step 1: Verify OTP
       const response = await authService.verifyOtp({ email, otp: otpCode });
-
       console.log("OTP verification response:", response);
 
       if (response.success) {
-        setRedirecting(true);
         notify.success("🎉 Account verified successfully!");
 
-        // Step 2: Get user role
-        let userRole = response.user?.role;
+        // Step 2: Try to get role from verify response
+        let userRole = extractRole(response);
 
+        // Step 3: If role not in verify response, fetch user profile
         if (!userRole) {
           try {
             const userProfile = await authService.getMe();
-            userRole = userProfile.role;
+            console.log("User profile response:", userProfile);
+            userRole = extractRole(userProfile);
           } catch (fetchError) {
             console.error("Failed to fetch user profile:", fetchError);
-            notify.info("Please log in to continue");
-            setTimeout(() => router.push("/login"), 1500);
+            notify.info("Verified! Please log in to continue.");
+            setRedirecting(true);
+            setTimeout(() => router.push("/login"), 2000);
             return;
           }
         }
 
-        // Step 3: Redirect based on role with toast notification
-        setTimeout(() => {
-          if (userRole === "brand") {
-            notify.success("Welcome to Brand Dashboard! 🚀");
-            router.push("/dashboard/brand");
-          } else if (userRole === "influencer") {
-            notify.success("Welcome to Influencer Dashboard! ⭐");
-            router.push("/dashboard/influencer");
-          } else if (userRole === "admin") {
-            notify.success("Welcome Admin! 👑");
-            router.push("/dashboard/admin");
-          } else {
-            notify.info("Please log in to continue");
-            router.push("/login");
-          }
-        }, 1500);
+        // Step 4: Redirect based on role
+        if (userRole) {
+          redirectToDashboard(userRole);
+        } else {
+          notify.info("Verified! Please log in to continue.");
+          setRedirecting(true);
+          setTimeout(() => router.push("/login"), 2000);
+        }
       } else {
-        setError(response.message || "OTP verification failed");
-        notify.error(response.message || "Invalid OTP");
+        const msg =
+          (response as unknown as Record<string, string>).message ||
+          "OTP verification failed";
+        setError(msg);
+        notify.error(msg);
+        setOtp(["", "", "", "", "", ""]);
+        inputRefs.current[0]?.focus();
       }
     } catch (error: unknown) {
       console.error("OTP verification error:", error);
@@ -192,6 +246,8 @@ export default function VerifyOtpPage() {
             : "Invalid or expired OTP";
       setError(errorMessage);
       notify.error(errorMessage);
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } finally {
       setLoading(false);
     }
@@ -217,7 +273,6 @@ export default function VerifyOtpPage() {
       await authService.resendOtp({ email });
       notify.success("New OTP sent to your email! 📧");
 
-      // Reset countdown and OTP fields
       setCountdown(60);
       setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
@@ -264,7 +319,6 @@ export default function VerifyOtpPage() {
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
         {redirecting ? (
-          // Success/Redirecting State
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center border-2 border-green-200">
             <div className="relative mb-6">
               <div className="w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg animate-scale-in">
@@ -290,7 +344,6 @@ export default function VerifyOtpPage() {
             </div>
           </div>
         ) : (
-          // OTP Verification Form
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="relative bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary p-8 sm:p-10 text-white">
@@ -356,7 +409,11 @@ export default function VerifyOtpPage() {
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={index === 0 ? handlePaste : undefined}
-                      className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-border-subtle rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 transition-all duration-300"
+                      className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 transition-all duration-300 ${
+                        digit
+                          ? "border-brand-primary bg-brand-primary/5"
+                          : "border-border-subtle"
+                      }`}
                       disabled={loading}
                     />
                   ))}
@@ -368,7 +425,7 @@ export default function VerifyOtpPage() {
 
               {/* Verify Button */}
               <button
-                onClick={() => handleVerify()}
+                onClick={handleVerify}
                 disabled={loading || otp.join("").length !== 6}
                 className="w-full py-3.5 bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary text-white font-bold rounded-xl shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-accent/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mb-4"
               >

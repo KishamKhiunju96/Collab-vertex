@@ -6,7 +6,6 @@ import DashboardHeader from "./DashboardHeader";
 import DashboardBody from "./DashboardBody";
 import { useInfluencerProfile } from "@/api/hooks/useInfluencerProfile";
 import InfluencerProfileModal from "../profile/InfluencerProfileModal";
-import FloatingChatButton from "@/chat/components/FloatingChatButton";
 
 export default function InfluencerDashboard() {
   const { loading, authenticated, role } = useAuthProtection();
@@ -69,17 +68,6 @@ export default function InfluencerDashboard() {
           onProfileCreated(newProfile);
           setModalOpen(false);
         }}
-      />
-
-      {/* Floating Chat Button */}
-      <FloatingChatButton
-        contacts={chatContacts}
-        isLoading={false}
-        userRole="influencer"
-        unreadTotal={chatContacts.reduce(
-          (sum, contact) => sum + (contact.unreadCount || 0),
-          0,
-        )}
       />
     </div>
   );

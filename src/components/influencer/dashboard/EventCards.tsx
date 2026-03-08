@@ -63,7 +63,7 @@ export default function EventCards() {
       }
 
       try {
-        const data = await eventService.getAllEvents(profile.id);
+        const data = await eventService.getNonAppliedEvents(profile.id);
         setEvents(data);
       } catch (err) {
         console.error("Failed to load events", err);

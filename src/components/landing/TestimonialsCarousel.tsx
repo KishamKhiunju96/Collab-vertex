@@ -61,23 +61,14 @@ const testimonials = [
 ];
 
 export default function TestimonialsCarousel() {
-  // Auto-rotation state (currently not used but available for future carousel implementation)
-  // const [activeIndex, setActiveIndex] = useState(0);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setActiveIndex((prev) => (prev + 1) % Math.ceil(testimonials.length / 3));
-  //   }, 5000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
 
   return (
-    <section className="relative py-24 md:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 overflow-hidden">
-      {/* Background Elements */}
+    <section className="relative py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 overflow-hidden">
+      {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
@@ -90,7 +81,7 @@ export default function TestimonialsCarousel() {
           className="text-center mb-16"
         >
           <div className="inline-block mb-4">
-            <span className="bg-white/10 backdrop-blur-xl border border-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold">
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 backdrop-blur-xl border border-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
               ⭐ Trusted by Thousands
             </span>
           </div>
@@ -116,7 +107,7 @@ export default function TestimonialsCarousel() {
               className="group relative"
             >
               {/* Card */}
-              <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300 h-full">
+              <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 hover:bg-white/15 hover:border-white/30 transition-all duration-300 h-full shadow-xl hover:shadow-2xl hover:shadow-purple-500/20">
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-6 relative z-10">
                   {/* Avatar */}

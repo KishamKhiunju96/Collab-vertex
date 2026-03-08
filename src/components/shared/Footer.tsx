@@ -106,17 +106,17 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative overflow-hidden">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-slate-900 to-gray-950">
       {/* Top Gradient Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
-      <div className="h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
 
       {/* Newsletter Section */}
-      <div className="relative bg-gradient-to-b from-gray-950 to-gray-900">
+      <div className="relative bg-gradient-to-b from-gray-950 via-slate-900 to-gray-900">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-violet-600/10 rounded-full blur-[120px]" />
-          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px]" />
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-violet-600/20 rounded-full blur-[120px]" />
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
           <div
             className="absolute inset-0 opacity-[0.02]"
             style={{
@@ -128,9 +128,11 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Content */}
-      <div className="relative bg-gray-900">
+      <div className="relative bg-gradient-to-b from-gray-900 via-slate-900 to-gray-950">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-10 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]" />
           <div
             className="absolute inset-0 opacity-[0.015]"
             style={{

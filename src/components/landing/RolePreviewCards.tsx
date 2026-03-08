@@ -63,11 +63,12 @@ const roles = [
 
 export default function RolePreviewCards() {
   return (
-    <section className="relative py-24 md:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 overflow-hidden">
+    <section className="relative py-12 md:py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-indigo-50/40 to-pink-50/40 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-indigo-200/20 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
@@ -80,12 +81,12 @@ export default function RolePreviewCards() {
           className="text-center mb-20"
         >
           <div className="inline-block mb-4">
-            <span className="bg-gray-800 text-gray-400 px-4 py-2 rounded-full text-sm font-semibold">
+            <span className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
               🎭 Choose Your Path
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6">
-            <span className="bg-gray-800 bg-clip-text text-transparent">
+            <span className="text-gray-800">
               Built for Everyone
             </span>
           </h2>
@@ -114,8 +115,6 @@ export default function RolePreviewCards() {
                   className={`relative bg-gradient-to-br ${role.bgGradient} rounded-3xl p-1 shadow-2xl hover:shadow-3xl transition-all duration-500`}
                 >
                   <div className="relative bg-white rounded-3xl p-8 md:p-10 h-full overflow-hidden">
-                    {/* Background Decoration */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity duration-500" />
                     {/* Header */}
                     <div className="relative z-10 mb-8">
                       {/* Icon Badge */}
@@ -184,13 +183,11 @@ export default function RolePreviewCards() {
                           >
                             {role.stats.number}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-gray-600 font-medium">
                             {role.stats.label}
                           </div>
                         </div>
-                        <CheckCircle
-                          className={`w-12 h-12 text-green-500 opacity-50`}
-                        />
+                        <CheckCircle className="w-12 h-12 text-green-500 opacity-50" />
                       </div>
                     </div>
 
@@ -203,44 +200,14 @@ export default function RolePreviewCards() {
                       <span className="relative z-10">
                         Register as {role.type}
                       </span>
+                      <Zap className="w-5 h-5 relative z-10" />
                     </Link>
                   </div>
                 </div>
-
-                {/* Floating Badge */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                  className="absolute -top-4 -right-4 z-20"
-                >
-                  <div
-                    className={`bg-gradient-to-r ${role.gradient} text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2`}
-                  >
-                    Popular
-                  </div>
-                </motion.div>
               </motion.div>
             );
           })}
         </div>
-
-        {/* Bottom Info Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-16 text-center"
-        >
-          <div className="inline-flex items-center gap-2 bg-white border-2 border-gray-200 rounded-full px-6 py-3 shadow-lg">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <span className="text-gray-700 font-medium">
-              Free to join • No credit card required • Cancel anytime
-            </span>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
