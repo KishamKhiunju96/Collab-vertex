@@ -22,6 +22,7 @@ import {
 import { authService } from "@/api/services/authService";
 import { handleRegister } from "@/api/services/registerService";
 import { RegisterResponse } from "@/types/aauth";
+import { notify } from "@/utils/notify";
 
 interface FormData {
   username: string;
@@ -171,7 +172,7 @@ function RegisterFormContent() {
           err.response?.data?.message || err.message || "Registration failed"
         );
       } else {
-        setApiError("Registration failed. Please try again.");
+        notify.error("Registration failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -228,15 +229,7 @@ function RegisterFormContent() {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl animate-pulse-glow" />
 
       <div className="w-full max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up">
-        {/* Image side */}
         <div className="relative h-64 lg:h-auto min-h-[400px] lg:min-h-[800px] order-1 lg:order-1">
-          <Image
-            src="/images/collabR.jpg"
-            alt="Register on Collab-Vertex"
-            fill
-            className="object-cover"
-            priority
-          />
           <div
             className={`absolute inset-0 transition-all duration-500 ${
               isBrand

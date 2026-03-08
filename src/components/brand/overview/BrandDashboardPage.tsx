@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Trash2, Bell, Plus } from "lucide-react";
-import FloatingChatButton from "@/chat/components/FloatingChatButton";
 
 import { brandService, Brand } from "@/api/services/brandService";
 import CreateBrandForm from "@/components/brand/CreateBrandForm";
@@ -26,34 +25,6 @@ export default function BrandDashboardPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-  // Mock chat contacts (replace with actual API call later)
-  const [chatContacts] = useState([
-    {
-      id: "influencer-1",
-      username: "Fashion Guru",
-      email: "fashion@example.com",
-      role: "influencer",
-      lastMessage: "Thanks for the collaboration opportunity!",
-      unreadCount: 2,
-      isOnline: true,
-    },
-    {
-      id: "influencer-2",
-      username: "Tech Reviewer",
-      email: "tech@example.com",
-      role: "influencer",
-      lastMessage: "I'd love to discuss the event details",
-      unreadCount: 0,
-      isOnline: false,
-    },
-  ]);
-
-  // Debug: Log when component mounts
-  useEffect(() => {
-    console.log("BrandDashboardPage mounted");
-    console.log("Chat contacts:", chatContacts);
-  }, [chatContacts]);
-
   const {
     notifications,
     unreadCount,
@@ -73,7 +44,6 @@ export default function BrandDashboardPage() {
       const fetchedBrands = await brandService.getBrands();
       setBrands(fetchedBrands);
     } catch (err) {
-      console.error(err);
       notify.error("Failed to load brands.");
     } finally {
       setLoading(false);
@@ -121,9 +91,6 @@ export default function BrandDashboardPage() {
     }
   };
 
-  // -----------------------------
-  // Brand Actions
-  // -----------------------------
   const handleCreateSuccess = async () => {
     setIsCreateOpen(false);
     await fetchBrands();
@@ -138,7 +105,6 @@ export default function BrandDashboardPage() {
       setBrands((prev) => prev.filter((b) => b.id !== brandId));
       notify.success("Brand deleted successfully");
     } catch (err) {
-      console.error(err);
       notify.error("Failed to delete brand");
     }
   };
@@ -416,17 +382,6 @@ export default function BrandDashboardPage() {
           <span className="sm:hidden">+</span>
         </button>
       </div>
-
-      {/* Floating Chat Button - Outside Container for Maximum Visibility */}
-      <FloatingChatButton
-        contacts={chatContacts}
-        isLoading={false}
-        userRole="brand"
-        unreadTotal={chatContacts.reduce(
-          (sum, contact) => sum + (contact.unreadCount || 0),
-          0,
-        )}
-      />
     </>
   );
 }

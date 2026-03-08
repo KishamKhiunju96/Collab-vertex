@@ -8,6 +8,7 @@ import { Eye, EyeOff, Lock, User, ArrowRight, Loader2 } from "lucide-react";
 import { authService, UserProfile } from "@/api/services/authService";
 import { chatService } from "@/api/services/chatService";
 import { useUser } from "@/context/UserContext";
+import { notify } from "@/utils/notify";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -61,22 +62,14 @@ export default function LoginForm() {
         setIsLoading(false);
         return;
       }
-
-      // ✅ PART 1: AUTO-DELIVERED ON LOGIN
-      // Mark all undelivered messages as delivered immediately after successful login
-      // This triggers delivery_receipt WebSocket events to all message senders
-      // Use sessionStorage to prevent duplicate calls in same session
       const deliveredMarkerKey = `messages_delivered_${user.id}`;
       const alreadyMarkedThisSession = sessionStorage.getItem(deliveredMarkerKey);
       
       if (!alreadyMarkedThisSession) {
         try {
-          console.log("📨 Marking all messages as delivered on login...");
           await chatService.markAllDelivered();
           sessionStorage.setItem(deliveredMarkerKey, "true");
-          console.log("✅ All messages marked as delivered - senders will see double gray checkmarks");
         } catch (error) {
-          console.warn("⚠️ Could not mark messages as delivered:", error);
           // Don't block login if this fails - it's not critical
         }
       }
@@ -91,9 +84,8 @@ export default function LoginForm() {
         router.replace("/select-role");
       }
     } catch (error: unknown) {
-      console.error("Login error:", error);
       if (error instanceof Error) setApiError(error.message);
-      else setApiError("Invalid username or password. Please try again.");
+      else notify.error("Invalid username or password. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -14,7 +14,10 @@ import {
   X,
   Clock,
   Sparkles,
+  Loader2,
 } from "lucide-react";
+import { influencerService } from "@/api/services/influencerService";
+import { notify } from "@/utils/notify";
 
 export type Application = {
   id?: string;
@@ -53,6 +56,7 @@ export default function ApplicationCard({
   const router = useRouter();
   const influencer = application.influencer;
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const formatNumber = (num?: number) => {
     if (!num) return "N/A";
@@ -107,42 +111,45 @@ export default function ApplicationCard({
   const StatusIcon = statusConfig.icon;
 
   const handleStatusUpdate = async (status: "accepted" | "rejected") => {
-    console.log("=== handleStatusUpdate called ===");
-    console.log("Status:", status);
-    console.log("Application:", application);
-    console.log("Application ID:", application.id);
-    console.log("onUpdateStatus function:", typeof onUpdateStatus);
-
     if (!application.id) {
-      console.error("Application ID is missing");
-      alert("Error: Application ID is missing");
+      notify.error("Application ID is missing");
       return;
     }
 
     if (typeof onUpdateStatus !== "function") {
-      console.error("onUpdateStatus is not a function!");
-      alert("Error: onUpdateStatus is not a function");
+      notify.error("Update function is not available");
       return;
     }
 
     setIsProcessing(true);
     try {
-      console.log("Calling onUpdateStatus with:", application.id, status);
       await onUpdateStatus(application.id, status);
-      console.log("onUpdateStatus completed successfully");
     } catch (error) {
-      console.error("Error in handleStatusUpdate:", error);
-      alert(
+      notify.error(
         `Error updating status: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
       setIsProcessing(false);
-      console.log("=== handleStatusUpdate finished ===");
     }
   };
 
-  const handleViewProfile = () => {
-    router.push(`/dashboard/influencerprofile?id=${influencer.id}`);
+  const handleViewProfile = async () => {
+    setIsLoadingProfile(true);
+
+    try {
+      // Fetch the full influencer profile by name
+      const profile = await influencerService.getProfileByName(influencer.name);
+
+      // Navigate to the influencer profile page with the fetched profile ID
+      router.push(`/dashboard/influencerprofile?id=${profile.id}`);
+    } catch (error) {
+      console.error("Error fetching influencer profile:", error);
+      notify.error(
+        "Failed to load influencer profile. Please try again."
+      );
+    } finally {
+      setIsLoadingProfile(false);
+    }
   };
 
   return (
@@ -199,16 +206,13 @@ export default function ApplicationCard({
             {application.status === "pending" && (
               <>
                 <button
-                  onClick={() => {
-                    console.log("=== ACCEPT BUTTON CLICKED ===");
-                    handleStatusUpdate("accepted");
-                  }}
-                  disabled={isProcessing || isUpdating}
-                  className="flex items-center justify-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-900  text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                  onClick={() => handleStatusUpdate("accepted")}
+                  disabled={isProcessing || isUpdating || isLoadingProfile}
+                  className="flex items-center justify-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                 >
                   {isProcessing || isUpdating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Processing...</span>
                     </>
                   ) : (
@@ -220,16 +224,13 @@ export default function ApplicationCard({
                 </button>
 
                 <button
-                  onClick={() => {
-                    console.log("=== REJECT BUTTON CLICKED ===");
-                    handleStatusUpdate("rejected");
-                  }}
-                  disabled={isProcessing || isUpdating}
-                  className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-900   text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                  onClick={() => handleStatusUpdate("rejected")}
+                  disabled={isProcessing || isUpdating || isLoadingProfile}
+                  className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                 >
                   {isProcessing || isUpdating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Processing...</span>
                     </>
                   ) : (
@@ -244,10 +245,20 @@ export default function ApplicationCard({
 
             <button
               onClick={handleViewProfile}
-              disabled={isProcessing || isUpdating}
-              className="flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-900 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/view"
+              disabled={isProcessing || isUpdating || isLoadingProfile}
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/view"
             >
-              <span>View Profile</span>
+              {isLoadingProfile ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading...</span>
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 group-hover/view:translate-x-0.5 group-hover/view:-translate-y-0.5 transition-transform" />
+                  <span>View Profile</span>
+                </>
+              )}
             </button>
           </div>
         </div>

@@ -74,10 +74,11 @@ export const influencerService = {
       );
       return response.data;
     } catch (err) {
-      console.error("Failed to fetch influencer profile", err);
       return null; // return null if no profile exists
     }
   },
+
+  // Get current user's full profile
   getProfile: async (): Promise<InfluencerProfile> => {
     const response = await api.get<InfluencerProfile>(
       API_PATHS.INFLUENCER.GET_BY_USER,
@@ -93,7 +94,15 @@ export const influencerService = {
     return response.data;
   },
 
-  // Search influencer by name
+  // Get influencer profile by name (NEW - for view profile functionality)
+  getProfileByName: async (name: string): Promise<InfluencerProfile> => {
+    const response = await api.get<InfluencerProfile>(
+      API_PATHS.INFLUENCER.GET_BY_NAME(name),
+    );
+    return response.data;
+  },
+
+  // Search influencer by name (alias for backward compatibility)
   searchByName: async (name: string): Promise<InfluencerProfile> => {
     const response = await api.get<InfluencerProfile>(
       API_PATHS.INFLUENCER.GET_BY_NAME(name),
@@ -111,6 +120,34 @@ export const influencerService = {
       API_PATHS.INFLUENCER.GET_CHATABLE_BRANDS
     );
     return response.data;
+  },
+
+  // Get influencer profile with social links (NEW - comprehensive view)
+  getFullProfile: async (identifier: string, byName = false): Promise<{
+    profile: InfluencerProfile;
+    socialLinks: SocialLink[];
+  }> => {
+    try {
+      // Fetch profile
+      const profileResponse = byName
+        ? await api.get<InfluencerProfile>(API_PATHS.INFLUENCER.GET_BY_NAME(identifier))
+        : await api.get<InfluencerProfile>(API_PATHS.INFLUENCER.GET_BY_ID(identifier));
+
+      const profile = profileResponse.data;
+
+      // Fetch social links
+      const linksResponse = await api.get<SocialLink[]>(
+        API_PATHS.INFLUENCER.GET_SOCIAL_LINKS_BY_ID(profile.id)
+      );
+
+      return {
+        profile,
+        socialLinks: linksResponse.data,
+      };
+    } catch (error) {
+      console.error("Error fetching full profile:", error);
+      throw error;
+    }
   },
 };
 
@@ -132,7 +169,7 @@ export const getSocialLinksById = async (
 };
 
 export const createSocialLink = async (
-  link: Omit<SocialLink, "id">,
+  link: Omit<SocialLink, "id" | "created_at" | "updated_at">,
 ): Promise<SocialLink> => {
   const response = await api.post<SocialLink>(
     API_PATHS.INFLUENCER.CREATE_SOCIAL_LINK,
@@ -143,7 +180,7 @@ export const createSocialLink = async (
 
 export const updateSocialLink = async (
   id: string,
-  link: Omit<SocialLink, "id">,
+  link: Omit<SocialLink, "id" | "created_at" | "updated_at">,
 ): Promise<SocialLink> => {
   const response = await api.put<SocialLink>(
     API_PATHS.INFLUENCER.UPDATE_SOCIAL_LINK(id),

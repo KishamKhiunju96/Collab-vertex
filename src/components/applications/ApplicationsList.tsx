@@ -44,25 +44,16 @@ export default function ApplicationsList({ eventId }: Props) {
     applicationId: string,
     status: "accepted" | "rejected",
   ) => {
-    console.log("=== ApplicationsList.handleUpdateStatus called ===");
-    console.log("Application ID:", applicationId);
-    console.log("Status:", status);
-    console.log("Type of applicationId:", typeof applicationId);
-    console.log("Type of status:", typeof status);
-
     if (!applicationId) {
       console.error("Application ID is required");
       alert("Error: Application ID is required");
       return;
     }
 
-    console.log("Setting updatingId to:", applicationId);
     setUpdatingId(applicationId);
 
     try {
-      console.log("About to call applicationService.updateApplicationStatus");
-      console.log("Service:", applicationService);
-      console.log("Method:", applicationService.updateApplicationStatus);
+
 
       const result = await applicationService.updateApplicationStatus(
         applicationId,
@@ -70,29 +61,17 @@ export default function ApplicationsList({ eventId }: Props) {
           status,
         },
       );
-      console.log("Update result:", result);
-      console.log("Update successful!");
 
       // Refetch applications after status update
       if (refetch) {
-        console.log("Refetching applications...");
         await refetch();
-        console.log("Refetch complete");
       } else {
         // Fallback: reload the page
-        console.log("No refetch function, reloading page...");
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       }
     } catch (err) {
-      console.error("=== ERROR in handleUpdateStatus ===");
-      console.error("Error type:", typeof err);
-      console.error("Error:", err);
-      console.error(
-        "Error stack:",
-        err instanceof Error ? err.stack : "No stack",
-      );
       alert(
         `Failed to update application status: ${err instanceof Error ? err.message : String(err)}`,
       );
@@ -101,12 +80,6 @@ export default function ApplicationsList({ eventId }: Props) {
       setUpdatingId(null);
     }
   };
-
-  console.log("Applications state:", {
-    loading,
-    error,
-    applicationsCount: applications?.length,
-  });
 
   if (loading) {
     return (
