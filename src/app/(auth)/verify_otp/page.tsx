@@ -146,15 +146,15 @@ export default function VerifyOtpPage() {
     setTimeout(() => {
       switch (role) {
         case "brand":
-          notify.success("Welcome to Brand Dashboard! 🚀");
+          notify.success("Welcome to Brand Dashboard! ");
           router.push("/dashboard/brand");
           break;
         case "influencer":
-          notify.success("Welcome to Influencer Dashboard! ⭐");
+          notify.success("Welcome to Influencer Dashboard! ");
           router.push("/dashboard/influencer");
           break;
         case "admin":
-          notify.success("Welcome Admin! 👑");
+          notify.success("Welcome Admin! ");
           router.push("/dashboard/admin");
           break;
         default:
@@ -185,39 +185,18 @@ export default function VerifyOtpPage() {
     try {
       setLoading(true);
 
-      // Step 1: Verify OTP
+      // Verify OTP
       const response = await authService.verifyOtp({ email, otp: otpCode });
       console.log("OTP verification response:", response);
 
       if (response.success) {
-        notify.success("🎉 Account verified successfully!");
+        notify.success("✅ Account verified! Please log in to continue.");
+        setRedirecting(true);
 
-        // Step 2: Try to get role from verify response
-        let userRole = extractRole(response);
-
-        // Step 3: If role not in verify response, fetch user profile
-        if (!userRole) {
-          try {
-            const userProfile = await authService.getMe();
-            console.log("User profile response:", userProfile);
-            userRole = extractRole(userProfile);
-          } catch (fetchError) {
-            console.error("Failed to fetch user profile:", fetchError);
-            notify.info("Verified! Please log in to continue.");
-            setRedirecting(true);
-            setTimeout(() => router.push("/login"), 2000);
-            return;
-          }
-        }
-
-        // Step 4: Redirect based on role
-        if (userRole) {
-          redirectToDashboard(userRole);
-        } else {
-          notify.info("Verified! Please log in to continue.");
-          setRedirecting(true);
-          setTimeout(() => router.push("/login"), 2000);
-        }
+        // Always redirect to login after successful OTP verification
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
       } else {
         const msg =
           (response as unknown as Record<string, string>).message ||
@@ -228,7 +207,6 @@ export default function VerifyOtpPage() {
         inputRefs.current[0]?.focus();
       }
     } catch (error: unknown) {
-      console.error("OTP verification error:", error);
       const errorMessage =
         error &&
         typeof error === "object" &&

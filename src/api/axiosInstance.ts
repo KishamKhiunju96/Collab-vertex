@@ -2,9 +2,9 @@
 import axios, { AxiosError, AxiosResponse, AxiosHeaders } from "axios";
 import { BASE_URL, API_PATHS } from "./apiPaths";
 
-/* ======================================================
+/* 
    Axios Instance
-====================================================== */
+ */
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // HttpOnly cookies
@@ -15,9 +15,9 @@ const api = axios.create({
   }),
 });
 
-/* ======================================================
+/* 
    Request Interceptor
-====================================================== */
+ */
 api.interceptors.request.use(
   (config) => {
     // Cookies handled automatically
@@ -26,9 +26,9 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
-/* ======================================================
+/* 
    Response Interceptor (Global Auth Handling)
-====================================================== */
+ */
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
@@ -43,7 +43,15 @@ api.interceptors.response.use(
           currentPath.startsWith("/verify_otp") ||
           currentPath.startsWith("/select-role");
 
-        if (!isAuthPage) {
+        // Check if the current page is a public page that should not redirect
+        const isPublicPage =
+          currentPath === "/" ||
+          currentPath.startsWith("/landing") ||
+          currentPath.startsWith("/about") ||
+          currentPath.startsWith("/services") ||
+          currentPath.startsWith("/contacts");
+
+        if (!isAuthPage && !isPublicPage) {
           window.location.replace("/login");
         }
       }
@@ -53,9 +61,9 @@ api.interceptors.response.use(
   },
 );
 
-/* ======================================================
+/* 
    Notification Types
-====================================================== */
+ */
 export interface Notification {
   id: string;
   message: string;
@@ -64,9 +72,9 @@ export interface Notification {
   created_at: string;
 }
 
-/* ======================================================
+/* 
    Notification APIs
-====================================================== */
+ */
 export const getNotifications = async (): Promise<Notification[]> => {
   const res = await api.get(API_PATHS.NOTIFICATION.GET_ALL);
   return res.data;
@@ -109,9 +117,9 @@ export const markAllNotificationsAsRead = async () => {
   return res.data;
 };
 
-/* ======================================================
+/* 
    Event & Application Types
-====================================================== */
+ */
 export type ApplicationStatus = "pending" | "approved" | "rejected";
 
 export interface EventApplication {
@@ -131,9 +139,9 @@ export interface EventApplication {
   email?: string;
 }
 
-/* ======================================================
+/* 
    Event APIs
-====================================================== */
+ */
 export const getEventApplications = async (
   eventId: string,
 ): Promise<EventApplication[]> => {
@@ -141,9 +149,9 @@ export const getEventApplications = async (
   return res.data;
 };
 
-/* ======================================================
+/* 
    Application APIs
-====================================================== */
+ */
 export const updateApplicationStatus = async (
   applicationId: string,
   status: ApplicationStatus,
@@ -155,7 +163,7 @@ export const updateApplicationStatus = async (
   return res.data;
 };
 
-/* ======================================================
+/* 
    Export Axios Instance
-====================================================== */
+ */
 export default api;

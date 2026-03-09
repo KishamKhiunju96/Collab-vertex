@@ -33,9 +33,7 @@ export default function BrandDashboardPage() {
     deleteNotification,
   } = useNotificationContext();
 
-  // -----------------------------
   // User & Brand Data
-  // -----------------------------
   const { user, loading: userLoading } = useUserData();
 
   const fetchBrands = useCallback(async () => {

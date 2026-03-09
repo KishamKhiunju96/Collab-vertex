@@ -41,13 +41,10 @@ export async function handleLogin(
         await chatService.markAllDelivered();
         // Set flag in sessionStorage to prevent duplicate calls this session
         sessionStorage.setItem(deliveredMarkedKey, 'true');
-        console.log('✅ All messages marked as delivered on login');
       } catch (error) {
         // Silently fail - don't break login flow
-        console.warn("Could not mark messages as delivered:", error);
       }
     } else {
-      console.log('ℹ️ Messages already marked as delivered this session');
     }
 
     // 3️⃣ Decide redirect based on role
@@ -83,9 +80,7 @@ export async function handleLogin(
       );
     } else if (err instanceof Error) {
       message = err.message;
-      console.error("Error in handleLogin:", message);
     } else {
-      console.error("Unknown error in handleLogin:", err);
     }
 
     return { success: false, message };

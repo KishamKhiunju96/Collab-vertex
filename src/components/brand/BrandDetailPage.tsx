@@ -288,7 +288,6 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
 
       <Modal
         open={showCreateEvent}
-        title="Create Event"
         onClose={() => setShowCreateEvent(false)}
       >
         <CreateEventStepper

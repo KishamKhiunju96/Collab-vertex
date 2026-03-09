@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Calendar, Plus, Edit, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import { notify } from "@/utils/notify";
+import api from "@/api/axiosInstance";
 
 interface Event {
   id: string;
@@ -32,19 +33,8 @@ export default function ManageEventsPage() {
     setIsLoading(true);
     try {
       // Fetch events created by this brand
-      const response = await fetch("https://api.dixam.me/event/allevents", {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch events");
-      }
-
-      const data = await response.json();
-      setEvents(data);
+      const response = await api.get("/event/all_events");
+      setEvents(response.data);
     } catch (error) {
       console.error("Error fetching events:", error);
       notify.error("Failed to load events");
@@ -58,15 +48,7 @@ export default function ManageEventsPage() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`https://api.dixam.me/event/${eventId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete event");
-      }
-
+      await api.delete(`/event/delete_event/${eventId}`);
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
       notify.success("Event deleted successfully");
     } catch (error) {

@@ -84,7 +84,7 @@ export default function LoginForm() {
         router.replace("/select-role");
       }
     } catch (error: unknown) {
-      if (error instanceof Error) setApiError(error.message);
+      if (error instanceof Error){}
       else notify.error("Invalid username or password. Please try again.");
     } finally {
       setIsLoading(false);

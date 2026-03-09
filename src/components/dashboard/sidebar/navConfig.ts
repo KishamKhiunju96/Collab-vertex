@@ -27,12 +27,6 @@ export const navConfig: Record<UserRole, NavItem[]> = {
       category: "Main",
     },
     {
-      href: "/dashboard/events",
-      label: "All Events",
-      icon: Calendar,
-      category: "Main",
-    },
-    {
       href: "/dashboard/brand/events",
       label: "Manage Events",
       icon: Calendar,
