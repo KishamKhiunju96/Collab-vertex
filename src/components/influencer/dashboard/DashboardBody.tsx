@@ -10,7 +10,7 @@ export default function DashboardBody({
   onCreateClick,
 }: DashboardBodyProps) {
   return (
-    <main className="flex flex-col items-center justify-center mt-24 px-4 text-center space-y-6">
+    <main className="flex flex-col items-center justify-center mt-16 px-4 text-center space-y-5">
       {!profile ? (
         <>
           <h2 className="text-2xl font-semibold text-gray-800">

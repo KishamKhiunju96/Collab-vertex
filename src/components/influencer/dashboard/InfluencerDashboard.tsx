@@ -55,10 +55,12 @@ export default function InfluencerDashboard() {
       <DashboardHeader />
 
       {/* MAIN BODY */}
-      <DashboardBody
-        profile={profile}
-        onCreateClick={() => setModalOpen(true)}
-      />
+      <div className="px-3 sm:px-4 lg:px-5 py-4">
+        <DashboardBody
+          profile={profile}
+          onCreateClick={() => setModalOpen(true)}
+        />
+      </div>
 
       {/* CREATE PROFILE MODAL */}
       <InfluencerProfileModal

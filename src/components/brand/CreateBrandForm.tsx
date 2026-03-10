@@ -81,14 +81,11 @@ export default function CreateBrandForm({
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-xl bg-white/15 backdrop-blur-sm">
-                      </div>
                         <div>
                           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                           Create Your Brand
                           </h2>
                           <p className="mt-1 text-sm text-blue-100 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4" />
                             Connect with influencers
                           </p>
                         </div>

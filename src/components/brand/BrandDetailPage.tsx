@@ -128,14 +128,14 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
   /* Main Content */
   return (
     <>
-      <div className="flex flex-col h-screen bg-white ">
+      <div className="flex flex-col h-screen bg-white">
         {/* Top Section - Brand Info */}
-        <div className="flex-shrink-0 border-b border-gray-200 ">
-          <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="flex-shrink-0 border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-5 lg:px-5">
             {/* Back Button */}
             <button
               onClick={() => router.back()}
-              className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 mb-6 transition-colors group"
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 mb-4 transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               Back
@@ -147,7 +147,7 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
               <div className="h-24 bg-gradient-to-r from-blue-600 to-blue-700 sm:h-32"></div>
 
               {/* Content */}
-              <div className="px-6 py-6 sm:px-8 sm:py-8">
+              <div className="px-4 py-5 sm:px-5 sm:py-6">
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 -mt-14 sm:-mt-20">
                   {/* Brand Info */}
                   <div className="flex items-end gap-4">
@@ -183,10 +183,10 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
                 </div>
 
                 {/* Brand Details Grid */}
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
                   {/* Description - Full Width */}
                   <div className="lg:col-span-3">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
                         Description
                       </p>
@@ -201,7 +201,7 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
                   </div>
 
                   {/* Location */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
@@ -215,7 +215,7 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
 
                   {/* Website */}
                   {brand.websiteUrl && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Globe className="w-4 h-4 text-gray-400" />
                         <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
@@ -235,7 +235,7 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
 
                   {/* Status Badge */}
                   {!brand.websiteUrl && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
                         Status
                       </p>
@@ -252,17 +252,17 @@ export default function BrandDetailPage({ brandId }: BrandDetailPageProps) {
         </div>
 
         {/* Bottom Section - Events (Scrollable) */}
-        <div className="flex-1 ">
-          <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-            <div className="bg-white border border-gray-200 rounded-xl  flex flex-col">
-              <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-900">Events</h2>
-                <p className="text-sm text-gray-600 mt-0.5">
+        <div className="flex-1">
+          <div className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-5 lg:px-5">
+            <div className="bg-white border border-gray-200 rounded-xl flex flex-col">
+              <div className="px-4 py-4 sm:px-5 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                <h2 className="text-base font-semibold text-gray-900">Events</h2>
+                <p className="text-xs text-gray-600 mt-0.5">
                   Manage and track your brand events
                 </p>
               </div>
 
-              <div className="px-6 py-6 flex-1">
+              <div className="px-4 py-4 sm:px-5 flex-1">
                 <EventTable
                   brandId={brandId}
                   refreshKey={eventRefreshKey}

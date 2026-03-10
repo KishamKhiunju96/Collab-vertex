@@ -86,8 +86,8 @@ export default function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-border-subtle shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4 sm:py-5">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5">
+        <div className="flex justify-between items-center py-3 sm:py-3.5">
           {/* Welcome Message */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-accent items-center justify-center shadow-md">

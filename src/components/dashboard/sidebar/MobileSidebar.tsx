@@ -40,7 +40,7 @@ export function MobileSidebar() {
         </div>
 
         {/* Sidebar Navigation */}
-        <div className="sidebar-nav flex-1 overflow-y-auto py-4">
+        <div className="sidebar-nav flex-1 overflow-y-auto py-3 px-2">
           <SidebarNav items={navConfig[role]} />
         </div>
 

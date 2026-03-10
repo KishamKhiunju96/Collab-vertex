@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
 return (
   <SidebarProvider>
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Mobile Sidebar */}
       <MobileSidebar />
       
@@ -33,7 +33,7 @@ return (
       </aside>
 
       {/* Main Content - Full width on mobile, adjusted for sidebar on desktop */}
-      <main className="flex-1 p-4 lg:p-6 overflow-auto relative pt-20 lg:pt-6">
+      <main className="flex-1 p-3 sm:p-4 lg:p-5 overflow-auto relative pt-16 lg:pt-4 bg-gray-50">
         {children}
       </main>
     </div>

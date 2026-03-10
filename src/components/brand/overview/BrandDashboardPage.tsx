@@ -142,10 +142,10 @@ export default function BrandDashboardPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-7xl space-y-6">
+      <div className=" w-full bg-gray-50">
+        <div className="mx-auto max-w-screen-2xl space-y-4">
           {/* Header */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 mb-4">
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 Hi {user.username}, Welcome to Collab Vertex
