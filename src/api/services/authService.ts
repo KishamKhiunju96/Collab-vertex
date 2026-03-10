@@ -107,6 +107,25 @@ export const authService = {
     }
   },
 
+  resetPassword: async (data: {
+    email: string;
+    new_password: string;
+  }): Promise<void> => {
+    const toastId = notify.loading("Resetting password...");
+
+    try {
+      await api.post(API_PATHS.USER.RESET_PASSWORD, data);
+      notify.success("Password reset successfully");
+    } catch (error: unknown) {
+      notify.error(
+        getErrorMessage(error, "Failed to reset password. Please try again."),
+      );
+      throw error;
+    } finally {
+      toast.dismiss(toastId);
+    }
+  },
+
   logout: async (): Promise<void> => {
     try {
       await api.post(API_PATHS.USER.LOGOUT); // optional backend logout

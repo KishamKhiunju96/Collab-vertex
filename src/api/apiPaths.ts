@@ -9,6 +9,7 @@ export const API_PATHS = {
     VERIFY_OTP: "/otp/verify_otp",
     RESEND_OTP: "/otp/resend_otp",
     LOGOUT: "/user/logout",
+    RESET_PASSWORD: "/user/reset-password",
   },
 
   BRAND: {
