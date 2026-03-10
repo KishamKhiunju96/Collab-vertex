@@ -480,44 +480,7 @@ export default function ForgotPasswordForm() {
                   )}
                 </span>
               </button>
-
-              {/* Security Note */}
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-800 flex items-start gap-2">
-                  <Lock className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span>
-                    For your security, make sure to use a strong, unique
-                    password that you don't use on other websites.
-                  </span>
-                </p>
-              </div>
             </form>
-          </div>
-        </div>
-
-        {/* Image side */}
-        <div className="relative h-64 lg:h-auto min-h-[400px] lg:min-h-[700px] order-1 lg:order-2">
-          <Image
-            src="/images/collabR.jpg"
-            alt="Reset Password - Collab-Vertex"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/60 via-brand-accent/40 to-brand-secondary/30" />
-
-          {/* Overlay Content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8 text-center">
-            <div className="max-w-md space-y-4">
-              <Lock className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-3xl sm:text-4xl font-bold drop-shadow-lg">
-                Secure Your Account
-              </h2>
-              <p className="text-lg sm:text-xl text-white/90 drop-shadow-md">
-                Create a strong password to protect your collaborations and
-                partnerships
-              </p>
-            </div>
           </div>
         </div>
       </div>
