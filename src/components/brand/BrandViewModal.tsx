@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Brand } from "@/api/services/brandService";
-import UpdateBrandForm from "./UpdateBrandForm";
 
 interface BrandViewModalProps {
   open: boolean;
@@ -11,7 +10,7 @@ interface BrandViewModalProps {
   loading?: boolean;
   error?: string | null;
   onClose: () => void;
-  onUpdated: (updatedBrand: Brand) => void;
+  onUpdated?: (updatedBrand: Brand) => void;
 }
 
 const BrandViewModal: React.FC<BrandViewModalProps> = ({
@@ -20,7 +19,6 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
   loading = false,
   error = null,
   onClose,
-  onUpdated,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -75,7 +73,7 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
           <X size={20} />
         </button>
 
-        {!isEditing ? (
+        {!isEditing && (
           <>
             <h2 className="text-2xl font-bold text-text-primary dark:text-white mb-5 pr-10">
               {brand.name}
@@ -130,6 +128,7 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
               >
                 Close
               </button>
+
               <button
                 onClick={() => setIsEditing(true)}
                 className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
@@ -138,16 +137,6 @@ const BrandViewModal: React.FC<BrandViewModalProps> = ({
               </button>
             </div>
           </>
-        ) : (
-          <UpdateBrandForm
-            brand={brand}
-            onUpdate={(updatedBrand) => {
-              onUpdated(updatedBrand);
-              setIsEditing(false);
-              onClose();
-            }}
-            onClose={() => setIsEditing(false)}
-          />
         )}
       </div>
     </div>

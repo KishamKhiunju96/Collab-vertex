@@ -11,9 +11,6 @@ import { useUserData } from "@/api/hooks/useUserData";
 
 import Modal from "@/components/ui/Modal";
 import { notify } from "@/utils/notify";
-import { ActivityFeed } from "@/components/brand/overview/ActivityFeed";
-import { brandActivities } from "@/data/brandactivities";
-import { AnalyticsChart } from "@/components/analytics/AnalyticsChart";
 
 import { useNotificationContext } from "@/context/NotificationContext";
 import InfluencerSearchBox from "@/components/brand/InfluencerSearchBox";
@@ -350,10 +347,8 @@ export default function BrandDashboardPage() {
         {/* Analytics & Activity Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2">
-            <AnalyticsChart />
           </div>
           <div className="lg:block">
-            <ActivityFeed activities={brandActivities} />
           </div>
         </div>
 

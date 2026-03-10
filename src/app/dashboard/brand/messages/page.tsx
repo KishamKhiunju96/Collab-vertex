@@ -28,18 +28,39 @@ export default function BrandMessagesPage() {
         setIsLoadingContacts(true);
         const response = await axiosInstance.get(API_PATHS.BRAND.GET_CHATABLE_INFLUENCERS);
         
+        console.log("🔍 Brand: Raw chatable influencers response:", response.data);
+        
         // Map backend response to ChatContact format
         // IMPORTANT: Use user_id (not profile id) for creating conversations
         // When conversation is created, backend automatically sets:
         // - For DIRECT chats: conversation.name = other person's username
         // - For GROUP chats: conversation.name = group name
-        const contactsData = response.data.map((influencer: any) => ({
-          id: influencer.user_id || influencer.id, // Use user_id for authorization
-          username: influencer.name || influencer.username || "Unknown User",
-          email: influencer.email,
-          role: "influencer",
-          isOnline: false,
-        }));
+        const contactsData = response.data
+          .filter((influencer: any) => {
+            // CRITICAL FIX: Only include influencers with user_id
+            // Never fallback to profile id as it causes 403 errors
+            if (!influencer.user_id) {
+              console.warn("⚠️ Skipping influencer without user_id:", {
+                profile_id: influencer.id,
+                name: influencer.name,
+                message: "Backend must return user_id field for chat authorization"
+              });
+              return false;
+            }
+            return true;
+          })
+          .map((influencer: any) => ({
+            id: influencer.user_id, // Use ONLY user_id for authorization (never profile id)
+            username: influencer.name || influencer.username || "Unknown User",
+            email: influencer.email,
+            role: "influencer",
+            isOnline: false,
+          }));
+        
+        console.log("✅ Brand: Processed contacts with user_ids:", contactsData.map((c: any) => ({
+          id: c.id,
+          username: c.username
+        })));
         
         setContacts(contactsData);
       } catch (error) {

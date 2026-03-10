@@ -38,9 +38,9 @@ export default function EventTable({
   const [updatePayload, setUpdatePayload] = useState<Partial<EventPayload>>({});
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  /* =========================
+  /* 
      Fetch events
-  ========================== */
+   */
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -58,9 +58,9 @@ export default function EventTable({
     if (brandId) fetchEvents();
   }, [brandId, refreshKey, fetchEvents]);
 
-  /* =========================
+  /* 
      Actions
-  ========================== */
+   */
   const handleDelete = async (eventId: string) => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
@@ -122,9 +122,9 @@ export default function EventTable({
     });
   };
 
-  /* =========================
+  /* 
      Loading State
-  ========================== */
+   */
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -136,9 +136,9 @@ export default function EventTable({
     );
   }
 
-  /* =========================
+  /* 
      Empty State
-  ========================== */
+   */
   if (!events.length) {
     return (
       <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
@@ -156,9 +156,9 @@ export default function EventTable({
     );
   }
 
-  /* =========================
+  /* 
      Desktop Table View
-  ========================== */
+   */
   return (
     <>
       {/* Desktop Table - Hidden on mobile */}
@@ -424,9 +424,9 @@ export default function EventTable({
         ))}
       </div>
 
-      {/* =========================
+      {/* 
           Edit Modal
-      ========================== */}
+       */}
       {editingEvent && (
         <Modal
           open

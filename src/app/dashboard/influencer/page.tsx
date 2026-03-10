@@ -16,7 +16,6 @@ import {
 import DashboardHeader from "@/components/influencer/dashboard/DashboardHeader";
 import EventCards from "@/components/influencer/dashboard/EventCards";
 import { influencerService } from "@/api/services/influencerService";
-import FloatingChatButton from "@/chat/components/FloatingChatButton";
 
 export default function InfluencerDashboardPage() {
   const router = useRouter();
@@ -245,16 +244,6 @@ export default function InfluencerDashboardPage() {
         <EventCards />
       </main>
 
-      {/* Floating Chat Button */}
-      <FloatingChatButton
-        contacts={chatContacts}
-        isLoading={false}
-        userRole="influencer"
-        unreadTotal={chatContacts.reduce(
-          (sum, contact) => sum + (contact.unreadCount || 0),
-          0,
-        )}
-      />
     </div>
   );
 }

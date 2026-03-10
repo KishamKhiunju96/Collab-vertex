@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for Docker
+  output: 'standalone',
   // Reduce build cache to save memory
   compress: true,
   // Disable source maps in dev to save memory
