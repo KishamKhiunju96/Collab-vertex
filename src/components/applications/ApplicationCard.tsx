@@ -137,10 +137,16 @@ export default function ApplicationCard({
     setIsLoadingProfile(true);
 
     try {
-      // Fetch the full influencer profile by name
-      const profile = await influencerService.getProfileByName(influencer.name);
+      // Use the influencer_id directly from the application data
+      if (!influencer.id) {
+        notify.error("Influencer ID is not available");
+        return;
+      }
 
-      // Navigate to the influencer profile page with the fetched profile ID
+      // Fetch the full influencer profile by ID
+      const profile = await influencerService.getProfileById(influencer.id);
+
+      // Navigate to the influencer profile page with the profile ID
       router.push(`/dashboard/influencerprofile?id=${profile.id}`);
     } catch (error) {
       console.error("Error fetching influencer profile:", error);

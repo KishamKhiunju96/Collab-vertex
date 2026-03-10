@@ -19,7 +19,7 @@ export default function VerifyOtpPage() {
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
-  const [redirecting, setRedirecting] = useState(false);
+  const [verified, setVerified] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -48,7 +48,7 @@ export default function VerifyOtpPage() {
     }
   }, [countdown, canResend]);
 
-  // Handle OTP input change — NO auto-submit
+  // Handle OTP input change
   const handleOtpChange = (index: number, value: string) => {
     if (value && !/^\d$/.test(value)) return;
 
@@ -57,7 +57,6 @@ export default function VerifyOtpPage() {
     setOtp(newOtp);
     setError("");
 
-    // Auto-focus next input only
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -66,7 +65,7 @@ export default function VerifyOtpPage() {
   // Handle backspace and Enter
   const handleKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>,
+    e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -97,75 +96,7 @@ export default function VerifyOtpPage() {
     inputRefs.current[lastIndex]?.focus();
   };
 
-  // Helper to safely extract role from unknown response shape
-  const extractRole = (obj: unknown): string | null => {
-    if (!obj || typeof obj !== "object") return null;
-
-    const data = obj as Record<string, unknown>;
-
-    // Check direct role
-    if (typeof data.role === "string") return data.role;
-
-    // Check user.role
-    if (
-      data.user &&
-      typeof data.user === "object" &&
-      typeof (data.user as Record<string, unknown>).role === "string"
-    ) {
-      return (data.user as Record<string, unknown>).role as string;
-    }
-
-    // Check data.role
-    if (
-      data.data &&
-      typeof data.data === "object" &&
-      typeof (data.data as Record<string, unknown>).role === "string"
-    ) {
-      return (data.data as Record<string, unknown>).role as string;
-    }
-
-    // Check data.user.role
-    if (data.data && typeof data.data === "object") {
-      const nestedData = data.data as Record<string, unknown>;
-      if (
-        nestedData.user &&
-        typeof nestedData.user === "object" &&
-        typeof (nestedData.user as Record<string, unknown>).role === "string"
-      ) {
-        return (nestedData.user as Record<string, unknown>).role as string;
-      }
-    }
-
-    return null;
-  };
-
-  // Redirect user based on role
-  const redirectToDashboard = (role: string) => {
-    setRedirecting(true);
-
-    setTimeout(() => {
-      switch (role) {
-        case "brand":
-          notify.success("Welcome to Brand Dashboard! ");
-          router.push("/dashboard/brand");
-          break;
-        case "influencer":
-          notify.success("Welcome to Influencer Dashboard! ");
-          router.push("/dashboard/influencer");
-          break;
-        case "admin":
-          notify.success("Welcome Admin! ");
-          router.push("/dashboard/admin");
-          break;
-        default:
-          notify.info("Please log in to continue");
-          router.push("/login");
-          break;
-      }
-    }, 2000);
-  };
-
-  // Handler for OTP verification — only on button click or Enter
+  // Handler for OTP verification
   const handleVerify = async () => {
     const otpCode = otp.join("");
     setError("");
@@ -185,27 +116,26 @@ export default function VerifyOtpPage() {
     try {
       setLoading(true);
 
-      // Verify OTP
       const response = await authService.verifyOtp({ email, otp: otpCode });
       console.log("OTP verification response:", response);
 
       if (response.success) {
-        notify.success("✅ Account verified! Please log in to continue.");
-        setRedirecting(true);
+        notify.success("✅ Account verified successfully!");
+        setVerified(true);
 
-        // Always redirect to login after successful OTP verification
         setTimeout(() => {
           router.push("/login");
         }, 2000);
-      } else {
-        const msg =
-          (response as unknown as Record<string, string>).message ||
-          "OTP verification failed";
-        setError(msg);
-        notify.error(msg);
-        setOtp(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
+
+        return;
       }
+
+      // Verification failed
+      const msg = response.message || "OTP verification failed";
+      setError(msg);
+      notify.error(msg);
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } catch (error: unknown) {
       const errorMessage =
         error &&
@@ -296,7 +226,8 @@ export default function VerifyOtpPage() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-secondary/10 rounded-full blur-3xl animate-pulse-glow" />
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
-        {redirecting ? (
+        {verified ? (
+          /* Success State */
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center border-2 border-green-200">
             <div className="relative mb-6">
               <div className="w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg animate-scale-in">
@@ -317,11 +248,12 @@ export default function VerifyOtpPage() {
             <div className="flex items-center justify-center gap-2 text-brand-primary">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span className="text-sm font-medium">
-                Redirecting to your dashboard...
+                Redirecting to login page...
               </span>
             </div>
           </div>
         ) : (
+          /* OTP Input State */
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="relative bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary p-8 sm:p-10 text-white">
@@ -451,9 +383,7 @@ export default function VerifyOtpPage() {
                       <Sparkles className="w-4 h-4" />
                     </>
                   ) : (
-                    <>
-                      <span>Resend in {countdown}s</span>
-                    </>
+                    <span>Resend in {countdown}s</span>
                   )}
                 </button>
               </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Trash2, Bell, Plus } from "lucide-react";
 
-import { brandService, Brand } from "@/api/services/brandService";
+import { brandService, Brand, UpdateBrandPayload } from "@/api/services/brandService";
 import CreateBrandForm from "@/components/brand/CreateBrandForm";
 import { useUserData } from "@/api/hooks/useUserData";
 
@@ -14,6 +14,7 @@ import { notify } from "@/utils/notify";
 
 import { useNotificationContext } from "@/context/NotificationContext";
 import InfluencerSearchBox from "@/components/brand/InfluencerSearchBox";
+import UpdateBrandModal from "@/components/brand/UpdateBrandModal";
 
 export default function BrandDashboardPage() {
   const router = useRouter();
@@ -21,6 +22,8 @@ export default function BrandDashboardPage() {
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
 
   const {
     notifications,
@@ -89,6 +92,26 @@ export default function BrandDashboardPage() {
   const handleCreateSuccess = async () => {
     setIsCreateOpen(false);
     await fetchBrands();
+  };
+
+  const handleEdit = (brand: Brand) => {
+    setSelectedBrand(brand);
+    setIsUpdateOpen(true);
+  };
+
+  const handleUpdate = async (payload: UpdateBrandPayload) => {
+    if (!selectedBrand) return;
+
+    try {
+      await brandService.updateBrand(selectedBrand.id, payload);
+      notify.success("Brand updated successfully");
+      setIsUpdateOpen(false);
+      setSelectedBrand(null);
+      await fetchBrands();
+    } catch (err) {
+      notify.error("Failed to update brand");
+      throw err;
+    }
   };
 
   const handleDelete = async (brandId: string) => {
@@ -321,13 +344,13 @@ export default function BrandDashboardPage() {
                         >
                           <Eye size={18} />
                         </Link>
-                        <Link
-                          href={`/dashboard/brand/${brand.id}/edit`}
+                        <button
+                          onClick={() => handleEdit(brand)}
                           className="brand-table-action-btn"
                           title="Edit Brand"
                         >
                           <Pencil size={18} />
-                        </Link>
+                        </button>
                         <button
                           onClick={() => handleDelete(brand.id)}
                           className="brand-table-action-btn delete"
@@ -363,6 +386,24 @@ export default function BrandDashboardPage() {
             onCancel={() => setIsCreateOpen(false)}
           />
         </Modal>
+
+        {/* Update Brand Modal */}
+        {selectedBrand && (
+          <UpdateBrandModal
+            open={isUpdateOpen}
+            initial={{
+              name: selectedBrand.name,
+              description: selectedBrand.description,
+              location: selectedBrand.location,
+              websiteUrl: selectedBrand.websiteUrl,
+            }}
+            onClose={() => {
+              setIsUpdateOpen(false);
+              setSelectedBrand(null);
+            }}
+            onUpdate={handleUpdate}
+          />
+        )}
 
         {/* Floating Action Button */}
         <button

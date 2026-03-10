@@ -43,11 +43,8 @@ export default function CreateBrandForm({
       });
       onSuccess?.(newBrand);
     } catch (err: any) {
-      console.error("Failed to create brand:", err);
       notify.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to create brand"
+          "Create Brand Limit Reached"
       );
     } finally {
       setLoading(false);
