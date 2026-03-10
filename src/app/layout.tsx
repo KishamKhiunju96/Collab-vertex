@@ -6,7 +6,7 @@ import "./globals.css";
 import InnerApp from "@/components/InnerApp"; // import the client component
 
 export const metadata = {
-  title: "Brand Dashboard App",
+  title: "Collab Vertex",
   description: "Manage your brand and events",
 };
 

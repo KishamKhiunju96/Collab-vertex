@@ -5,9 +5,18 @@ import { Conversation, ConversationMessage } from "@/chat/types";
 import { chatService } from "@/api/services/chatService";
 import { useConversationWebSocket } from "@/chat/hooks/useConversationWebSocket";
 import { useChatStore } from "@/chat/store/chatStore";
-import { Send, Loader2, WifiOff, RefreshCw, Users, User } from "lucide-react";
+import {
+  Loader2,
+  WifiOff,
+  RefreshCw,
+  Users,
+  User,
+  Smile,
+  Paperclip,
+  Image as ImageIcon,
+} from "lucide-react";
 import { useUserData } from "@/api/hooks/useUserData";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 interface ConversationChatRoomProps {
   conversation: Conversation;
@@ -21,22 +30,24 @@ export default function ConversationChatRoom({
   onMessageSent,
 }: ConversationChatRoomProps) {
   const { user, loading: userLoading } = useUserData();
-  
-  // Initialize conversation in store if it doesn't exist
+
   const initConversation = useChatStore((state) => state.initConversation);
   const setMessages = useChatStore((state) => state.setMessages);
-  const updateConversationTime = useChatStore((state) => state.updateConversationTime);
-  const setUserOnlineStatus = useChatStore((state) => state.setUserOnlineStatus);
-  
-  // Initialize on mount
+  const updateConversationTime = useChatStore(
+    (state) => state.updateConversationTime
+  );
+  const setUserOnlineStatus = useChatStore(
+    (state) => state.setUserOnlineStatus
+  );
+
   useEffect(() => {
     initConversation(conversation.id);
   }, [conversation.id, initConversation]);
-  
-  // Get messages from chatStore for this specific conversation
-  // Now guaranteed to have an array (never undefined)
-  const messages = useChatStore((state) => state.messagesByConversation[conversation.id] ?? []);
-  
+
+  const messages = useChatStore(
+    (state) => state.messagesByConversation[conversation.id] ?? []
+  );
+
   const [inputMessage, setInputMessage] = useState("");
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -57,34 +68,26 @@ export default function ConversationChatRoom({
     conversationId: conversation.id,
     autoConnect: true,
     onMessageReceived: (data: any) => {
-      // Handle different message types from backend
       if (data.type === "typing") {
         handleTypingIndicator(data);
-      } else if (data.type === "read_receipt") {
-        // Read receipt received - already handled in useConversationWebSocket
       } else if (data.type === "status_update") {
-        // Handle online/offline status updates
-        if (data.user_id && typeof data.is_online === 'boolean') {
+        if (data.user_id && typeof data.is_online === "boolean") {
           setUserOnlineStatus(data.user_id, data.is_online);
         }
       } else if (data.content) {
-        // New message received
         const message: ConversationMessage = {
           ...data,
           conversation_id: conversation.id,
         };
-        
-        // ⚠️ CRITICAL FIX: If backend doesn't set sender_id, inject current user's ID
-        // This happens when the backend echoes our message back but doesn't populate sender_id
+
         if (!data.sender_id && user?.id) {
           message.sender_id = user.id;
         }
-        
-        // Update conversation time in store
-        const timestamp = message.sent_at || message.timestamp || message.created_at;
+
+        const timestamp =
+          message.sent_at || message.timestamp || message.created_at;
         updateConversationTime(conversation.id, timestamp);
-        
-        // Notify parent component about new message
+
         if (onMessageSent) {
           onMessageSent(message);
         }
@@ -106,7 +109,6 @@ export default function ConversationChatRoom({
       return newSet;
     });
 
-    // Auto-clear after 3 seconds
     setTimeout(() => {
       setTypingUsers((prev) => {
         const newSet = new Set(prev);
@@ -116,51 +118,41 @@ export default function ConversationChatRoom({
     }, 3000);
   };
 
-  // User validation and initialize online status for participants
   useEffect(() => {
-    // Mark current conversation participants as potentially online
-    // The WebSocket will update with actual status
     if (conversation.participant_ids) {
       conversation.participant_ids.forEach((participantId) => {
         if (participantId !== user?.id) {
-          // Don't mark ourselves
-          // Will be updated by status_update messages from WebSocket
+          // Will be updated by status messages
         }
       });
     }
   }, [user, conversation]);
 
-  // Fetch initial messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         setIsLoadingMessages(true);
         const data = await chatService.getConversationMessages(conversation.id);
-        
-        // Sort messages by timestamp
+
         const sortedData = data.sort((a, b) => {
-          const timeA = new Date(a.sent_at || a.timestamp || a.created_at).getTime();
-          const timeB = new Date(b.sent_at || b.timestamp || b.created_at).getTime();
+          const timeA = new Date(
+            a.sent_at || a.timestamp || a.created_at
+          ).getTime();
+          const timeB = new Date(
+            b.sent_at || b.timestamp || b.created_at
+          ).getTime();
           return timeA - timeB;
         });
-        
-        // Store messages for this specific conversation in chatStore
+
         setMessages(conversation.id, sortedData);
 
-        // ✅ CRITICAL: Mark conversation as read via REST API when opening
-        // This calls PATCH /chat/conversations/{id}/read endpoint
-        // Backend marks all messages in conversation as read and sends read_receipt events
         try {
           await chatService.markConversationAsRead(conversation.id);
-          console.log('✅ Conversation marked as read via REST API');
         } catch (error) {
-          console.warn('Could not mark conversation as read via REST API:', error);
+          console.warn("Could not mark conversation as read:", error);
         }
 
-        // Call parent callback
         onMarkAsRead();
-        
-        // Scroll to bottom after messages load
         setTimeout(() => scrollToBottom(), 100);
       } catch (err) {
         // Failed to fetch messages
@@ -172,34 +164,18 @@ export default function ConversationChatRoom({
     fetchMessages();
   }, [conversation.id, onMarkAsRead, setMessages]);
 
-  // Auto-connect WebSocket when component mounts
   useEffect(() => {
     connect();
-
     return () => {
       disconnect();
     };
   }, [conversation.id, connect, disconnect]);
 
-  // Auto-scroll to bottom when messages change (new messages arrive)
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => scrollToBottom(), 100);
     }
   }, [messages.length]);
-
-  // Mark conversation as read when viewing messages
-  useEffect(() => {
-    if (isConnected && messages.length > 0) {
-      // Send WebSocket read receipt
-      markAsReadWS();
-      console.log('📨 Sent WebSocket read receipt for conversation:', conversation.id);
-      
-      if (onMarkAsRead) {
-        onMarkAsRead();
-      }
-    }
-  }, [messages.length, isConnected, markAsReadWS, onMarkAsRead]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -209,18 +185,15 @@ export default function ConversationChatRoom({
     const value = e.target.value;
     setInputMessage(value);
 
-    // Send typing indicator
     if (!isTyping && value.length > 0) {
       setIsTyping(true);
       sendTypingIndicator(true);
     }
 
-    // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       sendTypingIndicator(false);
@@ -232,25 +205,21 @@ export default function ConversationChatRoom({
     if (!inputMessage.trim() || !isConnected) return;
 
     try {
-      // Store message content before clearing
       const messageContent = inputMessage.trim();
-      
-      // Stop typing indicator
+
       if (isTyping) {
         setIsTyping(false);
         sendTypingIndicator(false);
       }
 
-      // Send via WebSocket
       await sendMessage(messageContent, "TEXT");
       setInputMessage("");
 
-      // Create a temporary message object for immediate UI update
       const tempMessage: ConversationMessage = {
         id: `temp-${Date.now()}`,
         conversation_id: conversation.id,
-        sender_id: user?.id || '',
-        receiver_id: '',
+        sender_id: user?.id || "",
+        receiver_id: "",
         content: messageContent,
         type: "TEXT",
         timestamp: new Date().toISOString(),
@@ -259,14 +228,13 @@ export default function ConversationChatRoom({
         updated_at: new Date().toISOString(),
       };
 
-      // Update conversation time and notify parent
-      const timestamp = tempMessage.sent_at || tempMessage.timestamp || tempMessage.created_at;
+      const timestamp =
+        tempMessage.sent_at || tempMessage.timestamp || tempMessage.created_at;
       updateConversationTime(conversation.id, timestamp);
       if (onMessageSent) {
         onMessageSent(tempMessage);
       }
 
-      // Clear typing timeout
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -277,38 +245,18 @@ export default function ConversationChatRoom({
 
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
-    
-    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
-    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
-    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const utcTimestamp = timestamp.endsWith("Z") ? timestamp : timestamp + "Z";
     const date = new Date(utcTimestamp);
-    
-    if (isNaN(date.getTime())) {
-      console.error("Invalid timestamp:", timestamp);
-      return "";
-    }
-    
-    // Debug: Log timezone conversion
-    console.log("📅 Timestamp conversion:", {
-      original: timestamp,
-      utcMarked: utcTimestamp,
-      localTime: date.toLocaleString(),
-      formatted: format(date, "h:mm a")
-    });
-    
-    // Use date-fns for consistent formatting across timezones
+    if (isNaN(date.getTime())) return "";
     return format(date, "h:mm a");
   };
 
   const formatDate = (timestamp: string) => {
     if (!timestamp) return "";
-    
-    // Backend sends timestamps WITHOUT 'Z' suffix, but they ARE UTC
-    // Add 'Z' to explicitly mark as UTC so JavaScript converts correctly
-    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    const utcTimestamp = timestamp.endsWith("Z") ? timestamp : timestamp + "Z";
     const date = new Date(utcTimestamp);
-    
     if (isNaN(date.getTime())) return "";
+
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -318,147 +266,91 @@ export default function ConversationChatRoom({
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     } else {
-      // Use date-fns for consistent formatting
       return format(date, "MMM d, yyyy");
     }
   };
 
-  // Get message status: sent, delivered, or read
-  const getMessageStatus = (message: ConversationMessage, isSentByMe: boolean) => {
-    if (!isSentByMe) return null; // Only show status for sent messages
+  const getMessageStatus = (
+    message: ConversationMessage,
+    isSentByMe: boolean
+  ) => {
+    if (!isSentByMe) return null;
 
     const readBy = message.read_by || [];
     const deliveredTo = message.delivered_to || [];
-    
-    // For group chats, check if at least one person (other than sender) has read/received
-    const isGroupChat = conversation.type === "GROUP";
-    
-    // Debug log for status calculation
-    const status = (() => {
-      if (isGroupChat) {
-        // In groups, if anyone (other than sender) has read it
-        const othersReadCount = readBy.filter(id => id !== message.sender_id).length;
-        if (othersReadCount > 0) return "read";
-        
-        // If delivered to anyone
-        const deliveredCount = deliveredTo.length;
-        if (deliveredCount > 0) return "delivered";
-      } else {
-        // For direct chats
-        const otherPersonRead = readBy.some(id => id !== message.sender_id);
-        if (otherPersonRead) return "read";
-        
-        const otherPersonDelivered = deliveredTo.length > 0;
-        if (otherPersonDelivered) return "delivered";
-      }
-      return "sent";
-    })();
-    
-    // Log status for debugging (only log when status is 'read' to avoid spam)
-    if (status === "read" && readBy.length > 0) {
-      console.log(`🔵 Message status: ${status}`, {
-        messageId: message.id,
-        content: message.content?.substring(0, 30),
-        readBy,
-        deliveredTo,
-        isGroupChat
-      });
+
+    if (readBy.some((id) => id !== message.sender_id)) {
+      return "read";
     }
-    
-    return status;
+    if (deliveredTo.length > 0) {
+      return "delivered";
+    }
+    return "sent";
   };
 
-  // Render message status indicator
   const renderMessageStatus = (status: string | null) => {
     if (!status) return null;
 
     if (status === "read") {
-      // Double tick - blue (read)
       return (
-        <svg className="w-4 h-4 text-blue-400" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.88a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
-        </svg>
-      );
-    } else if (status === "delivered") {
-      // Double tick - gray (delivered)
-      return (
-        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.88a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
-        </svg>
-      );
-    } else {
-      // Single tick - gray (sent)
-      return (
-        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512z" />
+        <svg
+          className="w-4 h-4 text-blue-500"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+        >
+          <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 11-1.06-1.06L12.72 4.22a.75.75 0 011.06 0z" />
+          <path d="M2.22 4.22a.75.75 0 011.06 0L7.5 8.44l5.22-5.22a.75.75 0 111.06 1.06L8.56 9.5l5.22 5.22a.75.75 0 11-1.06 1.06L7.5 10.56l-5.22 5.22a.75.75 0 11-1.06-1.06l5.22-5.22-5.22-5.22a.75.75 0 010-1.06z" />
         </svg>
       );
     }
+
+    return (
+      <svg
+        className="w-4 h-4 text-gray-400"
+        viewBox="0 0 16 16"
+        fill="currentColor"
+      >
+        <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 11-1.06-1.06L12.72 4.22a.75.75 0 011.06 0z" />
+      </svg>
+    );
   };
 
   const renderMessage = (message: ConversationMessage, index: number) => {
-    // Ensure we have valid user data
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
-    // 🔧 CRITICAL FIX: Backend doesn't return user.id, so find it from conversation participants
-    let currentUserId = (user as any).id || (user as any).user_id || (user as any).userId || (user as any)._id;
-    
+    let currentUserId =
+      (user as any).id ||
+      (user as any).user_id ||
+      (user as any).userId ||
+      (user as any)._id;
+
     if (!currentUserId && conversation.participants) {
-      // Find current user in participants by matching username or email
       const currentUserParticipant = conversation.participants.find(
         (p) => p.username === user.username || p.email === user.email
       );
-      
       if (currentUserParticipant) {
         currentUserId = currentUserParticipant.id;
       }
     }
-    
-    const messageSenderId = message.sender_id;
-    
-    if (!currentUserId) {
-      // Fallback: Try to match by username
-      const senderParticipant = conversation.participants?.find(
-        (p) => p.id === messageSenderId
-      );
-      if (senderParticipant && senderParticipant.username === user.username) {
-        currentUserId = messageSenderId;
-      }
-    }
-    
-    // Convert both to strings for comparison and normalize
-    const userIdStr = String(currentUserId || "").trim().toLowerCase();
-    const senderIdStr = String(messageSenderId || "").trim().toLowerCase();
-    
-    // Determine if message was sent by current user
-    const isSentByMe = Boolean(senderIdStr && userIdStr && senderIdStr === userIdStr);
 
-    // Get sender name from multiple sources
+    const userIdStr = String(currentUserId || "").trim().toLowerCase();
+    const senderIdStr = String(message.sender_id || "").trim().toLowerCase();
+    const isSentByMe = Boolean(
+      senderIdStr && userIdStr && senderIdStr === userIdStr
+    );
+
     let senderName = "Unknown User";
-    
     if (isSentByMe) {
-      // If it's my message, use my username
       senderName = user?.username || "You";
     } else {
-      // For received messages, try to get sender name from:
-      // 1. Conversation participants (by matching sender_id with id)
       const senderParticipant = conversation.participants?.find(
         (p) => p.id === message.sender_id
       );
-      
       if (senderParticipant?.username) {
         senderName = senderParticipant.username;
-      } else if (message.sender_name) {
-        // 2. Message's sender_name field (if provided by backend)
-        senderName = message.sender_name;
-      } else if (conversation.type === "DIRECT" && conversation.name) {
-        // 3. For direct chats, use conversation name (usually the other person's name)
-        senderName = conversation.name;
       }
     }
-    
+
     const messageTimestamp =
       message.timestamp || message.sent_at || message.created_at;
 
@@ -471,31 +363,38 @@ export default function ConversationChatRoom({
             messages[index - 1]?.created_at
         );
 
-    // Show timestamp for last message or after date separator
     const showTimestamp = index === messages.length - 1 || showDateSeparator;
-    
-    // Get message status
     const messageStatus = getMessageStatus(message, isSentByMe);
 
     return (
-      <div key={message.id} className="animate-fadeIn">
-        {/* Message Container */}
+      <div key={message.id} className="animate-in fade-in duration-300">
+        {showDateSeparator && (
+          <div className="flex justify-center my-6 first:mt-0">
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              {formatDate(messageTimestamp)}
+            </span>
+          </div>
+        )}
+
         <div
-          className={`flex mb-1.5 ${
-            isSentByMe ? "justify-end" : "justify-start"
-          }`}
+          className={`flex mb-2 ${isSentByMe ? "justify-end" : "justify-start"}`}
         >
           <div
-            className={`max-w-[70%] ${
+            className={`flex flex-col ${
               isSentByMe ? "items-end" : "items-start"
-            } flex flex-col`}
+            } max-w-xs`}
           >
-            {/* Message Bubble */}
+            {!isSentByMe && conversation.type === "GROUP" && (
+              <span className="text-xs font-medium text-gray-600 mb-1 px-3">
+                {senderName}
+              </span>
+            )}
+
             <div
-              className={`relative px-4 py-2.5 ${
+              className={`px-4 py-2.5 rounded-lg ${
                 isSentByMe
-                  ? "bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-3xl rounded-br-lg"
-                  : "bg-gray-100 text-gray-900 rounded-3xl rounded-bl-lg"
+                  ? "bg-blue-600 text-white rounded-br-none"
+                  : "bg-gray-100 text-gray-900 rounded-bl-none"
               }`}
             >
               <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
@@ -503,14 +402,15 @@ export default function ConversationChatRoom({
               </p>
             </div>
 
-            {/* Timestamp with Status Indicator */}
             {showTimestamp && (
-              <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-1 px-2">
-                <span>{formatTime(messageTimestamp)}</span>
+              <div className="flex items-center gap-1.5 mt-1 px-3">
+                <span className="text-xs text-gray-500">
+                  {formatTime(messageTimestamp)}
+                </span>
                 {isSentByMe && messageStatus && (
-                  <span className="flex items-center">
+                  <div className="flex items-center">
                     {renderMessageStatus(messageStatus)}
-                  </span>
+                  </div>
                 )}
               </div>
             )}
@@ -520,18 +420,17 @@ export default function ConversationChatRoom({
     );
   };
 
-  // 🚨 CRITICAL: Wait for user to load before rendering anything
   if (isLoadingMessages || userLoading || !user) {
     return (
-      <div className="flex-1 flex flex-col h-full bg-gray-50">
+      <div className="flex-1 flex h-full bg-white">
         <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-              <div className="absolute inset-0 w-12 h-12 bg-purple-500/20 rounded-full animate-ping"></div>
+              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              <div className="absolute inset-0 w-10 h-10 bg-blue-600/20 rounded-full animate-pulse"></div>
             </div>
-            <p className="text-sm text-gray-600 font-medium">
-              {!user ? "Loading user..." : userLoading ? "Loading user..." : "Loading messages..."}
+            <p className="text-sm text-gray-600">
+              {!user ? "Loading user..." : "Loading messages..."}
             </p>
           </div>
         </div>
@@ -540,69 +439,60 @@ export default function ConversationChatRoom({
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Connection Status Banner */}
+    <div className="flex flex-col h-full bg-white">
+      {/* Connection Status */}
       {!isConnected && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between animate-slideDown">
-          <div className="flex items-center gap-2 text-sm text-amber-800">
-            <WifiOff size={16} className="animate-pulse" />
-            <span className="font-medium">Connecting...</span>
+        <div className="flex items-center justify-between gap-2 bg-yellow-50 border-b border-yellow-200 px-6 py-2.5">
+          <div className="flex items-center gap-2">
+            <WifiOff size={16} className="text-yellow-700 animate-pulse" />
+            <span className="text-sm font-medium text-yellow-900">
+              Connecting...
+            </span>
           </div>
           <button
             onClick={connect}
-            className="text-xs text-amber-700 hover:text-amber-900 font-medium flex items-center gap-1 hover:underline"
+            className="text-xs font-medium text-yellow-700 hover:text-yellow-900 transition-colors flex items-center gap-1"
           >
-            <RefreshCw size={14} />
+            <RefreshCw size={13} />
             Retry
           </button>
         </div>
       )}
 
       {wsError && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-800 flex items-center gap-2">
-          <span className="font-medium">⚠️</span>
+        <div className="flex items-center gap-2 bg-red-50 border-b border-red-200 px-6 py-2.5 text-sm text-red-900">
+          <span>⚠️</span>
           <span>{wsError}</span>
         </div>
       )}
 
-      {/* Messages List */}
+      {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-6 py-4 bg-white"
-        style={{ 
-          scrollBehavior: "smooth",
-          overscrollBehavior: "contain"
-        }}
+        className="flex-1 overflow-y-auto px-6 py-4 bg-white scroll-smooth"
       >
-        {/* Date Separator */}
-        {messages.length > 0 && (
-          <div className="flex items-center justify-center my-4">
-            <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">
-              Today
-            </span>
-          </div>
-        )}
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center px-4">
+          <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                 {conversation.type === "GROUP" ? (
-                  <Users className="w-10 h-10 text-purple-500" />
+                  <Users className="w-8 h-8 text-gray-400" />
                 ) : (
-                  <User className="w-10 h-10 text-purple-500" />
+                  <User className="w-8 h-8 text-gray-400" />
                 )}
               </div>
-              <p className="text-gray-600 text-base font-medium mb-1">
+              <h3 className="text-gray-900 font-medium mb-1">
                 No messages yet
-              </p>
-              <p className="text-gray-400 text-sm">
-                Start the conversation by sending a message
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Start the conversation
               </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            {user && messages.map((message, index) => renderMessage(message, index))}
+          <div className="space-y-0.5">
+            {user &&
+              messages.map((message, index) => renderMessage(message, index))}
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -610,87 +500,89 @@ export default function ConversationChatRoom({
 
       {/* Input Area */}
       <div className="border-t border-gray-200 bg-white">
-        {/* Typing Indicator */}
         {typingUsers.size > 0 && (
-          <div className="px-6 pt-3 pb-1 animate-fadeIn">
+          <div className="px-6 pt-3 pb-1 animate-in fade-in duration-200">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                <span
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                ></span>
+                <span
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                ></span>
+                <span
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                ></span>
               </div>
-              <span className="italic">
-                {Array.from(typingUsers).length === 1
-                  ? "typing..."
-                  : `${Array.from(typingUsers).length} people are typing...`}
-              </span>
+              <span>typing...</span>
             </div>
           </div>
         )}
 
-        <div className="px-4 py-3">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-            {/* Emoji Button */}
+        <div className="px-6 py-4">
+          <form onSubmit={handleSendMessage} className="flex items-end gap-3">
             <button
               type="button"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors flex-shrink-0"
               title="Add emoji"
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Smile size={20} />
             </button>
 
-            {/* Attachment Button */}
             <button
               type="button"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors flex-shrink-0"
               title="Attach file"
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
+              <Paperclip size={20} />
             </button>
 
-            {/* Image Button */}
             <button
               type="button"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors flex-shrink-0"
               title="Add image"
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <ImageIcon size={20} />
             </button>
 
-            {/* Input */}
             <input
               type="text"
               value={inputMessage}
               onChange={handleInputChange}
-              placeholder="Message..."
+              placeholder="Say something..."
               disabled={!isConnected}
-              className="flex-1 px-4 py-2.5 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm placeholder:text-gray-500"
+              className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all text-sm placeholder:text-gray-400 disabled:bg-gray-50 disabled:cursor-not-allowed"
             />
 
-            {/* Send/Like Button */}
             {inputMessage.trim() ? (
               <button
                 type="submit"
                 disabled={!isConnected}
-                className="p-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors disabled:text-gray-400 disabled:cursor-not-allowed flex-shrink-0"
-                title="Send message"
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium text-sm rounded-lg transition-colors flex-shrink-0"
               >
                 Send
               </button>
             ) : (
               <button
                 type="button"
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors flex-shrink-0"
                 title="Like"
               >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
                 </svg>
               </button>
             )}

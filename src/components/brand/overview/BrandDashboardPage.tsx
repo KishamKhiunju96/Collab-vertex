@@ -3,9 +3,13 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Pencil, Trash2, Bell, Plus } from "lucide-react";
+import { Eye, Pencil, Trash2, Bell, Plus, Loader2, X } from "lucide-react";
 
-import { brandService, Brand, UpdateBrandPayload } from "@/api/services/brandService";
+import {
+  brandService,
+  Brand,
+  UpdateBrandPayload,
+} from "@/api/services/brandService";
 import CreateBrandForm from "@/components/brand/CreateBrandForm";
 import { useUserData } from "@/api/hooks/useUserData";
 
@@ -33,7 +37,6 @@ export default function BrandDashboardPage() {
     deleteNotification,
   } = useNotificationContext();
 
-  // User & Brand Data
   const { user, loading: userLoading } = useUserData();
 
   const fetchBrands = useCallback(async () => {
@@ -62,8 +65,7 @@ export default function BrandDashboardPage() {
     }
 
     fetchBrands();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoading, user]);
+  }, [userLoading, user, fetchBrands]);
 
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
@@ -74,17 +76,12 @@ export default function BrandDashboardPage() {
   };
 
   const handleNotificationClick = async (notif: (typeof notifications)[0]) => {
-    // Mark notification as read
     if (!notif.is_read) {
       await markAsRead(notif.id);
     }
 
-    // Redirect based on notification type
     if (notif.data?.event_id) {
-      // Close notification dropdown
       setIsNotifOpen(false);
-
-      // Redirect to event applications page
       router.push(`/brand/events/${notif.data.event_id}`);
     }
   };
@@ -129,15 +126,15 @@ export default function BrandDashboardPage() {
 
   if (userLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-gray-500">
-        <div className="loading-spinner"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-red-500">
+      <div className="flex min-h-screen items-center justify-center text-sm text-red-600">
         Failed to load user data
       </div>
     );
@@ -145,30 +142,30 @@ export default function BrandDashboardPage() {
 
   return (
     <>
-      <div className="dashboard-container p-4 lg:p-6 space-y-8 overflow-auto">
-        {/* Header Section */}
-        <div className="dashboard-header">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-            <div className="flex-1 w-full lg:w-auto mt-12 lg:mt-0">
-              <h1 className="dashboard-title text-xl lg:text-2xl">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 Hi {user.username}, Welcome to Collab Vertex
               </h1>
-              <p className="dashboard-subtitle text-sm lg:text-base">
+              <p className="mt-1 text-sm text-gray-500 sm:text-base">
                 Manage your brands, collaborate with influencers, and track
                 performance.
               </p>
             </div>
 
-            {/* Notifications Bell */}
-            <div className="relative lg:relative  top-4 right-4 lg:top-auto lg:right-auto">
+            {/* Notifications */}
+            <div className="relative">
               <button
-                className="notification-bell"
                 onClick={() => setIsNotifOpen((prev) => !prev)}
+                className="relative rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
                 aria-label="Notifications"
               >
-                <Bell size={20} className="text-gray-700 lg:w-6 lg:h-6" />
+                <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span className="notification-badge">
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -176,206 +173,227 @@ export default function BrandDashboardPage() {
 
               {/* Notification Dropdown */}
               {isNotifOpen && (
-                <div className="notification-dropdown">
-                  {notifications.length > 0 && (
-                    <div className="notification-header">
-                      <span className="notification-title">Notifications</span>
-                      <button
-                        onClick={handleMarkAllAsRead}
-                        className="notification-mark-all"
-                      >
-                        Mark all as read
-                      </button>
-                    </div>
-                  )}
+                <>
+                  {/* Backdrop for mobile */}
+                  <div
+                    className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+                    onClick={() => setIsNotifOpen(false)}
+                  />
 
-                  <div className="notification-list">
-                    {notifications.length === 0 && (
-                      <div className="notification-empty">
-                        <p>No notifications yet</p>
-                        <p className="text-xs mt-1">
-                          We&apos;ll notify you when something important happens
-                        </p>
+                  <div className="fixed inset-x-4 top-20 z-50 max-h-[80vh] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96">
+                    {notifications.length > 0 && (
+                      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                        <span className="text-sm font-semibold text-gray-900">
+                          Notifications
+                        </span>
+                        <button
+                          onClick={handleMarkAllAsRead}
+                          className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+                        >
+                          Mark all as read
+                        </button>
                       </div>
                     )}
 
-                    {notifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`notification-item ${
-                          !notif.is_read ? "unread" : ""
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div
-                            className="flex-1 cursor-pointer"
-                            onClick={() => handleNotificationClick(notif)}
-                          >
-                            {notif.title && (
-                              <p className="notification-item-title">
-                                {notif.title}
-                              </p>
-                            )}
-
-                            <p className="notification-item-message">
-                              {notif.message}
-                            </p>
-
-                            <span className="notification-item-time">
-                              {new Date(notif.created_at).toLocaleString()}
-                            </span>
-
-                            {!notif.is_read && (
-                              <div className="notification-unread-indicator">
-                                <div className="notification-unread-dot"></div>
-                                <span className="notification-unread-text">
-                                  New
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteNotification(notif.id);
-                            }}
-                            className="notification-delete-btn"
-                            title="Delete notification"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-12 text-center">
+                          <p className="text-sm text-gray-500">
+                            No notifications yet
+                          </p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            We'll notify you when something important happens
+                          </p>
                         </div>
-                      </div>
-                    ))}
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`border-b border-gray-50 px-4 py-3 transition-colors last:border-0 ${
+                              !notif.is_read ? "bg-blue-50/50" : "bg-white"
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className="min-w-0 flex-1 cursor-pointer"
+                                onClick={() => handleNotificationClick(notif)}
+                              >
+                                {notif.title && (
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {notif.title}
+                                  </p>
+                                )}
+                                <p className="mt-0.5 text-sm text-gray-600">
+                                  {notif.message}
+                                </p>
+                                <p className="mt-1 text-xs text-gray-400">
+                                  {new Date(notif.created_at).toLocaleString()}
+                                </p>
+                                {!notif.is_read && (
+                                  <div className="mt-2 inline-flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                                    <span className="text-xs font-medium text-blue-600">
+                                      New
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteNotification(notif.id);
+                                }}
+                                className="shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                                title="Delete"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Influencer Search Section */}
-        <InfluencerSearchBox />
+          {/* Search */}
+          <InfluencerSearchBox />
 
-        {/* Empty State */}
-        {!loading && brands.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon ">
-              <svg
-                viewBox="0 0 200 200"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="80"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeDasharray="8 8"
-                />
-                <rect
-                  x="70"
-                  y="80"
-                  width="60"
-                  height="40"
-                  rx="4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="100"
-                  y1="120"
-                  x2="100"
-                  y2="140"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="85"
-                  y1="140"
-                  x2="115"
-                  y2="140"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
+          {/* Empty State */}
+          {!loading && brands.length === 0 && (
+            <div className="rounded-xl border border-gray-200 bg-white px-6 py-16 text-center">
+              <div className="mx-auto mb-4 h-20 w-20 text-gray-200">
+                <svg
+                  viewBox="0 0 200 200"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeDasharray="8 8"
+                  />
+                  <rect
+                    x="70"
+                    y="80"
+                    width="60"
+                    height="40"
+                    rx="4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1="100"
+                    y1="120"
+                    x2="100"
+                    y2="140"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1="85"
+                    y1="140"
+                    x2="115"
+                    y2="140"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                No Brand Profile Found
+              </h3>
+              <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-500">
+                Click the <strong className="font-medium">Create Brand</strong>{" "}
+                button below to get started and begin your collaboration
+                journey.
+              </p>
             </div>
-            <h3 className="empty-state-title">No Brand Profile Found</h3>
-            <p className="empty-state-description">
-              Click the <strong>Create Brand</strong> button below to get
-              started and begin your collaboration journey.
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* Brand Table */}
-        {brands.length > 0 && (
-          <div className="brand-table-container">
-            <table className="brand-table">
-              <thead>
-                <tr>
-                  <th>Brand Name</th>
-                  <th>Location</th>
-                  <th>Website</th>
-                  <th className="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {brands.map((brand) => (
-                  <tr key={brand.id}>
-                    <td>
-                      <Link
-                        href={`/dashboard/brand/${brand.id}`}
-                        className="brand-table-link"
+          {/* Brands Table */}
+          {brands.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-gray-100 bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                        Brand Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                        Location
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                        Website
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {brands.map((brand) => (
+                      <tr
+                        key={brand.id}
+                        className="transition-colors hover:bg-gray-50"
                       >
-                        {brand.name}
-                      </Link>
-                    </td>
-                    <td>{brand.location || "—"}</td>
-                    <td>{brand.websiteUrl || "—"}</td>
-                    <td>
-                      <div className="brand-table-actions">
-                        <Link
-                          href={`/dashboard/brand/${brand.id}`}
-                          className="brand-table-action-btn"
-                          title="View Brand"
-                        >
-                          <Eye size={18} />
-                        </Link>
-                        <button
-                          onClick={() => handleEdit(brand)}
-                          className="brand-table-action-btn"
-                          title="Edit Brand"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(brand.id)}
-                          className="brand-table-action-btn delete"
-                          title="Delete Brand"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Analytics & Activity Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          <div className="lg:col-span-2">
-          </div>
-          <div className="lg:block">
-          </div>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/dashboard/brand/${brand.id}`}
+                            className="font-medium text-gray-900 transition-colors hover:text-blue-600"
+                          >
+                            {brand.name}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {brand.location || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {brand.websiteUrl || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1">
+                            <Link
+                              href={`/dashboard/brand/${brand.id}`}
+                              className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                              title="View"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleEdit(brand)}
+                              className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                              title="Edit"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(brand.id)}
+                              className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Create Brand Modal */}
+        {/* Modals */}
         <Modal
           open={isCreateOpen}
           size="lg"
@@ -387,7 +405,6 @@ export default function BrandDashboardPage() {
           />
         </Modal>
 
-        {/* Update Brand Modal */}
         {selectedBrand && (
           <UpdateBrandModal
             open={isUpdateOpen}
@@ -405,15 +422,14 @@ export default function BrandDashboardPage() {
           />
         )}
 
-        {/* Floating Action Button */}
+        {/* FAB */}
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="fab-button text-sm lg:text-base px-4 lg:px-8 py-3"
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl sm:px-6 sm:py-3"
           aria-label="Create New Brand"
         >
-          <Plus size={18} className="lg:w-5 lg:h-5" />
+          <Plus className="h-5 w-5" />
           <span className="hidden sm:inline">Create Brand</span>
-          <span className="sm:hidden">+</span>
         </button>
       </div>
     </>

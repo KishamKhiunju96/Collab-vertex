@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, ChevronUp, Settings, User } from "lucide-react";
 
@@ -16,10 +16,21 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
   const { user } = useUserData();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
-
     setIsLoggingOut(true);
     try {
       await axios.post("/user/logout");
@@ -32,84 +43,77 @@ export default function SidebarFooter({ role }: SidebarFooterProps) {
 
   const getInitials = (name?: string) => {
     if (!name || typeof name !== "string") return "CV";
-    
     const parts = name.split(" ").filter((n) => n.length > 0);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return parts.length > 0 ? parts[0].substring(0, 2).toUpperCase() : "CV";
   };
 
+  const displayName = user?.username || "User";
+  const initials = getInitials(user?.username || user?.email);
+
   return (
-    <div className="sidebar-footer">
-      {/* User Profile Card */}
-      <div className="sidebar-user" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <div className="sidebar-user-avatar">
-          {getInitials(user?.username || user?.email)}
-        </div>
+    <div ref={menuRef} className="relative px-3 pb-4 pt-2">
 
-        <div className="sidebar-user-info">
-          <p className="sidebar-user-name">{user?.username || "User"}</p>
-          <p className="sidebar-user-role">{role} account</p>
-        </div>
-
-        <ChevronUp
-          size={16}
-          className={`text-slate-400 transition-all duration-300 relative z-10 ${
-            isMenuOpen ? "rotate-180" : ""
-          }`}
-        />
-      </div>
-
-      {/* Dropdown Menu */}
+      {/* Dropdown menu — sits above the trigger */}
       {isMenuOpen && (
-        <div className="mt-3 rounded-xl bg-white/95 backdrop-blur-lg overflow-hidden border border-button-primary-DEFAULT/20 shadow-xl shadow-button-primary-DEFAULT/10 animate-[slideDown_0.3s_ease-out]">
+        <div className="absolute bottom-full left-3 right-3 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20">
           <button
-            onClick={() => {
-              router.push("/dashboard/profile");
-              setIsMenuOpen(false);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-primary hover:bg-gradient-to-r hover:from-button-primary-DEFAULT/10 hover:to-brand-accent-DEFAULT/10 transition-all duration-200 group"
+            onClick={() => { router.push("/dashboard/profile"); setIsMenuOpen(false); }}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <User size={16} className="text-brand-secondary-DEFAULT group-hover:scale-110 transition-transform" />
-            <span className="font-medium">Profile</span>
+            <User className="w-4 h-4 text-gray-400" />
+            Profile
           </button>
 
           <button
-            onClick={() => {
-              router.push("/dashboard/settings");
-              setIsMenuOpen(false);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-primary hover:bg-gradient-to-r hover:from-button-primary-DEFAULT/10 hover:to-brand-accent-DEFAULT/10 transition-all duration-200 border-t border-button-primary-DEFAULT/20 group"
+            onClick={() => { router.push("/dashboard/settings"); setIsMenuOpen(false); }}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
-            <Settings size={16} className="text-brand-highlight-DEFAULT group-hover:scale-110 transition-transform" />
-            <span className="font-medium">Settings</span>
+            <Settings className="w-4 h-4 text-gray-400" />
+            Settings
           </button>
 
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-text-error hover:bg-brand-accent-DEFAULT/10 transition-all duration-200 border-t border-button-primary-DEFAULT/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogOut size={16} className="group-hover:scale-110 transition-transform" />
-            <span className="font-medium">{isLoggingOut ? "Logging out..." : "Log out"}</span>
+            <LogOut className="w-4 h-4" />
+            {isLoggingOut ? "Logging out…" : "Log out"}
           </button>
         </div>
       )}
 
-      {/* Quick Stats */}
-      <div className="mt-4 pt-4 border-t border-button-primary-DEFAULT/20">
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-gradient-to-br from-button-primary-DEFAULT/10 to-brand-secondary-DEFAULT/5 rounded-xl p-3 border border-button-primary-DEFAULT/20 hover:border-button-primary-DEFAULT/40 transition-all duration-200 cursor-pointer group">
-            <p className="text-xs text-text-muted mb-1 font-medium">Active</p>
-            <p className="text-lg font-bold bg-gradient-to-br from-brand-primary-400 to-brand-secondary-DEFAULT bg-clip-text text-transparent group-hover:scale-110 transition-transform">2</p>
-          </div>
-          <div className="bg-gradient-to-br from-brand-accent-DEFAULT/10 to-brand-highlight-DEFAULT/5 rounded-xl p-3 border border-brand-accent-DEFAULT/20 hover:border-brand-accent-DEFAULT/40 transition-all duration-200 cursor-pointer group">
-            <p className="text-xs text-text-muted mb-1 font-medium">Total</p>
-            <p className="text-lg font-bold bg-gradient-to-br from-brand-accent-light to-brand-highlight-DEFAULT bg-clip-text text-transparent group-hover:scale-110 transition-transform">8</p>
-          </div>
+      {/* Divider */}
+      <div className="h-px bg-gray-200 mb-3" />
+
+      {/* User card trigger */}
+      <button
+        onClick={() => setIsMenuOpen((prev) => !prev)}
+        className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors text-left"
+      >
+        {/* Avatar */}
+        <div className="w-9 h-9 rounded-lg bg-gray-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+          {initials}
         </div>
-      </div>
+
+        {/* Name + role */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate leading-tight">
+            {displayName}
+          </p>
+          <p className="text-[11px] text-gray-500 capitalize leading-tight mt-0.5">
+            {role}
+          </p>
+        </div>
+
+        {/* Chevron */}
+        <ChevronUp
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${
+            isMenuOpen ? "" : "rotate-180"
+          }`}
+        />
+      </button>
     </div>
   );
 }

@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { 
-  Calendar, 
-  MapPin, 
-  Target, 
-  DollarSign, 
-  FileText, 
+import {
+  Calendar,
+  MapPin,
+  Target,
+  DollarSign,
+  FileText,
   Tag,
   ChevronRight,
   ChevronLeft,
   Check,
   AlertCircle,
-  Sparkles,
   Clock,
-  X
+  X,
 } from "lucide-react";
 import { eventService, EventPayload } from "@/api/services/eventService";
 import { notify } from "@/utils/notify";
@@ -25,10 +24,7 @@ export interface CreateEventStepperProps {
   onSubmit?: (data: EventPayload) => void;
 }
 
-// Make FieldError match all possible EventPayload keys
 type FieldError = Partial<Record<keyof EventPayload, string>>;
-
-// Type for touched fields
 type TouchedFields = Partial<Record<keyof EventPayload, boolean>>;
 
 const initialForm: EventPayload = {
@@ -62,97 +58,108 @@ export default function CreateEventStepper({
   const [errors, setErrors] = useState<FieldError>({});
   const [touched, setTouched] = useState<TouchedFields>({});
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
-  
+
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Focus first input on step change
   useEffect(() => {
     if (formRef.current) {
-      const firstInput = formRef.current.querySelector("input, textarea") as HTMLElement;
+      const firstInput = formRef.current.querySelector(
+        "input, textarea"
+      ) as HTMLElement;
       if (firstInput) {
         setTimeout(() => firstInput.focus(), 100);
       }
     }
   }, [step]);
 
-  const validateField = useCallback((field: keyof EventPayload, value: unknown): string | undefined => {
-    const stringValue = typeof value === "string" ? value : "";
-    const numberValue = typeof value === "number" ? value : 0;
+  const validateField = useCallback(
+    (field: keyof EventPayload, value: unknown): string | undefined => {
+      const stringValue = typeof value === "string" ? value : "";
+      const numberValue = typeof value === "number" ? value : 0;
 
-    switch (field) {
-      case "title":
-        if (!stringValue.trim()) return "Event title is required";
-        if (stringValue.length < 3) return "Title must be at least 3 characters";
-        if (stringValue.length > 100) return "Title must be less than 100 characters";
-        return undefined;
-      
-      case "description":
-        if (!stringValue.trim()) return "Description is required";
-        if (stringValue.length < 10) return "Description must be at least 10 characters";
-        if (stringValue.length > 1000) return "Description must be less than 1000 characters";
-        return undefined;
-      
-      case "objectives":
-        if (!stringValue.trim()) return "Objectives are required";
-        return undefined;
-      
-      case "budget":
-        if (!numberValue || numberValue < 1) return "Budget must be at least 1";
-        if (numberValue > 10000000) return "Budget seems too high";
-        return undefined;
-      
-      case "start_date":
-        if (!stringValue) return "Start date is required";
-        if (new Date(stringValue) < new Date(new Date().setHours(0, 0, 0, 0))) {
-          return "Start date cannot be in the past";
-        }
-        return undefined;
-      
-      case "end_date":
-        if (!stringValue) return "End date is required";
-        if (form.start_date && new Date(stringValue) < new Date(form.start_date)) {
-          return "End date must be after start date";
-        }
-        return undefined;
-      
-      case "category":
-        if (!stringValue.trim()) return "Category is required";
-        return undefined;
-      
-      case "location":
-        if (!stringValue.trim()) return "Location is required";
-        return undefined;
-      
-      default:
-        return undefined;
-    }
-  }, [form.start_date]);
+      switch (field) {
+        case "title":
+          if (!stringValue.trim()) return "Event title is required";
+          if (stringValue.length < 3)
+            return "Title must be at least 3 characters";
+          if (stringValue.length > 100)
+            return "Title must be less than 100 characters";
+          return undefined;
+        case "description":
+          if (!stringValue.trim()) return "Description is required";
+          if (stringValue.length < 10)
+            return "Description must be at least 10 characters";
+          if (stringValue.length > 1000)
+            return "Description must be less than 1000 characters";
+          return undefined;
+        case "objectives":
+          if (!stringValue.trim()) return "Objectives are required";
+          return undefined;
+        case "budget":
+          if (!numberValue || numberValue < 1)
+            return "Budget must be at least 1";
+          if (numberValue > 10000000) return "Budget seems too high";
+          return undefined;
+        case "start_date":
+          if (!stringValue) return "Start date is required";
+          if (
+            new Date(stringValue) < new Date(new Date().setHours(0, 0, 0, 0))
+          ) {
+            return "Start date cannot be in the past";
+          }
+          return undefined;
+        case "end_date":
+          if (!stringValue) return "End date is required";
+          if (
+            form.start_date &&
+            new Date(stringValue) < new Date(form.start_date)
+          ) {
+            return "End date must be after start date";
+          }
+          return undefined;
+        case "category":
+          if (!stringValue.trim()) return "Category is required";
+          return undefined;
+        case "location":
+          if (!stringValue.trim()) return "Location is required";
+          return undefined;
+        default:
+          return undefined;
+      }
+    },
+    [form.start_date]
+  );
 
-  const validateStep = useCallback((stepNumber: number): boolean => {
-    const fieldsToValidate: (keyof EventPayload)[] = 
-      stepNumber === 1 ? ["title", "description"] :
-      stepNumber === 2 ? ["objectives", "budget"] :
-      ["start_date", "end_date", "category", "location"];
+  const validateStep = useCallback(
+    (stepNumber: number): boolean => {
+      const fieldsToValidate: (keyof EventPayload)[] =
+        stepNumber === 1
+          ? ["title", "description"]
+          : stepNumber === 2
+            ? ["objectives", "budget"]
+            : ["start_date", "end_date", "category", "location"];
 
-    const newErrors: FieldError = {};
-    const newTouched: TouchedFields = { ...touched };
+      const newErrors: FieldError = {};
+      const newTouched: TouchedFields = { ...touched };
 
-    fieldsToValidate.forEach((field) => {
-      newTouched[field] = true;
-      const error = validateField(field, form[field]);
-      if (error) newErrors[field] = error;
-    });
+      fieldsToValidate.forEach((field) => {
+        newTouched[field] = true;
+        const error = validateField(field, form[field]);
+        if (error) newErrors[field] = error;
+      });
 
-    setTouched(newTouched);
-    setErrors((prev) => ({ ...prev, ...newErrors }));
+      setTouched(newTouched);
+      setErrors((prev) => ({ ...prev, ...newErrors }));
+      return !fieldsToValidate.some((field) => newErrors[field]);
+    },
+    [form, touched, validateField]
+  );
 
-    // Check if any of the validated fields have errors
-    return !fieldsToValidate.some((field) => newErrors[field]);
-  }, [form, touched, validateField]);
-
-  const update = <K extends keyof EventPayload>(key: K, value: EventPayload[K]) => {
+  const update = <K extends keyof EventPayload>(
+    key: K,
+    value: EventPayload[K]
+  ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    
     if (touched[key]) {
       const error = validateField(key, value);
       setErrors((prev) => ({ ...prev, [key]: error }));
@@ -187,153 +194,130 @@ export default function CreateEventStepper({
       onSubmit?.(form);
       onCancel();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create event";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : (err as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to create event";
       notify.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const getInputClassName = (field: keyof EventPayload, focusColor: string = "indigo") => {
-    const hasError = touched[field] && errors[field];
-    const colorMap: Record<string, string> = {
-      indigo: "focus:border-indigo-500 focus:ring-indigo-100",
-      emerald: "focus:border-emerald-500 focus:ring-emerald-100",
-      rose: "focus:border-rose-500 focus:ring-rose-100",
-      amber: "focus:border-amber-500 focus:ring-amber-100",
-      cyan: "focus:border-cyan-500 focus:ring-cyan-100",
-    };
+  const hasError = (field: keyof EventPayload) =>
+    touched[field] && errors[field];
 
-    const baseClasses = `
-      w-full px-3 py-2.5 
-      text-sm leading-relaxed
-      border-2 rounded-lg
-      bg-white
-      text-gray-900 placeholder:text-gray-400
-      transition-all duration-200 ease-out
-      outline-none
-      disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50
-      sm:px-4 sm:py-3 sm:text-base sm:rounded-xl
-    `;
-
-    if (hasError) {
-      return `${baseClasses} border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100`;
-    }
-
-    return `${baseClasses} border-gray-200 hover:border-gray-300 focus:ring-4 ${colorMap[focusColor] || colorMap.indigo}`;
+  const renderFieldError = (field: keyof EventPayload) => {
+    if (!hasError(field)) return null;
+    return (
+      <p className="mt-1 flex items-center gap-1 text-xs text-red-600 sm:mt-1.5 sm:text-sm">
+        <AlertCircle className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+        {errors[field]}
+      </p>
+    );
   };
 
   const renderStepIndicator = () => (
-    <div className="mb-6 sm:mb-8">
-      {/* Mobile: Simple progress bar */}
+    <div className="mb-5 sm:mb-7">
+      {/* Mobile progress */}
       <div className="sm:hidden">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-900">
-            Step {step} of 3
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-800">
+            Step {step}/3
           </span>
-          <span className="text-sm text-gray-500">
-            {STEPS[step - 1].title}
-          </span>
+          <span className="text-xs text-gray-500">{STEPS[step - 1].title}</span>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1">
           {STEPS.map((s) => (
             <div
               key={s.id}
-              className={`
-                flex-1 h-1.5 rounded-full transition-all duration-300
-                ${step >= s.id ? "bg-indigo-600" : "bg-gray-200"}
-              `}
+              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                step >= s.id ? "bg-indigo-500" : "bg-gray-200"
+              }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Desktop: Full step indicator */}
+      {/* Desktop steps */}
       <div className="hidden sm:flex items-center justify-between relative">
-        {/* Progress line */}
-        <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 -z-10">
-          <div 
-            className="h-full bg-indigo-600 transition-all duration-500 ease-out"
+        <div className="absolute top-5 left-0 right-0 -z-10 h-px bg-gray-200">
+          <div
+            className="h-full bg-indigo-500 transition-all duration-500"
             style={{ width: `${((step - 1) / 2) * 100}%` }}
           />
         </div>
-
         {STEPS.map((s) => (
           <div key={s.id} className="flex flex-col items-center">
             <div
-              className={`
-                w-10 h-10 rounded-full flex items-center justify-center
-                font-semibold text-sm transition-all duration-300
-                ${step > s.id 
-                  ? "bg-indigo-600 text-white" 
-                  : step === s.id 
-                    ? "bg-indigo-600 text-white ring-4 ring-indigo-100" 
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${
+                step > s.id
+                  ? "bg-indigo-500 text-white"
+                  : step === s.id
+                    ? "bg-indigo-500 text-white ring-4 ring-indigo-500/20"
                     : "bg-gray-100 text-gray-400"
-                }
-              `}
+              }`}
             >
-              {step > s.id ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                s.id
-              )}
+              {step > s.id ? <Check className="h-4 w-4" /> : s.id}
             </div>
-            <div className="mt-2 text-center">
-              <p className={`text-sm font-medium ${step >= s.id ? "text-gray-900" : "text-gray-400"}`}>
-                {s.title}
-              </p>
-              <p className="text-xs text-gray-500 hidden lg:block">
-                {s.description}
-              </p>
-            </div>
+            <p
+              className={`mt-1.5 text-xs font-medium ${
+                step >= s.id ? "text-gray-800" : "text-gray-400"
+              }`}
+            >
+              {s.title}
+            </p>
+            <p className="hidden text-[11px] text-gray-400 lg:block">
+              {s.description}
+            </p>
           </div>
         ))}
       </div>
     </div>
   );
 
-  const renderFieldError = (field: keyof EventPayload) => {
-    if (!touched[field] || !errors[field]) return null;
-    
-    return (
-      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 sm:text-sm">
-        <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-        {errors[field]}
-      </p>
-    );
-  };
+  const inputBase =
+    "w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60 sm:rounded-xl sm:px-4 sm:py-3 sm:text-base";
+
+  const inputOk =
+    "border-gray-200 hover:border-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10";
+
+  const inputErr =
+    "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-500/10";
+
+  const cls = (field: keyof EventPayload, extra = "") =>
+    `${inputBase} ${hasError(field) ? inputErr : inputOk} ${extra}`;
+
+  const labelCls =
+    "mb-1 flex items-center gap-1.5 text-xs font-medium text-gray-600 sm:mb-1.5 sm:text-sm";
 
   const renderStep1 = () => (
-    <div 
+    <div
       ref={formRef}
-      className={`space-y-4 sm:space-y-5 animate-slideIn ${direction === "backward" ? "animate-slideInReverse" : ""}`}
+      key="step1"
+      className={`space-y-4 sm:space-y-5 ${
+        direction === "backward" ? "animate-slideInReverse" : "animate-slideIn"
+      }`}
     >
-      <div className="flex items-center gap-2 mb-4 sm:mb-6">
-        <div className="p-2 bg-indigo-100 rounded-lg">
-          <Sparkles className="w-5 h-5 text-indigo-600" />
-        </div>
+      <div className="mb-3 flex items-center gap-2.5 sm:mb-5">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">Basic Information</h3>
-          <p className="text-sm text-gray-500">Tell us about your event</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Basic Information
+          </h3>
         </div>
       </div>
 
-      {/* Title */}
       <div>
-        <label 
-          htmlFor="event-title"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <FileText className="w-4 h-4 text-indigo-600" />
+        <label htmlFor="event-title" className={labelCls}>
+          <FileText className="h-3.5 w-3.5 text-indigo-500" />
           Event Title
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <input
           id="event-title"
           type="text"
-          className={getInputClassName("title", "indigo")}
+          className={cls("title")}
           placeholder="Enter a compelling event title"
           value={form.title}
           onChange={(e) => update("title", e.target.value)}
@@ -342,24 +326,20 @@ export default function CreateEventStepper({
           maxLength={100}
         />
         {renderFieldError("title")}
-        <p className="mt-1 text-xs text-gray-500 text-right">
+        <p className="mt-0.5 text-right text-[11px] text-gray-400">
           {form.title.length}/100
         </p>
       </div>
 
-      {/* Description */}
       <div>
-        <label 
-          htmlFor="event-description"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <FileText className="w-4 h-4 text-emerald-600" />
+        <label htmlFor="event-description" className={labelCls}>
+          <FileText className="h-3.5 w-3.5 text-emerald-500" />
           Description
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <textarea
           id="event-description"
-          className={`${getInputClassName("description", "emerald")} resize-none min-h-[120px] sm:min-h-[150px]`}
+          className={cls("description", "min-h-[110px] resize-none sm:min-h-[140px]")}
           placeholder="Describe your event in detail. What makes it special?"
           value={form.description}
           onChange={(e) => update("description", e.target.value)}
@@ -369,7 +349,11 @@ export default function CreateEventStepper({
           maxLength={1000}
         />
         {renderFieldError("description")}
-        <p className={`mt-1 text-xs text-right ${form.description.length > 900 ? "text-amber-600" : "text-gray-500"}`}>
+        <p
+          className={`mt-0.5 text-right text-[11px] ${
+            form.description.length > 900 ? "text-amber-500" : "text-gray-400"
+          }`}
+        >
           {form.description.length}/1000
         </p>
       </div>
@@ -377,33 +361,30 @@ export default function CreateEventStepper({
   );
 
   const renderStep2 = () => (
-    <div 
+    <div
       ref={formRef}
-      className={`space-y-4 sm:space-y-5 animate-slideIn ${direction === "backward" ? "animate-slideInReverse" : ""}`}
+      key="step2"
+      className={`space-y-4 sm:space-y-5 ${
+        direction === "backward" ? "animate-slideInReverse" : "animate-slideIn"
+      }`}
     >
-      <div className="flex items-center gap-2 mb-4 sm:mb-6">
-        <div className="p-2 bg-amber-100 rounded-lg">
-          <Target className="w-5 h-5 text-amber-600" />
-        </div>
+      <div className="mb-3 flex items-center gap-2.5 sm:mb-5">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">Goals & Budget</h3>
-          <p className="text-sm text-gray-500">Define your objectives</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Goals &amp; Budget
+          </h3>
         </div>
       </div>
 
-      {/* Objectives */}
       <div>
-        <label 
-          htmlFor="event-objectives"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <Target className="w-4 h-4 text-amber-600" />
+        <label htmlFor="event-objectives" className={labelCls}>
+          <Target className="h-3.5 w-3.5 text-amber-500" />
           Objectives
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <textarea
           id="event-objectives"
-          className={`${getInputClassName("objectives", "amber")} resize-none min-h-[100px] sm:min-h-[120px]`}
+          className={cls("objectives", "min-h-[90px] resize-none sm:min-h-[110px]")}
           placeholder="What do you want to achieve with this event?"
           value={form.objectives}
           onChange={(e) => update("objectives", e.target.value)}
@@ -414,24 +395,20 @@ export default function CreateEventStepper({
         {renderFieldError("objectives")}
       </div>
 
-      {/* Budget */}
       <div>
-        <label 
-          htmlFor="event-budget"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <DollarSign className="w-4 h-4 text-emerald-600" />
+        <label htmlFor="event-budget" className={labelCls}>
+          <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
           Budget
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 sm:left-4">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 sm:left-4">
             $
           </span>
           <input
             id="event-budget"
             type="number"
-            className={`${getInputClassName("budget", "emerald")} pl-8 sm:pl-10`}
+            className={cls("budget", "pl-7 sm:pl-9")}
             placeholder="0.00"
             value={form.budget || ""}
             onChange={(e) => update("budget", Number(e.target.value))}
@@ -441,7 +418,7 @@ export default function CreateEventStepper({
           />
         </div>
         {renderFieldError("budget")}
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-0.5 text-[11px] text-gray-400">
           Total budget for the event
         </p>
       </div>
@@ -449,36 +426,32 @@ export default function CreateEventStepper({
   );
 
   const renderStep3 = () => (
-    <div 
+    <div
       ref={formRef}
-      className={`space-y-4 sm:space-y-5 animate-slideIn ${direction === "backward" ? "animate-slideInReverse" : ""}`}
+      key="step3"
+      className={`space-y-4 sm:space-y-5 ${
+        direction === "backward" ? "animate-slideInReverse" : "animate-slideIn"
+      }`}
     >
-      <div className="flex items-center gap-2 mb-4 sm:mb-6">
-        <div className="p-2 bg-cyan-100 rounded-lg">
-          <Calendar className="w-5 h-5 text-cyan-600" />
-        </div>
+      <div className="mb-3 flex items-center gap-2.5 sm:mb-5">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">Schedule & Location</h3>
-          <p className="text-sm text-gray-500">When and where</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Schedule &amp; Location
+          </h3>
         </div>
       </div>
 
-      {/* Date Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Start Date */}
         <div>
-          <label 
-            htmlFor="event-start-date"
-            className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-          >
-            <Clock className="w-4 h-4 text-cyan-600" />
+          <label htmlFor="event-start-date" className={labelCls}>
+            <Clock className="h-3.5 w-3.5 text-sky-500" />
             Start Date
-            <span className="text-red-500">*</span>
+            <span className="text-red-400">*</span>
           </label>
           <input
             id="event-start-date"
             type="date"
-            className={getInputClassName("start_date", "cyan")}
+            className={cls("start_date")}
             value={form.start_date}
             onChange={(e) => update("start_date", e.target.value)}
             onBlur={() => handleBlur("start_date")}
@@ -488,20 +461,16 @@ export default function CreateEventStepper({
           {renderFieldError("start_date")}
         </div>
 
-        {/* End Date */}
         <div>
-          <label 
-            htmlFor="event-end-date"
-            className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-          >
-            <Clock className="w-4 h-4 text-cyan-600" />
+          <label htmlFor="event-end-date" className={labelCls}>
+            <Clock className="h-3.5 w-3.5 text-sky-500" />
             End Date
-            <span className="text-red-500">*</span>
+            <span className="text-red-400">*</span>
           </label>
           <input
             id="event-end-date"
             type="date"
-            className={getInputClassName("end_date", "cyan")}
+            className={cls("end_date")}
             value={form.end_date}
             onChange={(e) => update("end_date", e.target.value)}
             onBlur={() => handleBlur("end_date")}
@@ -512,20 +481,16 @@ export default function CreateEventStepper({
         </div>
       </div>
 
-      {/* Category */}
       <div>
-        <label 
-          htmlFor="event-category"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <Tag className="w-4 h-4 text-purple-600" />
+        <label htmlFor="event-category" className={labelCls}>
+          <Tag className="h-3.5 w-3.5 text-violet-500" />
           Category
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <input
           id="event-category"
           type="text"
-          className={getInputClassName("category", "indigo")}
+          className={cls("category")}
           placeholder="e.g., Conference, Workshop, Meetup"
           value={form.category}
           onChange={(e) => update("category", e.target.value)}
@@ -535,20 +500,16 @@ export default function CreateEventStepper({
         {renderFieldError("category")}
       </div>
 
-      {/* Location */}
       <div>
-        <label 
-          htmlFor="event-location"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5 sm:text-sm sm:gap-2 sm:mb-2"
-        >
-          <MapPin className="w-4 h-4 text-rose-600" />
+        <label htmlFor="event-location" className={labelCls}>
+          <MapPin className="h-3.5 w-3.5 text-rose-500" />
           Location
-          <span className="text-red-500">*</span>
+          <span className="text-red-400">*</span>
         </label>
         <input
           id="event-location"
           type="text"
-          className={getInputClassName("location", "rose")}
+          className={cls("location")}
           placeholder="Venue or virtual location"
           value={form.location}
           onChange={(e) => update("location", e.target.value)}
@@ -561,19 +522,19 @@ export default function CreateEventStepper({
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden sm:rounded-2xl lg:max-w-xl">
+    <div className="mx-auto w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl sm:rounded-2xl lg:max-w-xl">
       {/* Header */}
-      <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 px-4 py-4 sm:px-6 sm:py-5">
+      <div className="relative bg-indigo-600 px-4 py-4 sm:px-6 sm:py-5">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/4 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -bottom-1/2 -left-1/4 w-32 h-32 bg-purple-400/20 rounded-full blur-xl" />
+          <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-indigo-400/15 blur-xl" />
         </div>
 
-        <div className="relative z-10">
-          <h2 className="text-lg font-bold text-white pr-10 tracking-tight sm:text-xl md:text-2xl">
+        <div className="relative">
+          <h2 className="pr-8 text-lg font-bold text-white sm:text-xl">
             Create New Event
           </h2>
-          <p className="text-xs text-indigo-100 mt-0.5 font-medium sm:text-sm sm:mt-1">
+          <p className="mt-0.5 text-xs text-indigo-200 sm:text-sm">
             Set up your event in a few simple steps
           </p>
         </div>
@@ -582,24 +543,14 @@ export default function CreateEventStepper({
           type="button"
           onClick={onCancel}
           disabled={loading}
-          className="
-            absolute top-3 right-3 
-            p-1.5 
-            text-white/80 hover:text-white
-            hover:bg-white/20 
-            rounded-full 
-            transition-all duration-200 
-            disabled:opacity-50 disabled:cursor-not-allowed
-            focus:outline-none focus:ring-2 focus:ring-white/50
-            sm:top-4 sm:right-4 sm:p-2
-          "
+          className="absolute right-3 top-3 rounded-full p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50 sm:right-4 sm:top-4"
           aria-label="Close"
         >
-          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Content */}
+      {/* Body */}
       <div className="p-4 sm:p-6">
         {renderStepIndicator()}
 
@@ -611,27 +562,15 @@ export default function CreateEventStepper({
       </div>
 
       {/* Footer */}
-      <div className="flex flex-col-reverse gap-2.5 px-4 py-4 bg-gray-50 border-t border-gray-100 sm:flex-row sm:justify-between sm:gap-3 sm:px-6 sm:py-5">
+      <div className="flex flex-col-reverse gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-3 sm:flex-row sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
         <button
           type="button"
           onClick={step === 1 ? onCancel : goBack}
           disabled={loading}
-          className="
-            flex items-center justify-center gap-2
-            px-4 py-2.5 
-            text-sm font-semibold text-gray-700
-            bg-white
-            border-2 border-gray-200 
-            rounded-lg
-            hover:bg-gray-50 hover:border-gray-300
-            focus:outline-none focus:ring-4 focus:ring-gray-100
-            transition-all duration-200
-            disabled:opacity-50 disabled:cursor-not-allowed
-            sm:py-3 sm:text-base sm:rounded-xl sm:flex-1
-          "
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:rounded-xl sm:py-2.5 sm:text-sm"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>{step === 1 ? "Cancel" : "Back"}</span>
+          <ChevronLeft className="h-4 w-4" />
+          {step === 1 ? "Cancel" : "Back"}
         </button>
 
         {step < 3 ? (
@@ -639,45 +578,25 @@ export default function CreateEventStepper({
             type="button"
             onClick={goNext}
             disabled={loading}
-            className="
-              flex items-center justify-center gap-2
-              px-4 py-2.5 
-              text-sm font-semibold text-white
-              bg-gradient-to-r from-indigo-600 to-indigo-700
-              rounded-lg
-              shadow-lg shadow-indigo-500/25
-              hover:from-indigo-700 hover:to-indigo-800 hover:shadow-xl hover:shadow-indigo-500/30
-              focus:outline-none focus:ring-4 focus:ring-indigo-200
-              transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
-              sm:py-3 sm:text-base sm:rounded-xl sm:flex-1
-            "
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:rounded-xl sm:py-2.5 sm:text-sm"
           >
-            <span>Continue</span>
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            Continue
+            <ChevronRight className="h-4 w-4" />
           </button>
         ) : (
           <button
             type="button"
             onClick={submit}
             disabled={loading}
-            className="
-              flex items-center justify-center gap-2
-              px-4 py-2.5 
-              text-sm font-semibold text-white
-              bg-gradient-to-r from-emerald-600 to-emerald-700
-              rounded-lg
-              shadow-lg shadow-emerald-500/25
-              hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl hover:shadow-emerald-500/30
-              focus:outline-none focus:ring-4 focus:ring-emerald-200
-              transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
-              sm:py-3 sm:text-base sm:rounded-xl sm:flex-1
-            "
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:rounded-xl sm:py-2.5 sm:text-sm"
           >
             {loading ? (
               <>
-                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -685,7 +604,6 @@ export default function CreateEventStepper({
                     r="10"
                     stroke="currentColor"
                     strokeWidth="4"
-                    fill="none"
                   />
                   <path
                     className="opacity-75"
@@ -693,12 +611,12 @@ export default function CreateEventStepper({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>Creating...</span>
+                Creating…
               </>
             ) : (
               <>
-                <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Create Event</span>
+                <Check className="h-4 w-4" />
+                Create Event
               </>
             )}
           </button>

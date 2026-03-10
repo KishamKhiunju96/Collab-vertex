@@ -54,62 +54,65 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
   }, [eventId]);
 
   useEffect(() => {
-    if (eventId) {
-      fetchEvent();
-    }
+    if (eventId) fetchEvent();
   }, [eventId, fetchEvent]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-  };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
+  const formatDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
         return {
-          className: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-600/20",
+          bg: "bg-emerald-50",
+          text: "text-emerald-700",
+          border: "border-emerald-200",
+          dot: "bg-emerald-500",
           icon: CheckCircle2,
-          dotColor: "bg-emerald-500",
         };
       case "inactive":
         return {
-          className: "bg-gray-50 text-gray-600 border-gray-200 ring-gray-500/20",
+          bg: "bg-gray-50",
+          text: "text-gray-600",
+          border: "border-gray-200",
+          dot: "bg-gray-400",
           icon: XCircle,
-          dotColor: "bg-gray-400",
         };
       case "pending":
         return {
-          className: "bg-amber-50 text-amber-700 border-amber-200 ring-amber-600/20",
+          bg: "bg-amber-50",
+          text: "text-amber-700",
+          border: "border-amber-200",
+          dot: "bg-amber-500",
           icon: Clock,
-          dotColor: "bg-amber-500",
         };
       default:
         return {
-          className: "bg-blue-50 text-blue-700 border-blue-200 ring-blue-600/20",
+          bg: "bg-blue-50",
+          text: "text-blue-700",
+          border: "border-blue-200",
+          dot: "bg-blue-500",
           icon: AlertCircle,
-          dotColor: "bg-blue-500",
         };
     }
   };
 
   const handleDelete = async () => {
     if (!event) return;
-
     const confirmed = confirm(
       `Are you sure you want to delete "${event.title}"? This action cannot be undone.`
     );
@@ -128,42 +131,36 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-pulse"></div>
-            <Loader2 className="w-16 h-16 text-red-500 animate-spin absolute top-0 left-0" />
-          </div>
-          <p className="mt-4 text-gray-600 font-medium animate-pulse">
-            Loading event details...
-          </p>
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-gray-400" />
+          <p className="mt-3 text-sm text-gray-500">Loading event details…</p>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-100">
-            <Calendar className="h-10 w-10 text-red-500" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-sm text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+            <Calendar className="h-7 w-7 text-red-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          <h2 className="text-xl font-semibold text-gray-900">
             Event Not Found
           </h2>
-          <p className="text-gray-600 mb-8 leading-relaxed">
-            {error || "The event you're looking for doesn't exist or has been removed."}
+          <p className="mt-2 text-sm leading-relaxed text-gray-500">
+            {error ||
+              "The event you're looking for doesn't exist or has been removed."}
           </p>
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-red-200"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
             Go Back
           </button>
         </div>
@@ -171,84 +168,91 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
     );
   }
 
-  const statusConfig = getStatusConfig(event.status);
-  const StatusIcon = statusConfig.icon;
+  const status = getStatusConfig(event.status);
+  const durationDays = Math.ceil(
+    (new Date(event.end_date).getTime() -
+      new Date(event.start_date).getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Back Button */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+          {/* Back */}
           <button
             onClick={() => router.back()}
-            className="group flex items-center gap-2 text-gray-300 hover:text-white mb-6 transition-all duration-200"
+            className="mb-4 flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-900"
           >
-            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="font-medium">Back to Events</span>
+            <ArrowLeft className="h-4 w-4" />
+            Back to Events
           </button>
 
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="flex-1 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
               {/* Title */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              <h1 className="truncate text-2xl font-bold text-gray-900 sm:text-3xl">
                 {event.title}
               </h1>
 
-              {/* Status & Meta */}
-              <div className="flex flex-wrap items-center gap-4">
+              {/* Status + meta row */}
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <span
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ring-1 ${statusConfig.className}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${status.bg} ${status.text} ${status.border}`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor} animate-pulse`}></span>
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${status.dot}`}
+                  />
                   {event.status}
                 </span>
-                <span className="text-gray-400 text-sm flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+
+                <span className="flex items-center gap-1 text-xs text-gray-400">
+                  <Clock className="h-3.5 w-3.5" />
                   Created {formatDate(event.created_at)}
                 </span>
               </div>
 
-              {/* Quick Stats */}
-              <div className="flex flex-wrap gap-4 pt-2">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <MapPin className="h-4 w-4 text-red-400" />
-                  <span className="text-sm">{event.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <DollarSign className="h-4 w-4 text-green-400" />
-                  <span className="text-sm font-semibold">
-                    ${event.budget.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Tag className="h-4 w-4 text-blue-400" />
-                  <span className="text-sm">{event.category || "Uncategorized"}</span>
-                </div>
+              {/* Quick meta chips */}
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                  {event.location}
+                </span>
+                <span className="flex items-center gap-1">
+                  <DollarSign className="h-3.5 w-3.5 text-gray-400" />
+                  ${event.budget.toLocaleString()}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Tag className="h-3.5 w-3.5 text-gray-400" />
+                  {event.category || "Uncategorized"}
+                </span>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Actions */}
             {user?.role === "brand" && (
-              <div className="flex gap-3 lg:flex-col xl:flex-row">
+              <div className="flex shrink-0 gap-2">
                 <button
-                  onClick={() => router.push(`/dashboard/events/${event.id}/edit`)}
-                  className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 border border-white/20 transition-all duration-200"
+                  onClick={() =>
+                    router.push(`/dashboard/events/${event.id}/edit`)
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   <Edit className="h-4 w-4" />
-                  <span>Edit Event</span>
+                  Edit
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-500/90 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isDeleting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
-                  <span>{isDeleting ? "Deleting..." : "Delete"}</span>
+                  {isDeleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
             )}
@@ -256,228 +260,192 @@ export default function EventDetailPage({ eventId }: EventDetailPageProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Details Column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Description Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">Description</h2>
+      {/* Content */}
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Main column */}
+          <div className="space-y-5 lg:col-span-2">
+            {/* Description */}
+            <section className="rounded-xl border border-gray-200 bg-white p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-gray-400" />
+                <h2 className="text-base font-semibold text-gray-900">
+                  Description
+                </h2>
               </div>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
                 {event.description || "No description provided"}
               </p>
-            </div>
+            </section>
 
-            {/* Objectives Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center">
-                  <Target className="h-5 w-5 text-purple-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">Objectives</h2>
+            {/* Objectives */}
+            <section className="rounded-xl border border-gray-200 bg-white p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <Target className="h-4 w-4 text-gray-400" />
+                <h2 className="text-base font-semibold text-gray-900">
+                  Objectives
+                </h2>
               </div>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
                 {event.objectives || "No objectives specified"}
               </p>
-            </div>
+            </section>
 
-            {/* Deliverables Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-emerald-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">Deliverables</h2>
+            {/* Deliverables */}
+            <section className="rounded-xl border border-gray-200 bg-white p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-gray-400" />
+                <h2 className="text-base font-semibold text-gray-900">
+                  Deliverables
+                </h2>
               </div>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
                 {event.deliverables || "No deliverables specified"}
               </p>
-            </div>
+            </section>
 
-            {/* Applications Card - Brand Only */}
+            {/* Applications */}
             {user?.role === "brand" && (
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center">
-                    <Users className="h-5 w-5 text-orange-600" />
-                  </div>
+              <section className="rounded-xl border border-gray-200 bg-white p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-base font-semibold text-gray-900">
                       Influencer Applications
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-400">
                       Review and manage applications
                     </p>
                   </div>
                 </div>
                 <ApplicationsList eventId={eventId} />
-              </div>
+              </section>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Event Details Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm sticky top-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+          <div className="space-y-5 lg:col-span-1">
+            {/* Details card */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h2 className="mb-4 border-b border-gray-100 pb-3 text-sm font-semibold text-gray-900">
                 Event Details
               </h2>
 
-              <div className="space-y-5">
-                {/* Category */}
-                <div className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <Tag className="h-5 w-5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                      Category
-                    </p>
-                    <p className="text-base font-medium text-gray-900">
+              <dl className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Tag className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <div>
+                    <dt className="text-xs text-gray-400">Category</dt>
+                    <dd className="text-sm font-medium text-gray-900">
                       {event.category || "Uncategorized"}
-                    </p>
+                    </dd>
                   </div>
                 </div>
 
-                {/* Location */}
-                <div className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-50 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <MapPin className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                      Location
-                    </p>
-                    <p className="text-base font-medium text-gray-900">
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <div>
+                    <dt className="text-xs text-gray-400">Location</dt>
+                    <dd className="text-sm font-medium text-gray-900">
                       {event.location}
-                    </p>
+                    </dd>
                   </div>
                 </div>
 
-                {/* Budget */}
-                <div className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                      Budget
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                <div className="flex items-start gap-3">
+                  <DollarSign className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <div>
+                    <dt className="text-xs text-gray-400">Budget</dt>
+                    <dd className="text-lg font-semibold text-gray-900">
                       ${event.budget.toLocaleString()}
-                    </p>
+                    </dd>
                   </div>
                 </div>
 
-                {/* Target Audience */}
-                <div className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <Users className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                      Target Audience
-                    </p>
-                    <p className="text-base font-medium text-gray-900">
+                <div className="flex items-start gap-3">
+                  <Users className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <div>
+                    <dt className="text-xs text-gray-400">Target Audience</dt>
+                    <dd className="text-sm font-medium text-gray-900">
                       {event.target_audience || "Not specified"}
+                    </dd>
+                  </div>
+                </div>
+              </dl>
+            </div>
+
+            {/* Timeline card */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Timeline
+                </h2>
+              </div>
+
+              <div className="relative pl-5">
+                {/* Vertical line */}
+                <div className="absolute bottom-1 left-[7px] top-1 w-px bg-gray-200" />
+
+                <div className="space-y-5">
+                  {/* Start */}
+                  <div className="relative">
+                    <div className="absolute -left-5 top-1 h-3.5 w-3.5 rounded-full border-2 border-emerald-500 bg-white" />
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-600">
+                      Start Date
+                    </p>
+                    <p className="mt-0.5 text-sm text-gray-800">
+                      {formatDateTime(event.start_date)}
+                    </p>
+                  </div>
+
+                  {/* End */}
+                  <div className="relative">
+                    <div className="absolute -left-5 top-1 h-3.5 w-3.5 rounded-full border-2 border-gray-400 bg-white" />
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                      End Date
+                    </p>
+                    <p className="mt-0.5 text-sm text-gray-800">
+                      {formatDateTime(event.end_date)}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Timeline Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-100 to-cyan-50 rounded-xl flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-cyan-600" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900">Timeline</h2>
-              </div>
-
-              <div className="relative">
-                {/* Timeline Line */}
-                <div className="absolute left-5 top-6 bottom-6 w-0.5 bg-gradient-to-b from-green-400 via-blue-400 to-purple-400"></div>
-
-                <div className="space-y-6">
-                  {/* Start Date */}
-                  <div className="flex items-start gap-4 relative">
-                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0 z-10 shadow-lg shadow-green-200">
-                      <Calendar className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1 pt-1">
-                      <p className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">
-                        Start Date
-                      </p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatDateTime(event.start_date)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* End Date */}
-                  <div className="flex items-start gap-4 relative">
-                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center shrink-0 z-10 shadow-lg shadow-purple-200">
-                      <Calendar className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1 pt-1">
-                      <p className="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">
-                        End Date
-                      </p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatDateTime(event.end_date)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Duration Badge */}
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                    Total Duration
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {Math.ceil(
-                      (new Date(event.end_date).getTime() -
-                        new Date(event.start_date).getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    )}{" "}
-                    <span className="text-base font-medium text-gray-500">days</span>
-                  </p>
-                </div>
+              {/* Duration */}
+              <div className="mt-4 rounded-lg bg-gray-50 px-3 py-2.5 text-center">
+                <p className="text-[11px] text-gray-400">Duration</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {durationDays}{" "}
+                  <span className="text-sm font-normal text-gray-500">
+                    {durationDays === 1 ? "day" : "days"}
+                  </span>
+                </p>
               </div>
             </div>
 
-            {/* Metadata Card */}
-            <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl border border-gray-200 p-6">
-              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
+            {/* Metadata */}
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
                 Metadata
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Event ID</p>
-                  <p className="text-xs font-mono text-gray-600 bg-white rounded-lg px-3 py-2 break-all border border-gray-200">
+                  <p className="text-[11px] text-gray-400">Event ID</p>
+                  <p className="mt-0.5 break-all rounded bg-white px-2 py-1.5 font-mono text-[11px] text-gray-500 border border-gray-200">
                     {event.id}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Created</p>
-                    <p className="text-xs font-medium text-gray-600">
+                    <p className="text-[11px] text-gray-400">Created</p>
+                    <p className="mt-0.5 text-xs text-gray-600">
                       {new Date(event.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Updated</p>
-                    <p className="text-xs font-medium text-gray-600">
+                    <p className="text-[11px] text-gray-400">Updated</p>
+                    <p className="mt-0.5 text-xs text-gray-600">
                       {new Date(event.updated_at).toLocaleDateString()}
                     </p>
                   </div>

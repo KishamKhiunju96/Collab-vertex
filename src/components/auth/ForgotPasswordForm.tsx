@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import {
   Eye,
@@ -14,6 +13,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowLeft,
+  KeyRound,
+  ShieldCheck,
 } from "lucide-react";
 import { authService } from "@/api/services/authService";
 
@@ -21,7 +22,7 @@ interface PasswordStrength {
   score: number;
   label: string;
   color: string;
-  bgColor: string;
+  bg: string;
 }
 
 export default function ForgotPasswordForm() {
@@ -40,447 +41,297 @@ export default function ForgotPasswordForm() {
     confirmPassword?: string;
   }>({});
 
-  // Password strength calculator
-  const calculatePasswordStrength = (password: string): PasswordStrength => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z\d]/.test(password)) score++;
+  const getStrength = (pw: string): PasswordStrength => {
+    let s = 0;
+    if (pw.length >= 8) s++;
+    if (pw.length >= 12) s++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+    if (/\d/.test(pw)) s++;
+    if (/[^a-zA-Z\d]/.test(pw)) s++;
 
-    if (score <= 1)
-      return {
-        score,
-        label: "Weak",
-        color: "text-red-600",
-        bgColor: "bg-red-500",
-      };
-    if (score <= 3)
-      return {
-        score,
-        label: "Fair",
-        color: "text-yellow-600",
-        bgColor: "bg-yellow-500",
-      };
-    if (score === 4)
-      return {
-        score,
-        label: "Good",
-        color: "text-blue-600",
-        bgColor: "bg-blue-500",
-      };
-    return {
-      score,
-      label: "Strong",
-      color: "text-green-600",
-      bgColor: "bg-green-500",
-    };
+    if (s <= 1) return { score: s, label: "Weak", color: "text-red-600", bg: "bg-red-500" };
+    if (s <= 3) return { score: s, label: "Fair", color: "text-amber-600", bg: "bg-amber-500" };
+    if (s === 4) return { score: s, label: "Good", color: "text-blue-600", bg: "bg-blue-500" };
+    return { score: s, label: "Strong", color: "text-green-600", bg: "bg-green-500" };
   };
 
-  const passwordStrength = newPassword
-    ? calculatePasswordStrength(newPassword)
-    : null;
+  const strength = newPassword ? getStrength(newPassword) : null;
 
-  // Email validation
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Password requirements
-  const passwordRequirements = [
-    { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-    {
-      label: "Contains uppercase & lowercase",
-      test: (p: string) => /[a-z]/.test(p) && /[A-Z]/.test(p),
-    },
-    { label: "Contains a number", test: (p: string) => /\d/.test(p) },
-    {
-      label: "Contains special character",
-      test: (p: string) => /[^a-zA-Z\d]/.test(p),
-    },
+  const requirements = [
+    { label: "8+ characters", check: (p: string) => p.length >= 8 },
+    { label: "Upper & lowercase", check: (p: string) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
+    { label: "A number", check: (p: string) => /\d/.test(p) },
+    { label: "Special character", check: (p: string) => /[^a-zA-Z\d]/.test(p) },
   ];
 
-  const validateForm = (): boolean => {
-    const errors: {
-      email?: string;
-      newPassword?: string;
-      confirmPassword?: string;
-    } = {};
+  const validate = () => {
+    const err: typeof fieldErrors = {};
+    if (!email.trim()) err.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err.email = "Invalid email";
 
-    if (!email.trim()) {
-      errors.email = "Email is required";
-    } else if (!isValidEmail(email)) {
-      errors.email = "Please enter a valid email address";
-    }
+    if (!newPassword) err.newPassword = "Password is required";
+    else if (newPassword.length < 8) err.newPassword = "Min 8 characters";
+    else if (strength && strength.score < 2) err.newPassword = "Too weak";
 
-    if (!newPassword) {
-      errors.newPassword = "New password is required";
-    } else if (newPassword.length < 8) {
-      errors.newPassword = "Password must be at least 8 characters";
-    } else if (passwordStrength && passwordStrength.score < 2) {
-      errors.newPassword = "Password is too weak. Please choose a stronger one";
-    }
+    if (!confirmPassword) err.confirmPassword = "Confirm your password";
+    else if (newPassword !== confirmPassword) err.confirmPassword = "Doesn't match";
 
-    if (!confirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
-    } else if (newPassword !== confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    setFieldErrors(err);
+    return Object.keys(err).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApiError("");
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
-
     try {
-      await authService.resetPassword({
-        email: email.trim(),
-        new_password: newPassword,
-      });
-
+      await authService.resetPassword({ email: email.trim(), new_password: newPassword });
       setIsSuccess(true);
-
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        router.push("/login");
-      }, 3000);
+      setTimeout(() => router.push("/login"), 3000);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setApiError(
-          error.message || "Failed to reset password. Please try again.",
-        );
-      } else {
-        setApiError("An unexpected error occurred. Please try again.");
-      }
+      setApiError(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Success state
+  // ── Success Screen ──
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-hero via-white to-background-alternate px-4 py-8 sm:py-12 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 bg-grid-pattern bg-grid-md opacity-5 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse-glow" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-glow" />
-
-        <div className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-8 relative z-10 text-center animate-fade-in-up">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-10 max-w-md w-full text-center">
+          <div className="w-14 h-14 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-5">
+            <CheckCircle2 className="w-7 h-7 text-green-600" />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-3">
-            Password Reset Successful!
-          </h2>
-          <p className="text-text-secondary mb-6">
-            Your password has been reset successfully. You can now sign in with
-            your new password.
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Password Updated</h2>
+          <p className="text-sm text-gray-500 mb-7 leading-relaxed">
+            All set. You can now log in with your new password.
           </p>
           <button
             onClick={() => router.push("/login")}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            Go to Sign In
-            <ArrowRight className="w-5 h-5" />
+            Sign in
+            <ArrowRight className="w-4 h-4" />
           </button>
-          <p className="text-sm text-text-muted mt-4">
-            Redirecting to login page in 3 seconds...
-          </p>
+          <p className="text-xs text-gray-400 mt-4">Redirecting in 3 seconds…</p>
         </div>
       </div>
     );
   }
 
+  // ── Main Form ──
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-hero via-white to-background-alternate px-4 py-8 sm:py-12 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 bg-grid-pattern bg-grid-md opacity-5 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/10 rounded-full blur-3xl animate-pulse-glow" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl animate-pulse-glow" />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-[920px] bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2">
 
-      <div className="w-full max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up">
-        {/* Form side */}
-        <div className="p-6 sm:p-8 lg:p-12 flex flex-col justify-center order-2 lg:order-1">
-          <div className="w-full max-w-md mx-auto">
-            {/* Back to Login Link */}
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 text-text-secondary hover:text-brand-primary transition-colors mb-6 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Sign In
-            </Link>
+        {/* Left panel */}
+        <div className="hidden md:flex flex-col justify-center bg-gray-900 p-10 relative">
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "22px 22px" }} />
 
-            {/* Header */}
-            <div className="mb-8 text-center lg:text-left">
-              <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-                Reset Password
-              </h1>
-              <p className="text-text-secondary text-sm sm:text-base">
-                Enter your email and create a new secure password for your{" "}
-                <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent font-semibold">
-                  Collab-Vertex
-                </span>{" "}
-                account
-              </p>
+          <div className="relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center mb-8">
+              <KeyRound className="w-5 h-5 text-indigo-400" />
             </div>
 
-            {/* Error Alert */}
+            <h2 className="text-2xl font-bold text-white leading-tight mb-3">
+              Reset your<br />password
+            </h2>
+            <p className="text-gray-400 text-sm leading-relaxed mb-8">
+              Pick something memorable for you but tough for anyone else to figure out.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { dot: "bg-indigo-500", text: "Mix uppercase, lowercase, numbers & symbols" },
+                { dot: "bg-violet-500", text: "Don't reuse passwords across services" },
+                { dot: "bg-purple-400", text: "Consider a password manager" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <span className={`w-2 h-2 rounded-full ${item.dot} mt-1.5 shrink-0`} />
+                  <span className="text-gray-300 text-[13px] leading-snug">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right panel – form */}
+        <div className="p-6 sm:p-10 flex flex-col justify-center">
+          <div className="max-w-sm w-full mx-auto">
+
+            <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors mb-7">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to sign in
+            </Link>
+
+            <h1 className="text-[22px] font-bold text-gray-900 mb-1">Create new password</h1>
+            <p className="text-sm text-gray-500 mb-7">Enter your email and pick a new password.</p>
+
             {apiError && (
-              <div className="mb-6 p-4 bg-status-errorBg border border-red-200 rounded-lg animate-fade-in">
-                <p className="text-status-errorText text-sm font-medium flex items-center gap-2">
-                  <XCircle className="w-5 h-5" />
-                  {apiError}
-                </p>
+              <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+                <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                <p className="text-[13px] text-red-700 leading-snug">{apiError}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-text-primary">
-                  Email Address
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+
+              {/* Email */}
+              <div>
+                <label htmlFor="fp-email" className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                  Email
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail
-                      className={`w-5 h-5 transition-colors ${
-                        fieldErrors.email
-                          ? "text-red-500"
-                          : "text-text-muted group-focus-within:text-brand-primary"
-                      }`}
-                    />
-                  </div>
+                <div className="relative">
+                  <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${fieldErrors.email ? "text-red-400" : "text-gray-400"}`} />
                   <input
+                    id="fp-email"
                     type="email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setFieldErrors({ ...fieldErrors, email: undefined });
-                    }}
-                    placeholder="Enter your email"
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
+                    onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
+                    placeholder="you@company.com"
+                    autoComplete="email"
+                    className={`w-full pl-10 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border rounded-lg outline-none transition-shadow ${
                       fieldErrors.email
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-border-subtle focus:border-brand-primary focus:ring-brand-primary/20"
-                    } text-text-primary placeholder:text-text-muted`}
+                        ? "border-red-300 focus:ring-2 focus:ring-red-100"
+                        : "border-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    }`}
                   />
                 </div>
-                {fieldErrors.email && (
-                  <p className="text-red-600 text-xs font-medium mt-1 flex items-center gap-1 animate-fade-in">
-                    <span>•</span> {fieldErrors.email}
-                  </p>
-                )}
+                {fieldErrors.email && <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>}
               </div>
 
-              {/* New Password Field */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-text-primary">
-                  New Password
+              {/* New password */}
+              <div>
+                <label htmlFor="fp-newpw" className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                  New password
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock
-                      className={`w-5 h-5 transition-colors ${
-                        fieldErrors.newPassword
-                          ? "text-red-500"
-                          : "text-text-muted group-focus-within:text-brand-primary"
-                      }`}
-                    />
-                  </div>
+                <div className="relative">
+                  <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${fieldErrors.newPassword ? "text-red-400" : "text-gray-400"}`} />
                   <input
+                    id="fp-newpw"
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      setFieldErrors({
-                        ...fieldErrors,
-                        newPassword: undefined,
-                      });
-                    }}
-                    placeholder="Enter new password"
-                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
+                    onChange={(e) => { setNewPassword(e.target.value); setFieldErrors((p) => ({ ...p, newPassword: undefined })); }}
+                    placeholder="Create a strong password"
+                    autoComplete="new-password"
+                    className={`w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border rounded-lg outline-none transition-shadow ${
                       fieldErrors.newPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-border-subtle focus:border-brand-primary focus:ring-brand-primary/20"
-                    } text-text-primary placeholder:text-text-muted`}
+                        ? "border-red-300 focus:ring-2 focus:ring-red-100"
+                        : "border-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    }`}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowNewPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-text-muted hover:text-brand-primary transition-colors"
+                    tabIndex={-1}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
                   >
-                    {showNewPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Password Strength Indicator */}
-                {newPassword && passwordStrength && (
-                  <div className="space-y-2 animate-fade-in">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-text-muted">
-                        Password Strength:
-                      </span>
-                      <span
-                        className={`font-semibold ${passwordStrength.color}`}
-                      >
-                        {passwordStrength.label}
-                      </span>
+                {/* strength bar */}
+                {newPassword && strength && (
+                  <div className="mt-2.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">Strength</span>
+                      <span className={`text-[10px] uppercase tracking-wide font-bold ${strength.color}`}>{strength.label}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-[3px] w-full bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className={`h-full ${passwordStrength.bgColor} transition-all duration-300`}
-                        style={{
-                          width: `${(passwordStrength.score / 5) * 100}%`,
-                        }}
+                        className={`h-full rounded-full ${strength.bg} transition-all duration-300`}
+                        style={{ width: `${(strength.score / 5) * 100}%` }}
                       />
                     </div>
                   </div>
                 )}
 
-                {/* Password Requirements */}
+                {/* requirements */}
                 {newPassword && (
-                  <div className="space-y-1 pt-2 animate-fade-in">
-                    {passwordRequirements.map((req, idx) => {
-                      const passes = req.test(newPassword);
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2.5">
+                    {requirements.map((r, i) => {
+                      const ok = r.check(newPassword);
                       return (
-                        <div
-                          key={idx}
-                          className={`flex items-center gap-2 text-xs transition-colors ${
-                            passes ? "text-green-600" : "text-gray-400"
-                          }`}
-                        >
-                          {passes ? (
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          ) : (
-                            <XCircle className="w-3.5 h-3.5" />
-                          )}
-                          <span>{req.label}</span>
-                        </div>
+                        <span key={i} className={`flex items-center gap-1.5 text-[11px] ${ok ? "text-green-600" : "text-gray-400"}`}>
+                          {ok ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                          {r.label}
+                        </span>
                       );
                     })}
                   </div>
                 )}
 
-                {fieldErrors.newPassword && (
-                  <p className="text-red-600 text-xs font-medium mt-1 flex items-center gap-1 animate-fade-in">
-                    <span>•</span> {fieldErrors.newPassword}
-                  </p>
-                )}
+                {fieldErrors.newPassword && <p className="text-xs text-red-600 mt-1">{fieldErrors.newPassword}</p>}
               </div>
 
-              {/* Confirm Password Field */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-text-primary">
-                  Confirm New Password
+              {/* Confirm password */}
+              <div>
+                <label htmlFor="fp-confirm" className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                  Confirm password
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock
-                      className={`w-5 h-5 transition-colors ${
-                        fieldErrors.confirmPassword
-                          ? "text-red-500"
-                          : "text-text-muted group-focus-within:text-brand-primary"
-                      }`}
-                    />
-                  </div>
+                <div className="relative">
+                  <ShieldCheck className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${fieldErrors.confirmPassword ? "text-red-400" : "text-gray-400"}`} />
                   <input
+                    id="fp-confirm"
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setFieldErrors({
-                        ...fieldErrors,
-                        confirmPassword: undefined,
-                      });
-                    }}
-                    placeholder="Confirm new password"
-                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 ${
+                    onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((p) => ({ ...p, confirmPassword: undefined })); }}
+                    placeholder="Re-enter password"
+                    autoComplete="new-password"
+                    className={`w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border rounded-lg outline-none transition-shadow ${
                       fieldErrors.confirmPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-border-subtle focus:border-brand-primary focus:ring-brand-primary/20"
-                    } text-text-primary placeholder:text-text-muted`}
+                        ? "border-red-300 focus:ring-2 focus:ring-red-100"
+                        : "border-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    }`}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-text-muted hover:text-brand-primary transition-colors"
+                    tabIndex={-1}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Password Match Indicator */}
                 {confirmPassword && newPassword && (
-                  <div
-                    className={`flex items-center gap-2 text-xs font-medium animate-fade-in ${
-                      confirmPassword === newPassword
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {confirmPassword === newPassword ? (
-                      <>
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Passwords match
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-3.5 h-3.5" />
-                        Passwords do not match
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {fieldErrors.confirmPassword && (
-                  <p className="text-red-600 text-xs font-medium mt-1 flex items-center gap-1 animate-fade-in">
-                    <span>•</span> {fieldErrors.confirmPassword}
+                  <p className={`flex items-center gap-1.5 text-[11px] font-medium mt-1.5 ${confirmPassword === newPassword ? "text-green-600" : "text-red-500"}`}>
+                    {confirmPassword === newPassword ? <><CheckCircle2 className="w-3 h-3" /> Matches</> : <><XCircle className="w-3 h-3" /> Doesn&apos;t match</>}
                   </p>
                 )}
+
+                {fieldErrors.confirmPassword && <p className="text-xs text-red-600 mt-1">{fieldErrors.confirmPassword}</p>}
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary text-white font-semibold rounded-xl shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-accent/40 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 group relative overflow-hidden"
+                className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 rounded-lg transition-colors mt-2"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Resetting Password...
-                    </>
-                  ) : (
-                    <>
-                      Reset Password
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </span>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Resetting…
+                  </>
+                ) : (
+                  <>
+                    Reset Password
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
+
+            <p className="text-center text-[13px] text-gray-400 mt-6">
+              Remember it?{" "}
+              <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>
