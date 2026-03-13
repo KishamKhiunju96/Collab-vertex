@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, CheckCircle } from "lucide-react";
+import { Bell, CheckCircle, Loader2 } from "lucide-react";
 import { NotificationSettings as NotificationSettingsType } from "./types";
 import { NOTIFICATION_OPTIONS } from "./constants";
 import { notify } from "@/utils/notify";
@@ -20,7 +20,6 @@ export default function NotificationSettings({
   const handleNotificationSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: Replace with actual API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       notify.success("Notification settings updated");
     } catch (error) {
@@ -31,50 +30,51 @@ export default function NotificationSettings({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Card Header */}
-      <div className="px-6 sm:px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-100 bg-gray-50 px-6 py-4 sm:px-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-            <Bell className="w-5 h-5 text-amber-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+            <Bell className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900">
               Notification Preferences
             </h2>
             <p className="text-sm text-gray-500">
-              Choose what notifications you&apos;d like to receive
+              Choose what notifications you'd like to receive
             </p>
           </div>
         </div>
       </div>
 
-      {/* Card Body */}
-      <div className="px-6 sm:px-8 py-2">
+      {/* Body */}
+      <div className="px-6 py-2 sm:px-8">
         {NOTIFICATION_OPTIONS.map((item, index) => (
           <div
             key={item.key}
-            className={`
-              flex items-center justify-between py-5 group
-              ${index !== NOTIFICATION_OPTIONS.length - 1 ? "border-b border-gray-100" : ""}
-            `}
+            className={`flex items-center justify-between py-5 ${
+              index !== NOTIFICATION_OPTIONS.length - 1
+                ? "border-b border-gray-100"
+                : ""
+            }`}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform duration-200">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-lg">
                 {item.icon}
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-sm font-medium text-gray-900">
                   {item.title}
                 </h3>
-                <p className="text-sm text-gray-400 mt-0.5">
+                <p className="mt-0.5 text-sm text-gray-500">
                   {item.description}
                 </p>
               </div>
             </div>
 
-            {/* Custom Toggle */}
-            <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            {/* Toggle */}
+            <label className="relative inline-flex shrink-0 cursor-pointer items-center">
               <input
                 type="checkbox"
                 checked={notificationSettings[item.key]}
@@ -84,46 +84,25 @@ export default function NotificationSettings({
                     [item.key]: e.target.checked,
                   })
                 }
-                className="sr-only peer"
+                className="peer sr-only"
               />
-              <div
-                className="
-                w-12 h-7 bg-gray-200 rounded-full
-                peer-focus:ring-4 peer-focus:ring-red-500/10
-                peer-checked:bg-gradient-to-r peer-checked:from-red-500 peer-checked:to-red-600
-                after:content-[''] after:absolute after:top-[3px] after:left-[3px]
-                after:bg-white after:rounded-full after:h-[22px] after:w-[22px]
-                after:transition-all after:duration-300 after:ease-in-out
-                after:shadow-sm
-                peer-checked:after:translate-x-[20px]
-                transition-all duration-300
-                hover:bg-gray-300 peer-checked:hover:from-red-600 peer-checked:hover:to-red-700
-              "
-              ></div>
+              <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-5 peer-focus:ring-2 peer-focus:ring-blue-500/20"></div>
             </label>
           </div>
         ))}
       </div>
 
-      {/* Card Footer */}
-      <div className="px-6 sm:px-8 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+      {/* Footer */}
+      <div className="flex justify-end border-t border-gray-100 bg-gray-50 px-6 py-4 sm:px-8">
         <button
           onClick={handleNotificationSave}
           disabled={isSaving}
-          className="
-            inline-flex items-center gap-2 px-6 py-3
-            bg-gradient-to-r from-red-500 to-red-600 text-white
-            rounded-xl font-semibold text-sm
-            hover:from-red-600 hover:to-red-700
-            active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all duration-200
-            shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30
-          "
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSaving ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <CheckCircle size={18} />
+            <CheckCircle className="h-4 w-4" />
           )}
           {isSaving ? "Saving..." : "Save Preferences"}
         </button>

@@ -8,6 +8,7 @@ import {
   Calendar,
   TrendingUp,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,8 +29,6 @@ export default function CollaborationsPage() {
 
   useEffect(() => {
     if (authenticated && role === "brand") {
-      // Simulate loading collaborations
-      // Replace with actual API call
       setTimeout(() => {
         setCollaborations([]);
         setIsLoading(false);
@@ -37,256 +36,217 @@ export default function CollaborationsPage() {
     }
   }, [authenticated, role]);
 
-  // Loading state
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="loading-spinner mb-4"></div>
-          <span className="text-lg text-gray-600 font-medium">Loading...</span>
+          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-gray-400" />
+          <span className="text-sm text-gray-500">Loading…</span>
         </div>
       </div>
     );
   }
 
-  // Role protection
   if (!authenticated || role !== "brand") {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-red-500">
+      <div className="flex min-h-screen items-center justify-center text-sm text-red-600">
         Access denied. Brand accounts only.
       </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800";
+        return { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" };
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" };
       case "completed":
-        return "bg-blue-100 text-blue-800";
+        return { bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" };
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" };
       default:
-        return "bg-gray-100 text-gray-800";
+        return { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500" };
     }
   };
 
+  const stats = [
+    {
+      label: "Total",
+      value: collaborations.length,
+      icon: Megaphone,
+      color: "text-gray-600",
+    },
+    {
+      label: "Active",
+      value: collaborations.filter((c) => c.status === "active").length,
+      dot: "bg-emerald-500",
+    },
+    {
+      label: "Pending",
+      value: collaborations.filter((c) => c.status === "pending").length,
+      dot: "bg-amber-500",
+    },
+    {
+      label: "Completed",
+      value: collaborations.filter((c) => c.status === "completed").length,
+      dot: "bg-blue-500",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Collaborations
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="mt-1 text-sm text-gray-500">
             Manage your brand collaborations with influencers
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {collaborations.length}
-                </p>
-              </div>
-              <Megaphone className="h-8 w-8 text-purple-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {collaborations.filter((c) => c.status === "active").length}
-                </p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+        {/* Stats */}
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {stats.map((stat, idx) => (
+            <div key={idx} className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500">{stat.label}</p>
+                  <p className="mt-1 text-2xl font-semibold text-gray-900">
+                    {stat.value}
+                  </p>
+                </div>
+                {stat.icon ? (
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                ) : (
+                  <div className="flex h-6 w-6 items-center justify-center">
+                    <span className={`h-2.5 w-2.5 rounded-full ${stat.dot}`} />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {collaborations.filter((c) => c.status === "pending").length}
-                </p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {
-                    collaborations.filter((c) => c.status === "completed")
-                      .length
-                  }
-                </p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Loading State */}
+        {/* Loading */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
         )}
 
         {/* Empty State */}
         {!isLoading && collaborations.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <div className="text-gray-400 mb-4">
-              <Megaphone size={64} className="mx-auto" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+          <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
+            <Megaphone className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
               No Collaborations Yet
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="mb-6 text-sm text-gray-500">
               Start creating events and connecting with influencers to begin
               your collaborations
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/dashboard/brand/events"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
               >
-                <Calendar size={20} />
+                <Calendar className="h-4 w-4" />
                 Create Event
               </Link>
               <Link
                 href="/dashboard/brand/influencers"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
-                <Users size={20} />
+                <Users className="h-4 w-4" />
                 Find Influencers
               </Link>
             </div>
           </div>
         )}
 
-        {/* Collaborations List */}
+        {/* Table */}
         {!isLoading && collaborations.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="border-b border-gray-100 bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Influencer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Event
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Start Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       End Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Engagement
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {collaborations.map((collab) => (
-                    <tr key={collab.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-semibold">
+                <tbody className="divide-y divide-gray-50">
+                  {collaborations.map((collab) => {
+                    const statusConfig = getStatusConfig(collab.status);
+                    return (
+                      <tr
+                        key={collab.id}
+                        className="transition-colors hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600">
                               {collab.influencer_name.charAt(0)}
                             </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-gray-900">
                               {collab.influencer_name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {collab.event_title}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(collab.start_date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(collab.end_date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                            collab.status,
-                          )}`}
-                        >
-                          {collab.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {collab.engagement_rate ? (
-                          <div className="flex items-center">
-                            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                            <span className="text-sm text-gray-900">
-                              {collab.engagement_rate}%
                             </span>
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {collab.event_title}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {new Date(collab.start_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {new Date(collab.end_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusConfig.bg} ${statusConfig.text}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dot}`} />
+                            {collab.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {collab.engagement_rate ? (
+                            <div className="flex items-center gap-1.5 text-sm text-gray-900">
+                              <TrendingUp className="h-4 w-4 text-emerald-500" />
+                              {collab.engagement_rate}%
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
-
-        {/* Info Banner */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-semibold text-blue-900 mb-1">
-              About Collaborations
-            </h4>
-            <p className="text-sm text-blue-700">
-              Collaborations are created when influencers accept your event
-              invitations. Track the progress of your partnerships and measure
-              their success through engagement metrics.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

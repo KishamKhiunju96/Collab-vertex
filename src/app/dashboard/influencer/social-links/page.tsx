@@ -14,6 +14,7 @@ import {
   Shield,
   Link as LinkIcon,
   Check,
+  Loader2,
 } from "lucide-react";
 
 interface SocialLink {
@@ -45,7 +46,6 @@ export default function SocialLinksPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Initialize links from socialLinks array
   useEffect(() => {
     if (socialLinks && socialLinks.length > 0) {
       const linksMap: Record<string, string> = {
@@ -67,31 +67,31 @@ export default function SocialLinksPage() {
       platform: "instagram",
       url: links.instagram,
       icon: Instagram,
-      color: "from-purple-600 to-pink-500",
+      color: "bg-pink-500",
     },
     {
       platform: "youtube",
       url: links.youtube,
       icon: Youtube,
-      color: "from-red-600 to-red-500",
+      color: "bg-red-500",
     },
     {
       platform: "facebook",
       url: links.facebook,
       icon: Facebook,
-      color: "from-blue-600 to-blue-500",
+      color: "bg-blue-600",
     },
     {
       platform: "twitter",
       url: links.twitter,
       icon: Twitter,
-      color: "from-sky-500 to-blue-500",
+      color: "bg-sky-500",
     },
     {
       platform: "linkedin",
       url: links.linkedin,
       icon: Linkedin,
-      color: "from-blue-700 to-blue-600",
+      color: "bg-blue-700",
     },
   ];
 
@@ -104,29 +104,24 @@ export default function SocialLinksPage() {
     try {
       setSaving(true);
 
-      // Update or create each social link
       for (const [platform, url] of Object.entries(links)) {
         if (url.trim()) {
-          // Check if link already exists
           const existingLink = socialLinks.find(
             (link) => link.platform.toLowerCase() === platform.toLowerCase()
           );
 
           if (existingLink) {
-            // Update existing link
             await editLink(existingLink.id, {
               platform: platform,
               url: url,
             });
           } else {
-            // Create new link
             await addLink({
               platform: platform,
               url: url,
             });
           }
         } else {
-          // Remove link if URL is empty
           const existingLink = socialLinks.find(
             (link) => link.platform.toLowerCase() === platform.toLowerCase()
           );
@@ -145,33 +140,28 @@ export default function SocialLinksPage() {
     }
   };
 
-  // Loading state
   if (loading || linksLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-purple-500 border-t-transparent animate-spin"></div>
-          </div>
-          <span className="text-lg text-gray-600 font-medium">Loading...</span>
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-gray-400" />
+          <span className="text-sm text-gray-500">Loading...</span>
         </div>
       </div>
     );
   }
 
-  // Role protection
   if (!authenticated || role !== "influencer") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 text-center border border-purple-100">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-purple-500" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="mx-4 max-w-md rounded-lg border border-gray-200 bg-white p-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+            <Shield className="h-7 w-7 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="mb-2 text-lg font-semibold text-gray-900">
             Access Denied
           </h2>
-          <p className="text-gray-500">
+          <p className="text-sm text-gray-500">
             This page is only accessible to influencer accounts.
           </p>
         </div>
@@ -180,47 +170,32 @@ export default function SocialLinksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Social Media Links
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="mt-1 text-sm text-gray-500">
             Connect your social media accounts to showcase your reach to brands
           </p>
         </div>
 
-        {/* Info Banner */}
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-          <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-semibold text-blue-900 mb-1">
-              Boost Your Profile
-            </h4>
-            <p className="text-sm text-blue-700">
-              Adding your social media links helps brands discover you and
-              evaluate your reach. Make sure your profiles are public and
-              up-to-date.
-            </p>
-          </div>
-        </div>
-
-        {/* Social Links Form */}
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        {/* Form */}
+        <div className="space-y-5 rounded-lg border border-gray-200 bg-white p-6">
           {platforms.map((platform) => {
             const Icon = platform.icon;
             return (
-              <div key={platform.platform} className="space-y-2">
+              <div key={platform.platform}>
                 <label
                   htmlFor={platform.platform}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 capitalize"
+                  className="mb-1.5 flex items-center gap-2 text-sm font-medium capitalize text-gray-700"
                 >
                   <div
-                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${platform.color} flex items-center justify-center`}
+                    className={`flex h-7 w-7 items-center justify-center rounded ${platform.color}`}
                   >
-                    <Icon className="w-5 h-5 text-white" />
+                    <Icon className="h-4 w-4 text-white" />
                   </div>
                   {platform.platform}
                 </label>
@@ -233,16 +208,16 @@ export default function SocialLinksPage() {
                       handleChange(platform.platform, e.target.value)
                     }
                     placeholder={`https://${platform.platform}.com/yourusername`}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                   />
                   {links[platform.platform] && (
                     <a
                       href={links[platform.platform]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 transition-colors hover:text-blue-600"
                     >
-                      <LinkIcon className="w-5 h-5" />
+                      <LinkIcon className="h-4 w-4" />
                     </a>
                   )}
                 </div>
@@ -254,46 +229,42 @@ export default function SocialLinksPage() {
         {/* Save Button */}
         <div className="mt-6 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            Changes are saved automatically when you click Save
+            Changes are saved when you click Save
           </p>
           <button
             onClick={handleSave}
             disabled={saving || saved}
-            className={`
-              flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition
-              ${
-                saved
-                  ? "bg-green-500 text-white"
-                  : "bg-purple-600 text-white hover:bg-purple-700"
-              }
-              ${saving ? "opacity-50 cursor-not-allowed" : ""}
-            `}
+            className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              saved
+                ? "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             {saving ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : saved ? (
               <>
-                <Check className="w-5 h-5" />
+                <Check className="h-4 w-4" />
                 Saved!
               </>
             ) : (
               <>
-                <Save className="w-5 h-5" />
+                <Save className="h-4 w-4" />
                 Save Changes
               </>
             )}
           </button>
         </div>
 
-        {/* Statistics Preview (placeholder) */}
-        <div className="mt-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        {/* Statistics Preview */}
+        <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
+          <h3 className="mb-4 text-base font-semibold text-gray-900">
             Your Social Reach
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {platforms
               .filter((p) => links[p.platform])
               .map((platform) => {
@@ -301,19 +272,19 @@ export default function SocialLinksPage() {
                 return (
                   <div
                     key={platform.platform}
-                    className="bg-white rounded-lg p-4 shadow-sm"
+                    className="rounded-lg border border-gray-200 bg-white p-4"
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <div
-                        className={`w-6 h-6 rounded bg-gradient-to-br ${platform.color} flex items-center justify-center`}
+                        className={`flex h-6 w-6 items-center justify-center rounded ${platform.color}`}
                       >
-                        <Icon className="w-3 h-3 text-white" />
+                        <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-sm font-medium text-gray-700 capitalize">
+                      <span className="text-sm font-medium capitalize text-gray-700">
                         {platform.platform}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-400">
                       Connect API to fetch stats
                     </p>
                   </div>
@@ -321,7 +292,7 @@ export default function SocialLinksPage() {
               })}
           </div>
           {platforms.filter((p) => links[p.platform]).length === 0 && (
-            <p className="text-center text-gray-500">
+            <p className="text-center text-sm text-gray-500">
               Add your social links above to see your reach statistics
             </p>
           )}

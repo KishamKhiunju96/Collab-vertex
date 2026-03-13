@@ -191,7 +191,7 @@ export default function ForgotPasswordForm() {
                     type="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
-                    placeholder="you@company.com"
+                    placeholder="abcd@gmail.com"
                     autoComplete="email"
                     className={`w-full pl-10 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border rounded-lg outline-none transition-shadow ${
                       fieldErrors.email
